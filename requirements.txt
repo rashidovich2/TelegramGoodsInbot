@@ -1,0 +1,10 @@
+aiogram
+colorlog
+requests
+bs4
+beautifulsoup4
+aiohttp
+APScheduler==3.8.0
+colorama
+async_class
+typing
