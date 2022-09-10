@@ -35,11 +35,10 @@ def get_admins():
     return admins
 
 
-# УДАЛИШЬ ИЛИ ИЗМЕНИШЬ ССЫЛКИ НА ДОНАТ, КАНАЛ И ТЕМУ БОТА - КАСТРИРУЮ БЛЯТЬ <3
 BOT_DESCRIPTION = f"""
 <b>⚜ Bot Version: <code>{BOT_VERSION}</code>
-🔗 Topic Link: <a href='https://lolz.guru/threads/1888814'>Click me</a>
-♻ Bot created by @djimbox
-🍩 Donate to the author: <a href='https://qiwi.com/n/DJIMBO'>Click me</a>
-🤖 Bot channel [NEWS | UPDATES]: <a href='https://t.me/DJIMBO_SHOP'>Click me</a></b>
+🔗 Topic Link: <a href='https://telegra.ph/Bot-magazin-TGShop-A-09-09'>Click me</a>
+♻ Bot created by @raclear
+🍩 Donate to the author: <a href='https://qiwi.com/n/rashidovich'>Click me</a>
+🤖 Bot channel [NEWS | UPDATES]: <a href='https://t.me/Goodsinbot'>Click me</a></b>
 """.strip()
