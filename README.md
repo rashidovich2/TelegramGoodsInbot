@@ -1,5 +1,6 @@
 # TGGoodsInbot
 A store with the functionality of multi-cities.
+Библиотека Aiogram.
 Бот - магазин в Телеграм с функциональностями мульти-города и местонахождением покупателя.
 PRO версия поддерживает мульти-правдцов.
 
