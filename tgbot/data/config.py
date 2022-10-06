@@ -7,7 +7,7 @@ read_config.read("settings.ini")
 BOT_TOKEN = read_config['settings']['token'].strip().replace(" ", "")  # Токен бота
 PATH_DATABASE = "tgbot/data/database.db"  # Путь к БД
 PATH_LOGS = "tgbot/data/logs.log"  # Путь к Логам
-BOT_VERSION = "1.0"  # Версия бота
+BOT_VERSION = "1.1"  # Версия бота
 
 
 # Получение администраторов бота

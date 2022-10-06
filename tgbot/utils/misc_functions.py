@@ -26,7 +26,7 @@ async def on_startup_notify(dp: Dispatcher, aSession: AsyncSession):
                           <code>❗ Данное сообщение видят только администраторы бота.</code>
                           """),
                           markup="default")
-        await check_update(aSession)
+        #await check_update(aSession)
 
 
 # Рассылка сообщения всем администраторам
@@ -67,7 +67,7 @@ async def autobackup_admin():
 
 
 # Автоматическая проверка обновления каждые 24 часа
-async def check_update(aSession: AsyncSession):
+'''async def check_update(aSession: AsyncSession):
     session = await aSession.get_session()
 
     try:
@@ -85,11 +85,11 @@ async def check_update(aSession: AsyncSession):
                               f"➖➖➖➖➖➖➖➖➖➖\n"
                               f"<code>❗ Данное сообщение видят только администраторы бота.</code>")
     except Exception as ex:
-        print(f"Error check update: {ex}")
+        print(f"Error check update: {ex}")'''
 
 
 # Расссылка админам об критических ошибках и обновлениях
-async def check_mail(aSession: AsyncSession):
+'''async def check_mail(aSession: AsyncSession):
     session = await aSession.get_session()
 
     try:
@@ -105,7 +105,7 @@ async def check_mail(aSession: AsyncSession):
                               f"➖➖➖➖➖➖➖➖➖➖\n"
                               f"<code>❗ Данное сообщение видят только администраторы бота.</code>")
     except Exception as ex:
-        print(f"Error check mail: {ex}")
+        print(f"Error check mail: {ex}")'''
 
 
 # Получение faq

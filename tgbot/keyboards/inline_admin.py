@@ -37,6 +37,7 @@ def payment_choice_finl():
     status_form_kb = ikb("✅", callback_data="change_payment:Form:False")
     status_number_kb = ikb("✅", callback_data="change_payment:Number:False")
     status_nickname_kb = ikb("✅", callback_data="change_payment:Nickname:False")
+    status_formy_kb = ikb("✅", callback_data="change_payment:ForYm:False")
 
     if get_payments['way_form'] == "False":
         status_form_kb = ikb("❌", callback_data="change_payment:Form:True")
@@ -44,6 +45,8 @@ def payment_choice_finl():
         status_number_kb = ikb("❌", callback_data="change_payment:Number:True")
     if get_payments['way_nickname'] == "False":
         status_nickname_kb = ikb("❌", callback_data="change_payment:Nickname:True")
+    if get_payments['way_formy'] == "False":
+        status_formy_kb = ikb("❌", callback_data="change_payment:ForYm:True")
 
     keyboard.add(
         ikb("📋 По форме", url="https://vk.cc/bYjKGM"), status_form_kb
@@ -51,7 +54,8 @@ def payment_choice_finl():
         ikb("📞 По номеру", url="https://vk.cc/bYjKEy"), status_number_kb
     ).row(
         ikb("Ⓜ По никнейму", url="https://vk.cc/c8s66X"), status_nickname_kb
-    )
+    ).row(
+        ikb("📋 По Yoo", url="https://vk.cc/bYjKGM"), status_formy_kb)
 
     return keyboard
 

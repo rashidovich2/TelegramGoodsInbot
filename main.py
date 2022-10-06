@@ -13,8 +13,8 @@ from tgbot.services.api_session import AsyncSession
 from tgbot.services.api_sqlite import create_dbx
 from tgbot.utils.misc.bot_commands import set_commands
 from tgbot.utils.misc.bot_logging import bot_logger
-from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_notify, update_profit_day, \
-    update_profit_week, autobackup_admin, check_mail
+from tgbot.utils.misc_functions import on_startup_notify, update_profit_day, \
+    update_profit_week, autobackup_admin
 
 colorama.init()
 
@@ -23,8 +23,8 @@ colorama.init()
 async def scheduler_start(aSession):
     scheduler.add_job(update_profit_week, "cron", day_of_week="mon", hour=00, minute=1)
     scheduler.add_job(update_profit_day, "cron", hour=00)
-    scheduler.add_job(check_update, "cron", hour=00, args=(aSession,))
-    scheduler.add_job(check_mail, "cron", hour=12, args=(aSession,))
+    #scheduler.add_job(check_update, "cron", hour=00, args=(aSession,))
+    #scheduler.add_job(check_mail, "cron", hour=12, args=(aSession,))
     scheduler.add_job(autobackup_admin, "cron", hour=00)
 
 
@@ -37,13 +37,13 @@ async def on_startup(dp: Dispatcher):
     await dp.bot.get_updates(offset=-1)
 
     await set_commands(dp)
-    await check_bot_data()
+    #await check_bot_data()
     await scheduler_start(aSession)
     await on_startup_notify(dp, aSession)
 
     bot_logger.warning("BOT WAS STARTED")
     print(colorama.Fore.LIGHTYELLOW_EX + "~~~~~ Bot was started ~~~~~")
-    print(colorama.Fore.LIGHTBLUE_EX + "~~~~~ TG developer: @raclear ~~~~~")
+    print(colorama.Fore.LIGHTBLUE_EX + "~~~~~ TG developer: @raclear Repo fork from: @djimbo ~~~~~")
     print(colorama.Fore.RESET)
 
     if len(get_admins()) == 0: print("***** ENTER ADMIN ID IN settings.ini *****")

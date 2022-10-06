@@ -17,8 +17,13 @@ def refill_choice_finl():
         active_kb.append(InlineKeyboardButton("📞 QIWI номер", callback_data="refill_choice:Number"))
     if get_payments['way_nickname'] == "True":
         active_kb.append(InlineKeyboardButton("Ⓜ QIWI никнейм", callback_data="refill_choice:Nickname"))
+    if get_payments['way_formy'] == "True":
+        active_kb.append(InlineKeyboardButton("📋 Yoo форма", callback_data="refill_choice:ForYm"))
 
-    if len(active_kb) == 3:
+    if len(active_kb) == 4:
+        keyboard.add(active_kb[0], active_kb[1])
+        keyboard.add(active_kb[2], active_kb[3])
+    elif len(active_kb) == 3:
         keyboard.add(active_kb[0], active_kb[1])
         keyboard.add(active_kb[2])
     elif len(active_kb) == 2:

@@ -13,7 +13,7 @@ prohibit_buy = ['buy_category_open', 'buy_category_swipe', 'buy_position_open', 
                 'buy_item_open', 'buy_item_confirm']
 
 # Игнор-колбэки пополнений
-prohibit_refill = ['user_refill', 'refill_choice', 'Pay:', 'Pay:Form', 'Pay:Number', 'Pay:Nickname']
+prohibit_refill = ['user_refill', 'refill_choice', 'Pay:', 'Pay:Form', 'Pay:ForYm', 'Pay:Number', 'Pay:Nickname']
 
 
 ####################################################################################################

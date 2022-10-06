@@ -482,7 +482,7 @@ def create_dbx():
             print("DB was not found(1/8) | Creating...")
 
         # Создание БД с хранением данных платежных систем
-        if len(con.execute("PRAGMA table_info(storage_payment)").fetchall()) == 7:
+        if len(con.execute("PRAGMA table_info(storage_payment)").fetchall()) == 13:
             print("DB was found(2/8)")
         else:
             con.execute("CREATE TABLE storage_payment("
@@ -492,12 +492,18 @@ def create_dbx():
                         "qiwi_nickname TEXT,"
                         "way_form TEXT,"
                         "way_number TEXT,"
-                        "way_nickname TEXT)")
+                        "way_nickname TEXT,"
+                        "way_formy TEXT,"
+                        "user_id INTEGER,"
+                        "yoo_token TEXT,"
+                        "yoo_client_id TEXT,"
+                        "yoo_redirect_url TEXT,"
+                        "yoo_acc_number INTEGER)")
 
             con.execute("INSERT INTO storage_payment("
-                        "qiwi_login, qiwi_token, qiwi_secret, qiwi_nickname, way_form, way_number, way_nickname) "
-                        "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        ['None', 'None', 'None', 'None', 'False', 'False', 'False'])
+                        "qiwi_login, qiwi_token, qiwi_secret, qiwi_nickname, way_form, way_number, way_nickname, way_formy, yoo_token, yoo_client_id, yoo_redirect_url, yoo_acc_number) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        ['None', 'None', 'None', 'None', 'False', 'False', 'False', 'False', 'None', 'None', 'None', 'None'])
             print("DB was not found(2/8) | Creating...")
 
         # Создание БД с хранением настроек

@@ -5,11 +5,13 @@ from aiogram.types import CallbackQuery, Message
 from tgbot.data.loader import dp
 from tgbot.keyboards.inline_user import refill_bill_finl, refill_choice_finl
 from tgbot.services.api_qiwi import QiwiAPI
+from tgbot.services.api_yoo import YooAPI
 from tgbot.services.api_sqlite import update_userx, get_refillx, add_refillx, get_userx
 from tgbot.utils.const_functions import get_date, get_unix
 from tgbot.utils.misc_functions import send_admins
 
 min_input_qiwi = 5  # Минимальная сумма пополнения в рублях
+min_input_yoo = 5
 
 
 # Выбор способа пополнения
@@ -46,10 +48,15 @@ async def refill_get(message: Message, state: FSMContext):
         if min_input_qiwi <= pay_amount <= 300000:
             get_way = (await state.get_data())['here_pay_way']
             await state.finish()
-
-            get_message, get_link, receipt = await (
-                await QiwiAPI(cache_message, user_bill_pass=True)
-            ).bill_pay(pay_amount, get_way)
+            if get_way == 'Form':
+                get_message, get_link, receipt = await (
+                    await QiwiAPI(cache_message, user_bill_pass=True)
+                ).bill_pay(pay_amount, get_way)
+            elif get_way == 'ForYm':
+                print("test")
+                get_message, get_link, receipt = await (
+                await YooAPI(cache_message) #, acc_number=410011512189686
+                ).bill_pay(pay_amount, get_way)
 
             if get_message:
                 await cache_message.edit_text(get_message, reply_markup=refill_bill_finl(get_link, receipt, get_way))
@@ -86,6 +93,35 @@ async def refill_check_form(call: CallbackQuery):
                           "⌛ Попробуйте чуть позже.", True, cache_time=5)
     elif pay_status == "REJECTED":
         await call.message.edit_text("<b>❌ Счёт был отклонён.</b>")
+
+
+#Проверка оплаты через форму Yoo
+@dp.callback_query_handler(text_contains="Pay:ForYm")
+async def refill_check_formy(call: CallbackQuery):
+    receipt = call.data.split(":")[2]
+    print(call.data)
+    #print(receipt)
+
+    pay_status, pay_amount = await (
+        await YooAPI()
+    ).check_formy(receipt)
+
+    #print(pay_status, pay_amount)
+
+    if pay_status == "success":
+        get_refill = get_refillx(refill_receipt=receipt)
+        if get_refill is None:
+            await refill_success(call, receipt, pay_amount, "ForYm")
+        else:
+            await call.answer("❗ Ваше пополнение уже было зачислено.", True)
+    elif pay_status == "EXPIRED":
+        await call.message.edit_text("<b>❌ Время оплаты вышло. Платёж был удалён.</b>")
+    elif pay_status == "WAITING":
+        await call.answer("❗ Платёж не был найден.\n"
+                          "⌛ Попробуйте чуть позже.", True, cache_time=5)
+    elif pay_status == "REJECTED":
+        await call.message.edit_text("<b>❌ Счёт был отклонён.</b>")
+
 
 
 # Проверка оплаты по переводу (по нику или номеру)
