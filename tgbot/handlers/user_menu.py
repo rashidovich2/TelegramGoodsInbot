@@ -8,13 +8,13 @@ from aiogram.utils.exceptions import MessageCantBeDeleted
 
 from tgbot.data.config import BOT_DESCRIPTION
 from tgbot.data.loader import dp
-from tgbot.keyboards.inline_all import profile_open_inl
+from tgbot.keyboards.inline_all import profile_open_inl, cart_open_inl
 from tgbot.keyboards.inline_page import *
-from tgbot.keyboards.inline_user import user_support_finl, products_open_finl, products_confirm_finl
+from tgbot.keyboards.inline_user import user_support_finl, products_open_finl, products_confirm_finl, products_confirm_finl, products_addcart_confirm_finl, accept_saved_adr, accept_saved_phone
 from tgbot.keyboards.reply_all import menu_frep
 from tgbot.services.api_sqlite import *
 from tgbot.utils.const_functions import get_date, split_messages, get_unix, ded
-from tgbot.utils.misc_functions import open_profile_user, upload_text, get_faq
+from tgbot.utils.misc_functions import open_cart_my, open_profile_user, upload_text, get_faq
 
 
 # Открытие товаров
@@ -35,6 +35,14 @@ async def user_profile(message: Message, state: FSMContext):
     await state.finish()
 
     await message.answer(open_profile_user(message.from_user.id), reply_markup=profile_open_inl)
+
+
+# Открытие корзины
+@dp.message_handler(text="🧮 Корзина", state="*")
+async def user_cart(message: Message, state: FSMContext):
+    await state.finish()
+
+    await message.answer(open_cart_my(message.from_user.id), reply_markup=cart_open_inl)
 
 
 # Проверка товаров в наличии
@@ -139,6 +147,12 @@ async def user_history(call: CallbackQuery, state: FSMContext):
 async def user_profile_return(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(open_profile_user(call.from_user.id), reply_markup=profile_open_inl)
 
+# Возвращение к корзине
+@dp.callback_query_handler(text="user_cart", state="*")
+async def user_cart_return(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_text(open_cart_my(call.from_user.id), reply_markup=cart_open_inl)
+
+
 
 ################################################################################################
 ######################################### ПОКУПКА ТОВАРА #######################################
@@ -223,6 +237,167 @@ async def user_purchase_position_next_page(call: CallbackQuery, state: FSMContex
 
 
 ########################################### ПОКУПКА ##########################################
+# Выбор количества товаров в корзине
+@dp.callback_query_handler(text_startswith="add_item_cart", state="*")
+async def user_purchase_addcart(call: CallbackQuery, state: FSMContext):
+    position_id = int(call.data.split(":")[1])
+    print("Добавление в корзину")
+    get_position = get_positionx(position_id=position_id)
+    get_items = get_itemsx(position_id=position_id)
+    get_user = get_userx(user_id=call.from_user.id)
+    get_count = len(get_items)
+
+    if get_count == 1:
+        await state.update_data(here_cache_position_id=position_id)
+        await state.finish()
+
+        await call.message.delete()
+        await call.message.answer(f"<b>1 шт. в наличии. Добавить товар(ы) в корзину?</b>\n"
+                                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                  f"🎁 Товар: <code>{get_position['position_name']}</code>\n"
+                                  f"📦 Количество: <code>1шт</code>\n"
+                                  f"💰 Сумма к покупке: <code>{get_position['position_price']}₽</code>",
+                                  reply_markup=products_addcart_confirm_finl(position_id, 1))
+    elif get_count >= 1:
+        await state.update_data(here_cache_position_id=position_id)
+        await state.set_state("here_itemsadd_cart")
+
+        await call.message.delete()
+        await call.message.answer(f"<b>🎁 Введите количество товаров для покупки</b>\n"
+                                  f"▶ От <code>1</code> до <code>{get_count}</code>\n"
+                                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                  f"🎁 Товар: <code>{get_position['position_name']}</code> - <code>{get_position['position_price']}₽</code>\n"
+                                  f"💰 Ваш баланс: <code>{get_user['user_balance']}₽</code>")
+    else:
+        await call.answer("🎁 Товара нет в наличии")
+
+
+
+# Принятие количества товаров в корзине
+@dp.message_handler(state="here_itemsadd_cart")
+async def user_purchase_select_count(message: Message, state: FSMContext):
+    position_id = (await state.get_data())['here_cache_position_id']
+    get_position = get_positionx(position_id=position_id)
+    get_user = get_userx(user_id=message.from_user.id)
+    get_items = get_itemsx(position_id=position_id)
+
+    if get_position['position_price'] != 0:
+        get_count = int(get_user['user_balance'] / get_position['position_price'])
+        if get_count > len(get_items): get_count = len(get_items)
+    else:
+        get_count = len(get_items)
+
+    send_message = f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                   f"🎁 Введите количество товаров для покупки\n" \
+                   f"▶ От <code>1</code> до <code>{get_count}</code>\n" \
+                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                   f"🎁 Товар: <code>{get_position['position_name']}</code> - <code>{get_position['position_price']}₽</code>\n" \
+                   f"💰 Ваш баланс: <code>{get_user['user_balance']}₽</code>"
+    print("test")
+    if message.text: #.isdigit()
+        get_count = int(message.text)
+        amount_pay = int(get_position['position_price']) * get_count
+
+        if len(get_items) >= 1:
+            if 1 <= get_count <= len(get_items):
+                #if int(get_user['user_balance']) >= amount_pay:
+                await state.finish()
+                await message.answer(f"<b>🎁 Вы действительно хотите добавить в корзину товар(ы)?</b>\n"
+                                     f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                     f"🎁 Товар: <code>{get_position['position_name']}</code>\n"
+                                     f"📦 Количество: <code>{get_count}шт</code>\n"
+                                     f"💰 Сумма к покупке: <code>{amount_pay}₽</code>",
+                                     reply_markup=products_addcart_confirm_finl(position_id, get_count))
+                #else:
+                needed_to_refill = amount_pay - int(get_user['user_balance'])
+                await state.finish()
+                await message.answer(f"<b>🎁 Вы действительно хотите добавить в корзину товар(ы)?</b>\n"
+                                     f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                     f"🎁 Товар: <code>{get_position['position_name']}</code>\n"
+                                     f"📦 Количество: <code>{get_count}шт</code>\n"
+                                     f"💰 Сумма к покупке: <code>{amount_pay}₽</code>",
+                                     f"💰 Сумма к пополнению: <code>{needed_to_refill}₽</code>",
+                                     reply_markup=products_addcart_confirm_finl(position_id, get_count))
+
+            else:
+                await message.answer(f"<b>❌ Неверное количество товаров.</b>\n" + send_message)
+        else:
+            await state.finish()
+            await message.answer("<b>🎁 Товар который вы хотели купить, закончился</b>")
+    else:
+        await message.answer(f"<b>❌ Данные были введены неверно.</b>\n" + send_message)
+
+
+
+# Подтверждение добавления товара в корзину
+@dp.callback_query_handler(text_startswith="xaddcart_item", state="*")
+async def user_addcart_confirm(call: CallbackQuery, state: FSMContext):
+    get_action = call.data.split(":")[1]
+    position_id = int(call.data.split(":")[2])
+    get_count = int(call.data.split(":")[3])
+
+    if get_action == "yes":
+        await call.message.edit_text("<b>🔄 Ждите, товары подготавливаются</b>")
+
+        get_position = get_positionx(position_id=position_id)
+        get_items = get_itemsx(position_id=position_id)
+        get_user = get_userx(user_id=call.from_user.id)
+
+        amount_pay = int(get_position['position_price'] * get_count)
+
+        if 1 <= int(get_count) <= len(get_items):
+                save_items, send_count, split_len = buy_itemx(get_items, get_count)
+
+                #уточнение цены за количество в наличии
+                if get_count != send_count:
+                    amount_pay = int(get_position['position_price'] * send_count)
+                    get_count = send_count
+
+                receipt = get_unix()
+                add_time = get_date()
+                print(add_time)
+
+                await call.message.delete()
+                #if split_len == 0:
+                #    await call.message.answer("\n\n".join(save_items), parse_mode="None")
+                #else:
+                #    for item in split_messages(save_items, split_len):
+                #        await call.message.answer("\n\n".join(item), parse_mode="None")
+                #        await asyncio.sleep(0.3)
+                await asyncio.sleep(0.3)
+                #update_userx(get_user['user_id'], user_balance=get_user['user_balance'] - amount_pay)
+
+                users_order = get_user_orderx(get_user['user_id'])
+                #print(users_order)
+                print(str(users_order))
+                
+                if not users_order:
+                    create_orderx(call.from_user.id, get_user['user_login'], get_user['user_name'], 1, str(add_time), receipt)
+                    users_order = get_user_orderx(get_user['user_id'])
+                    print(users_order['order_id'])
+
+                order_id = users_order['order_id']
+                #price = int(get_position['position_price'])
+                add_order_itemx(order_id, position_id, get_count, get_position['position_price'], receipt)
+                #add_order_itemx(1, 1, 1, 1, 1)
+
+                await call.message.answer(f"<b>✅ Вы успешно добавили товар(ы) в корзину</b>\n"
+                                          f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                          f"🧾 Чек: <code>#{receipt}</code>\n"
+                                          f"🎁 Товар: <code>{get_position['position_name']} | {get_count}шт | {amount_pay}₽</code>\n"
+                                          f"🕰 Дата покупки: <code>{add_time}</code>",
+                                          reply_markup=menu_frep(call.from_user.id))
+        else:
+            await call.message.answer("<b>🎁 Товар который вы хотели купить закончился или изменился.</b>",
+                                      reply_markup=menu_frep(call.from_user.id))
+    else:
+        if len(get_all_categoriesx()) >= 1:
+            await call.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
+                                         reply_markup=products_item_category_open_fp(0))
+        else:
+            await call.message.edit_text("<b>✅ Вы отменили покупку товаров.</b>")
+
+
 # Выбор количества товаров для покупки
 @dp.callback_query_handler(text_startswith="buy_item_open:", state="*")
 async def user_purchase_select(call: CallbackQuery, state: FSMContext):
@@ -270,6 +445,75 @@ async def user_purchase_select(call: CallbackQuery, state: FSMContext):
             await call.answer("🎁 Товаров нет в наличии")
     else:
         await call.answer("❗ У вас недостаточно средств. Пополните баланс", True)
+
+
+
+
+@dp.callback_query_handler(text_startswith="enter_phone_manualy", state="*")
+async def enter_phone_man(call: CallbackQuery, state: FSMContext):
+    print('enter_phone_manualy')
+    #user_id = int(call.data.split(":")[1])
+    user_id = call.from_user.id
+    get_user = get_userx(user_id=call.from_user.id)
+
+    #get_user = get_userx(user_id=call.from_user.id)
+
+    await state.set_state("enter_phone_manualy_fin")
+
+    await call.message.delete()
+    await call.message.answer(f"<b>🎁 Введите Ваш номер телефона:</b>\n"
+                              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n")
+
+# Принятие адреса для доставки
+@dp.message_handler(state="enter_phone_manualy_fin")
+async def user_enter_phone(message: Message, state: FSMContext):
+    print('enter_phone_manualy_fin')
+    #user_id = int(call.data.split(":")[1])
+    get_user = get_userx(user_id=message.from_user.id)
+    #get_user = get_userx(user_id=message.from_user.id)
+    await state.finish()
+
+    if message.text:
+        phone = str(message.text)
+        update_userx(message.from_user.id, user_phone=phone)
+
+    await message.delete()
+    await message.answer(f"<b>✅ Номер телефон был успешно изменен на следующий:</b>\n"
+                            + phone, reply_markup=accept_saved_phone(message.from_user.id))
+
+
+@dp.callback_query_handler(text_startswith="enter_address_manualy", state="*")
+async def enter_address_man(call: CallbackQuery, state: FSMContext):
+    print('enter_address_manualy')
+    #user_id = int(call.data.split(":")[1])
+    #user_id = call.from_user.id
+    get_user = get_userx(user_id=call.from_user.id)
+
+    #get_user = get_userx(user_id=call.from_user.id)
+
+    await state.set_state("enter_address_manualy_fin")
+
+    await call.message.delete()
+    await call.message.answer(f"<b>🎁 Введите Ваш адрес:</b>\n"
+                              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n")
+
+# Принятие адреса для доставки
+@dp.message_handler(state="enter_address_manualy_fin")
+async def user_enter_addr(message: Message, state: FSMContext):
+    print('enter_address_manualy_fin')
+    #user_id = int(call.data.split(":")[1])
+    get_user = get_userx(user_id=message.from_user.id)
+    #get_user = get_userx(user_id=message.from_user.id)
+    await state.finish()
+
+    if message.text:
+        address = str(message.text)
+        update_userx(message.from_user.id, user_address=address)
+
+    await message.delete()
+    await message.answer(f"<b>✅ Адрес доставки был успешно изменен на следующий:</b>\n"
+                            + address, reply_markup=accept_saved_adr(message.from_user.id))
+
 
 
 # Принятие количества товаров для покупки

@@ -11,7 +11,7 @@ from tgbot.keyboards.reply_all import menu_frep
 from tgbot.services.api_session import AsyncSession
 from tgbot.services.api_sqlite import get_settingsx, update_settingsx, get_userx, get_purchasesx, get_all_positionsx, \
     update_positionx, get_all_categoriesx, get_all_purchasesx, get_all_refillx, get_all_usersx, get_all_itemsx, \
-    get_itemsx, get_positionx, get_categoryx
+    get_itemsx, get_positionx, get_categoryx, get_user_orderx, create_orderx, get_cart_positionsx
 from tgbot.utils.const_functions import get_unix, convert_day, get_date, ded
 
 
@@ -227,6 +227,66 @@ def open_profile_user(user_id):
            🎁 Куплено товаров: <code>{count_items}шт</code>
            🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>
            """)
+
+
+# Открытие своего профиля
+def open_cart_my(user_id):
+    order = get_user_orderx(user_id=user_id)
+    get_user = get_userx(user_id=user_id)
+    ub = get_user['user_balance']
+    get_positions = []
+    get_positions = get_cart_positionsx(order_id=order['order_id'])
+    this_items = []
+    this_itemst = this_itemst2 = this_itemst3 = ''
+    delivery = 170
+    totalm = 0
+    print("|||")
+    this_items.append(f"| Наименование | Цена | Количество | Стоимость |")
+    
+    for position in get_positions:
+        poscost = position['count'] * position['position_price']
+        totalm += poscost
+
+        this_items.append(
+            f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽" )
+
+        this_itemst += f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽ \n"
+        
+        print(f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт.| {poscost}₽")
+
+    if ub >= totalm:
+        this_itemst2 = "Заказ возможно оплатить с баланса целиком."
+    elif ub < totalm:
+        torefill = totalm - get_user['user_balance']
+        this_itemst2 = "Для оформления заказа потребуется пополнение в размере:" + str(torefill) + "₽"
+    
+    this_itemst3 += "Всего по всем позициям: " + str(totalm) + "\n"
+    #this_itemst += this_itemst2
+    totalm2 = totalm + delivery
+
+    this_address = get_user['user_address']
+    if this_address is None:
+        this_address = "Ваш адрес доставки не указан."
+    #else: this_itemst += this_address
+
+    this_phone= get_user['user_phone']
+    if this_phone is None:
+        this_phone = "Ваш контактный номер не указан."
+    #else: this_itemst += this_phone
+
+
+    return f"<b>👤 Ваша Корзина:</b>\n" \
+           f"➖➖➖➖➖➖➖➖➖➖\n" \
+           f"🆔 ID: <code>{get_user['user_id']}</code>\n" \
+           f"💳 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
+           f"🗃 В корзине товаров: <code>{totalm}</code>\n" \
+           f"   <code>{this_itemst}</code>\n" \
+           f"🕰 Адрес: <code>{this_address}</code>\n" \
+           f"📞 Телефон: <code>{this_phone}</code>\n" \
+           f"🏙 Примечание: <code>{this_itemst2}</code>\n" \
+           f"🏙 Доставка: <code>{delivery}₽</code>\n" \
+           f"🏙 Итого: <code>{totalm2}₽</code>\n" \
+           f"📡 Координаты: <code>{get_user['user_geocode']}</code>"
 
 
 # Открытие профиля при поиске

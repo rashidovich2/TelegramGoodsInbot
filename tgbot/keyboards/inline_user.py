@@ -35,6 +35,7 @@ def refill_choice_finl():
 
     if len(active_kb) >= 1:
         keyboard.add(InlineKeyboardButton("⬅ Вернуться ↩", callback_data="user_profile"))
+        keyboard.add(InlineKeyboardButton("⬅ Вернуться в корзину ↩", callback_data="user_cart"))
 
     return keyboard
 
@@ -55,6 +56,8 @@ def refill_bill_finl(send_requests, get_receipt, get_way):
 def products_open_finl(position_id, category_id, remover):
     keyboard = InlineKeyboardMarkup(
     ).add(
+        InlineKeyboardButton("🛒 Добавить в корзину", callback_data=f"add_item_cart:{position_id}")
+    ).add(
         InlineKeyboardButton("💰 Купить товар", callback_data=f"buy_item_open:{position_id}:{remover}")
     ).add(
         InlineKeyboardButton("⬅ Вернуться ↩", callback_data=f"buy_category_open:{category_id}:{remover}")
@@ -62,6 +65,35 @@ def products_open_finl(position_id, category_id, remover):
 
     return keyboard
 
+
+# Подтверждение сохранения адреса доставки
+def accept_saved_adr(user_id):
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        InlineKeyboardButton("✅ Да, оставить текущий адрес", callback_data=f"user_cart"),
+        InlineKeyboardButton("❌ Ввести новый адрес", callback_data=f"enter_address_manualy:{user_id}")
+    )
+
+    return keyboard
+
+def accept_saved_phone(user_id):
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        InlineKeyboardButton("✅ Да, оставить текущий номер", callback_data=f"user_cart"),
+        InlineKeyboardButton("❌ Ввести новый номер", callback_data=f"enter_phone_manualy:{user_id}")
+    )
+
+    return keyboard
+
+# Подтверждение покупки товара
+def products_addcart_confirm_finl(position_id, get_count):
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        InlineKeyboardButton("✅ Подтвердить", callback_data=f"xaddcart_item:yes:{position_id}:{get_count}"),
+        InlineKeyboardButton("❌ Отменить", callback_data=f"xaddcart_item:not:{position_id}:{get_count}")
+    )
+
+    return keyboard
 
 # Подтверждение покупки товара
 def products_confirm_finl(position_id, get_count):

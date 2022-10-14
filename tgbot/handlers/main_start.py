@@ -10,7 +10,7 @@ from tgbot.utils.misc.bot_filters import IsBuy, IsRefill, IsWork
 
 # Игнор-колбэки покупок
 prohibit_buy = ['buy_category_open', 'buy_category_swipe', 'buy_position_open', 'buy_position_swipe',
-                'buy_item_open', 'buy_item_confirm']
+                'buy_item_open', 'buy_item_confirm', 'user_cart']
 
 # Игнор-колбэки пополнений
 prohibit_refill = ['user_refill', 'refill_choice', 'Pay:', 'Pay:Form', 'Pay:ForYm', 'Pay:Number', 'Pay:Nickname']

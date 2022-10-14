@@ -21,6 +21,16 @@ close_inl = InlineKeyboardMarkup(
     InlineKeyboardButton("❌ Закрыть", callback_data="close_this"),
 )
 
+# Подтверждение покупки товара
+cart_open_inl = InlineKeyboardMarkup(
+    ).add(
+        InlineKeyboardButton("🏢 Ввести адрес доставки", callback_data=f"enter_address_manualy"),
+        InlineKeyboardButton("📱 Ввести номер телефона", callback_data=f"enter_phone_manualy")
+    ).add(
+        InlineKeyboardButton("💰 Пополнить счет", callback_data=f"user_refill"),
+        #InlineKeyboardButton("❓ Задать вопрос продавцу", callback_data=f"enter_message_manualy")
+    )
+
 ######################################## ТОВАРЫ ########################################
 # Удаление категорий
 category_remove_confirm_inl = InlineKeyboardMarkup(

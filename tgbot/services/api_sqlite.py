@@ -63,6 +63,45 @@ def get_userx(**kwargs):
         sql, parameters = update_format_args(sql, kwargs)
         return con.execute(sql, parameters).fetchone()
 
+# Проверка существования заказа
+def get_user_orderx(user_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        order = con.execute(f"SELECT order_id FROM storage_orders WHERE user_id = ?", [user_id]).fetchone()
+        #order = con.execute(sql, [user_id]).fetchone()
+        #if order is None:
+        #    return False
+        #else:
+        return order
+
+# Создание заказа
+def create_orderx(user_id, user_login, user_name, order_state, order_date, order_unix):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        con.execute("INSERT INTO storage_orders "
+                "(user_id, user_login, user_name, order_state, order_date, order_unix) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                [user_id, user_login, user_name, order_state, order_date, order_unix])
+        con.commit()
+
+# Получение позиций корзины
+def get_cart_positionsx(order_id):
+    print(f'Получение позиций корзины  api_sqlite.py  367')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        positions = con.execute(f"SELECT * FROM storage_orders_items LEFT JOIN storage_position USING(position_id) WHERE order_id = ?", [order_id]).fetchall()
+        return positions
+
+# Добавление товара в заказ
+def add_order_itemx(order_id, position_id, count, price, receipt):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        con.execute("INSERT INTO storage_orders_items "
+                    "(order_id, position_id, count, price, receipt) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    [order_id, position_id, count, price, receipt])
+        con.commit()
+
 
 # Получение пользователей
 def get_usersx(**kwargs):
@@ -410,6 +449,17 @@ def buy_itemx(get_items, get_count):
 
     return save_items, send_count, get_len
 
+# Проверка существования заказа
+def get_user_orderx(user_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        order = con.execute(f"SELECT order_id FROM storage_orders WHERE user_id = ?", [user_id]).fetchone()
+        #order = con.execute(sql, [user_id]).fetchone()
+        #if order is None:
+        #    return False
+        #else:
+        return order
+
 
 # Добавление покупки
 def add_purchasex(user_id, user_login, user_name, purchase_receipt, purchase_count, purchase_price, purchase_price_one,
@@ -467,23 +517,29 @@ def create_dbx():
         con.row_factory = dict_factory
 
         # Создание БД с хранением данных пользователей
-        if len(con.execute("PRAGMA table_info(storage_users)").fetchall()) == 8:
-            print("DB was found(1/8)")
+        if len(con.execute("PRAGMA table_info(storage_users)").fetchall()) == 12:
+            print("DB was found(1/12)")
         else:
-            con.execute("CREATE TABLE storage_users("
+            con.execute("CREATE TABLE IF NOT EXISTS storage_users("
                         "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
                         "user_id INTEGER,"
                         "user_login TEXT,"
                         "user_name TEXT,"
+                        "user_address TEXT,"
+                        "user_phone TEXT,"
                         "user_balance INTEGER,"
                         "user_refill INTEGER,"
                         "user_date TIMESTAMP,"
-                        "user_unix INTEGER)")
-            print("DB was not found(1/8) | Creating...")
+                        "user_unix INTEGER,"
+                        "user_city TEXT,"
+                        "user_geocode TEXT,"
+                        "user_role TEXT,"
+                        "user_city_id INTEGER)")  # Добавил город
+            print("DB was not found(1/12) | Creating...")
 
         # Создание БД с хранением данных платежных систем
         if len(con.execute("PRAGMA table_info(storage_payment)").fetchall()) == 13:
-            print("DB was found(2/8)")
+            print("DB was found(2/12)")
         else:
             con.execute("CREATE TABLE storage_payment("
                         "qiwi_login TEXT,"
@@ -504,11 +560,11 @@ def create_dbx():
                         "qiwi_login, qiwi_token, qiwi_secret, qiwi_nickname, way_form, way_number, way_nickname, way_formy, yoo_token, yoo_client_id, yoo_redirect_url, yoo_acc_number) "
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                         ['None', 'None', 'None', 'None', 'False', 'False', 'False', 'False', 'None', 'None', 'None', 'None'])
-            print("DB was not found(2/8) | Creating...")
+            print("DB was not found(2/12) | Creating...")
 
         # Создание БД с хранением настроек
         if len(con.execute("PRAGMA table_info(storage_settings)").fetchall()) == 9:
-            print("DB was found(3/8)")
+            print("DB was found(3/12)")
         else:
             con.execute("CREATE TABLE storage_settings("
                         "status_work TEXT,"
@@ -522,15 +578,14 @@ def create_dbx():
                         "misc_profit_week INTEGER)")
 
             con.execute("INSERT INTO storage_settings("
-                        "status_work, status_refill, status_buy, misc_faq, misc_support,"
-                        "misc_bot, misc_update, misc_profit_day, misc_profit_week)"
+                        "status_work, status_refill, status_buy, misc_faq, misc_support, misc_bot, misc_update, misc_profit_day, misc_profit_week)"
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                         ["True", "False", "False", "None", "None", "None", "False", get_unix(), get_unix()])
-            print("DB was not found(3/8) | Creating...")
+            print("DB was not found(3/12) | Creating...")
 
         # Создание БД с хранением пополнений пользователей
         if len(con.execute("PRAGMA table_info(storage_refill)").fetchall()) == 10:
-            print("DB was found(4/8)")
+            print("DB was found(4/12)")
         else:
             con.execute("CREATE TABLE storage_refill("
                         "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -543,7 +598,7 @@ def create_dbx():
                         "refill_way TEXT,"
                         "refill_date TIMESTAMP,"
                         "refill_unix INTEGER)")
-            print("DB was not found(4/8) | Creating...")
+            print("DB was not found(4/12) | Creating...")
 
         # Создание БД с хранением категорий
         if len(con.execute("PRAGMA table_info(storage_category)").fetchall()) == 3:
@@ -553,13 +608,15 @@ def create_dbx():
                         "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
                         "category_id INTEGER,"
                         "category_name TEXT)")
-            print("DB was not found(5/8) | Creating...")
+            print("DB was not found(5/12) | Creating...")
+
+
 
         # Создание БД с хранением позиций
-        if len(con.execute("PRAGMA table_info(storage_position)").fetchall()) == 8:
-            print("DB was found(6/8)")
+        if len(con.execute("PRAGMA table_info(storage_position)").fetchall()) == 11:
+            print("DB was found(6/12)")
         else:
-            con.execute("CREATE TABLE storage_position("
+            con.execute("CREATE TABLE IF NOT EXISTS storage_position("
                         "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
                         "position_id INTEGER,"
                         "position_name TEXT,"
@@ -567,29 +624,33 @@ def create_dbx():
                         "position_description TEXT,"
                         "position_photo TEXT,"
                         "position_date TIMESTAMP,"
-                        "category_id INTEGER)")
-            print("DB was not found(6/8) | Creating...")
+                        "category_id INTEGER,"
+                        "store_id INTEGER,"
+                        "position_city TEXT,"
+                        "position_city_id INTEGER)")
+            print("DB was not found(6/12) | Creating...")
 
         # Создание БД с хранением товаров
-        if len(con.execute("PRAGMA table_info(storage_item)").fetchall()) == 8:
-            print("DB was found(7/8)")
+        if len(con.execute("PRAGMA table_info(storage_item)").fetchall()) == 9:
+            print("DB was found(7/12)")
         else:
-            con.execute("CREATE TABLE storage_item("
+            con.execute("CREATE TABLE IF NOT EXISTS storage_item("
                         "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
                         "item_id INTEGER,"
                         "item_data TEXT,"
                         "position_id INTEGER,"
                         "category_id INTEGER,"
+                        "shop_id INTEGER,"
                         "creator_id INTEGER,"
                         "creator_name TEXT,"
                         "add_date TIMESTAMP)")
-            print("DB was not found(7/8) | Creating...")
+            print("DB was not found(7/12) | Creating...")
 
         # # Создание БД с хранением покупок
         if len(con.execute("PRAGMA table_info(storage_purchases)").fetchall()) == 15:
-            print("DB was found(8/8)")
+            print("DB was found(8/12)")
         else:
-            con.execute("CREATE TABLE storage_purchases("
+            con.execute("CREATE TABLE IF NOT EXISTS storage_purchases("
                         "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
                         "user_id INTEGER,"
                         "user_login TEXT,"
@@ -605,6 +666,68 @@ def create_dbx():
                         "purchase_unix INTEGER,"
                         "balance_before INTEGER,"
                         "balance_after INTEGER)")
-            print("DB was not found(8/8) | Creating...")
+            print("DB was not found(8/12) | Creating...")
+
+            if len(con.execute("PRAGMA table_info(storage_shop)").fetchall()) == 3:
+                print("DB was not found(9/12) | Creating...")
+            else:
+                con.execute("CREATE TABLE IF NOT EXISTS storage_shop("
+                            "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
+                            "shop_id INTEGER,"
+                            "shop_name TEXT)")
+
+                print("DB was not found(9/12) | Creating...")
+            # # Создание БД с хранением покупок
+            if len(con.execute("PRAGMA table_info(storage_purchases)").fetchall()) == 15:
+                print("DB was found(10/12)")
+            else:
+                con.execute("CREATE TABLE IF NOT EXISTS storage_purchases("
+                        "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        "user_id INTEGER,"
+                        "user_login TEXT,"
+                        "user_name TEXT,"
+                        "purchase_receipt TEXT,"
+                        "purchase_count INTEGER,"
+                        "purchase_price INTEGER,"
+                        "purchase_price_one INTEGER,"
+                        "purchase_position_id INTEGER,"
+                        "purchase_position_name TEXT,"
+                        "purchase_item TEXT,"
+                        "purchase_date TIMESTAMP,"
+                        "purchase_unix INTEGER,"
+                        "balance_before INTEGER,"
+                        "balance_after INTEGER)")
+                print("DB was not found(10/12) | Creating...")
+
+            if len(con.execute("PRAGMA table_info(storage_orders)").fetchall()) == 7:
+                print("DB was found(11/12)")
+            else:
+                con.execute("CREATE TABLE IF NOT EXISTS storage_orders("
+                        "order_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        "user_id INTEGER,"
+                        "user_login TEXT,"
+                        "user_name TEXT,"
+                        "order_date TEXT,"
+                        "order_state INTEGER,"
+                        "order_unix INTEGER,"
+                        "phone TEXT,"
+                        "address TEXT)")
+
+                print("DB was not found(11/12) | Creating...")
+
+            if len(con.execute("PRAGMA table_info(storage_orders_items)").fetchall()) == 7:
+                print("DB was found(12/12)")
+            else:
+                con.execute("CREATE TABLE IF NOT EXISTS storage_orders_items("
+                        "order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        "order_id INTEGER,"
+                        "position_id INTEGER,"
+                        "user_name TEXT,"
+                        "count INTEGER,"
+                        "price INTEGER,"
+                        "receipt INTEGER)")
+            
+                print("DB was not found(12/12) | Creating...")
+
 
         con.commit()
