@@ -1,4 +1,4 @@
-# TGGoodsInbot
+# TelegramGoodsInbot
 A store with the functionality of multi-cities.
 Бот - магазин в Телеграм с функциональностями:
 -мульти-города и местонахождение покупателя.
