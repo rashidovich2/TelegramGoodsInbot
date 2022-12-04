@@ -99,7 +99,7 @@ A store with the functionality of multi-cities.
 
 
 **PRO версия:**
-. карточка магазина.
+- карточка магазина.
 - три режима работы площадки: real | digital | hybrid.
 
 
