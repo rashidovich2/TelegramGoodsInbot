@@ -111,4 +111,5 @@ A store with the functionality of multi-cities.
 Работающий экземпляр пока только по России в 192 городах; https://t.me/Goodsinbot
 Чтобы торговать своими товарами в текущем экземпляре, отправьте запрос на продавца из бота, нажав "Я продавец".
 Инструкция и описание находятся здесь: <a href='https://github.com/rashidovich2/TelegramGoodsInbot/wiki/Главная-TelegramGoodsinbot---меню-бота-для-разных-ролей'>Документация</a>
+Сайт бота: https://aliplaces.ru
 По вопросам пишите пожалуйста в телеграм: **@raclear**
