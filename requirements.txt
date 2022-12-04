@@ -3,8 +3,10 @@ colorlog
 requests
 bs4
 beautifulsoup4
+pyQiwiP2P
 aiohttp
-APScheduler==3.8.0
+APScheduler==3.9.1
 colorama
 async_class
-typing
+yoomoney
+geopy

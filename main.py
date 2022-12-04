@@ -4,60 +4,64 @@ import sys
 
 import colorama
 from aiogram import executor, Dispatcher
+from colorama import Fore
+
 
 from tgbot.data.config import get_admins
-from tgbot.data.loader import scheduler
 from tgbot.handlers import dp
+from tgbot.loader import scheduler
 from tgbot.middlewares import setup_middlewares
-from tgbot.services.api_session import AsyncSession
+from tgbot.services.api_session import RequestsSession
 from tgbot.services.api_sqlite import create_dbx
+from tgbot.services.regular import send_message_start
 from tgbot.utils.misc.bot_commands import set_commands
 from tgbot.utils.misc.bot_logging import bot_logger
-from tgbot.utils.misc_functions import on_startup_notify, update_profit_day, \
-    update_profit_week, autobackup_admin
+from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_notify, update_profit_day, \
+    update_profit_week
 
-colorama.init()
+#CHANNEL_ID = '-1001683374540'
+#text = "test"
 
+#async def send_message(channel_id: int, text: str):
+#    await bot.send_message(channel_id, text)
 
 # Запуск шедулеров
-async def scheduler_start(aSession):
-    scheduler.add_job(update_profit_week, "cron", day_of_week="mon", hour=00, minute=1)
-    scheduler.add_job(update_profit_day, "cron", hour=00)
-    #scheduler.add_job(check_update, "cron", hour=00, args=(aSession,))
-    #scheduler.add_job(check_mail, "cron", hour=12, args=(aSession,))
-    scheduler.add_job(autobackup_admin, "cron", hour=00)
-
+async def scheduler_start():
+    # scheduler.add_job(send_message_start, 'interval', seconds=600)
+    # scheduler.add_job(check_order_messages, 'interval', seconds=600)
+    # scheduler.add_job(update_profit_week, "cron", day_of_week="mon", hour=00, minute=1)
+    # scheduler.add_job(update_profit_day, "cron", hour=00)
+    # scheduler.add_job(check_update, "cron", hour=00)
+    pass
 
 # Выполнение функции после запуска бота
 async def on_startup(dp: Dispatcher):
-    aSession = AsyncSession()
-
-    dp.bot['aSession'] = aSession
     await dp.bot.delete_webhook()
     await dp.bot.get_updates(offset=-1)
+    dp.bot['rSession'] = RequestsSession()
 
     await set_commands(dp)
-    #await check_bot_data()
-    await scheduler_start(aSession)
-    await on_startup_notify(dp, aSession)
+    await check_bot_data()
+    await scheduler_start()
+    await on_startup_notify(dp)
 
-    bot_logger.warning("BOT WAS STARTED")
-    print(colorama.Fore.LIGHTYELLOW_EX + "~~~~~ Bot was started ~~~~~")
-    print(colorama.Fore.LIGHTBLUE_EX + "~~~~~ TG developer: @raclear Repo fork from: @djimbo ~~~~~")
-    print(colorama.Fore.RESET)
+    bot_logger.exception("BOT WAS STARTED")
+    print(Fore.LIGHTYELLOW_EX + "~~~~~ Bot was started ~~~~~")
+    print(Fore.LIGHTBLUE_EX + "~~~~~ TG developer: @raclear ~~~~~")
+    print(Fore.RESET)
 
     if len(get_admins()) == 0: print("***** ENTER ADMIN ID IN settings.ini *****")
 
 
 # Выполнение функции после выключения бота
 async def on_shutdown(dp: Dispatcher):
-    aSession: AsyncSession = dp.bot['aSession']
-    await aSession.close()
-
+    rSession: RequestsSession = dp.bot['rSession']
+    await rSession.close()
+    #
     await dp.storage.close()
     await dp.storage.wait_closed()
     await (await dp.bot.get_session()).close()
-
+    #
     if sys.platform.startswith("win"):
         os.system("cls")
     else:
