@@ -1,17 +1,19 @@
 # - *- coding: utf- 8 - *-
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as ikb
 
 from tgbot.data.config import BOT_VERSION, PATH_LOGS, PATH_DATABASE
 from tgbot.keyboards.reply_z_all import payments_frep, settings_frep, functions_frep, items_frep, seller_requests_frep
 from tgbot.loader import dp
+from tgbot.services.api_sqlite import get_all_usersx, get_top_sellersx
 from tgbot.utils.const_functions import get_date
-from tgbot.utils.misc.bot_filters import IsAdmin
+from tgbot.utils.misc.bot_filters import IsAdmin, IsAdminorShopAdmin
 from tgbot.utils.misc_functions import get_statisctics
 
 
 # Платежные системы
-@dp.message_handler(IsAdmin(), text="🔑 Платежные системы", state="*")
+@dp.message_handler(IsAdminorShopAdmin(), text="🔑 Платежные системы", state="*")
 async def admin_payment(message: Message, state: FSMContext):
     await state.finish()
 

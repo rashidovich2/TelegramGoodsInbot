@@ -17,7 +17,7 @@ from tgbot.services.regular import send_message_start
 from tgbot.utils.misc.bot_commands import set_commands
 from tgbot.utils.misc.bot_logging import bot_logger
 from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_notify, update_profit_day, \
-    update_profit_week
+    update_profit_week, autobackup_admin
 
 #CHANNEL_ID = '-1001683374540'
 #text = "test"
@@ -27,10 +27,11 @@ from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_
 
 # Запуск шедулеров
 async def scheduler_start():
-    # scheduler.add_job(send_message_start, 'interval', seconds=600)
+    scheduler.add_job(send_message_start, 'interval', seconds=600)
     # scheduler.add_job(check_order_messages, 'interval', seconds=600)
-    # scheduler.add_job(update_profit_week, "cron", day_of_week="mon", hour=00, minute=1)
-    # scheduler.add_job(update_profit_day, "cron", hour=00)
+    scheduler.add_job(update_profit_week, "cron", day_of_week="mon", hour=00, minute=1)
+    scheduler.add_job(update_profit_day, "cron", hour=00)
+    scheduler.add_job(autobackup_admin, "cron", hour=00)
     # scheduler.add_job(check_update, "cron", hour=00)
     pass
 

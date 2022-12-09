@@ -17,15 +17,15 @@ from tgbot.keyboards.location_keyboards import geo_11_kb
 
 # Игнор-колбэки покупок
 prohibit_buy = ['buy_category_open', 'buy_category_return', 'buy_category_nextp', 'buy_category_backp',
-                'buy_position_open', 'buy_position_return', 'buy_position_nextp', 'buy_position_backp',
+                'buy_shop_open', 'buy_shop_return', 'buy_shop_nextp', 'buy_shop_backp',
+                'buy_position_open', 'buy_position_open', 'buy_position_return', 'buy_position_nextp', 'buy_position_backp',
                 'buy_purchase_select', 'here_purchase_count', 'xpurchase_item', 'add_item_cart', 'user_cart',
                 'enter_address_manualy', 'enter_address_manualy_fin', 'checkout_finally',
                 'here_itemsadd_cart', 'xaddcart_item', 'geo_first_letter', 'cart_checkout_start',
                 'enter_message_manualy', 'conf_order_addr_saved']
 #'add_item_cart', 'enter_address_manualy', 'enter_address_manualy_fin',
 # Игнор-колбэки пополнений
-prohibit_refill = ['user_refill', 'refill_choice', 'Pay:',
-                   'Pay:Form', 'Pay:ForYm', 'Pay:Number', 'Pay:Nickname']
+prohibit_refill = ['user_refill', 'refill_choice', 'Pay:', 'Pay:Form', 'Pay:ForYm', 'Pay:Number', 'Pay:Nickname']
 
 
 ####################################################################################################
@@ -66,8 +66,6 @@ async def filter_buy_message(message: Message, state: FSMContext):
     await message.answer("<b>⛔ Покупки временно отключены.</b>")
 
 # Фильтр на доступность покупок - колбэк
-
-
 @dp.callback_query_handler(IsBuy(), text_startswith=prohibit_buy, state="*")
 async def filter_buy_callback(call: CallbackQuery, state: FSMContext):
     await state.finish()
@@ -96,15 +94,16 @@ async def filter_refill_callback(call: CallbackQuery, state: FSMContext):
 ####################################################################################################
 ############################################## ПРОЧЕЕ ##############################################
 # Открытие главного меню
-@dp.message_handler(text=['⬅ Главное меню', '/start', '⬆️ Вперёд'], state="*")
+@dp.message_handler(text=['⬅ Главное меню', '/start', '⬆️ Выбрать город позже'], state="*")
 async def main_start(message: Message, state: FSMContext):
     await state.finish()
+
     get_settings = get_settingsx()
     type_trade = get_settings['type_trade']
 
-    if type_trade == 'hybrid':
-        if message.text == '⬆️ Вперёд':
-            await message.answer("🔸 Покупай, продавай, арендуй игры из Steam по самой низкой цене.\n"
+    if type_trade == 'hybrid' or type_trade == 'real':
+        if message.text == '⬆️ Выбрать город позже':
+            await message.answer("🔸 Бот готов к использованию.\n"
                                  "🔸 Если не появились вспомогательные кнопки\n"
                                  "▶ Введите /start",
                                  reply_markup=menu_frep(message.from_user.id))
@@ -112,16 +111,16 @@ async def main_start(message: Message, state: FSMContext):
         else:
             if is_location(message.from_user.id) == True:
 
-                await message.answer("🔸 Покупай, продавай, арендуй игры из Steam по самой низкой цене.\n"
+                await message.answer("🔸 Бот готов к использованию.\n"
                                      "🔸 Если не появились вспомогательные кнопки\n"
                                      "▶ Введите /start",
                                      reply_markup=menu_frep(message.from_user.id))
             else:
                 await geo_choice.location.set()
-                await message.answer('Покупай,арендуй и продавай игры по самой низкой цене.', reply_markup=geo_11_kb())
+                await message.answer('Отправьте локацию или выберите город из списка', reply_markup=geo_11_kb())
 
-    elif type_trade == 'digital' or type_trade == 'real':
-        await message.answer("🔸 Покупай, продавай, арендуй игры из Steam по самой низкой цене.\n"
+    elif type_trade == 'digital':
+        await message.answer("🔸 Бот готов к использованию.\n"
                              "🔸 Если не появились вспомогательные кнопки\n"
                              "▶ Введите /start",
                              reply_markup=menu_frep(message.from_user.id))

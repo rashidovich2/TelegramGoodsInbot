@@ -2,6 +2,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as ikb
 
 from tgbot.services.api_sqlite_shop import get_all_shopx
+from tgbot.services.api_sqlite import get_shopsxx
 
 cpage = 10
 
@@ -13,35 +14,36 @@ cpage = 10
 ################################################################################################
 ################################# СТРАНИЦЫ ИЗМЕНЕНИЯ МАГАЗИНА #################################
 # Стартовые страницы выбора магазина для изменения
-def shop_edit_open_fp(remover, shops):
-    kb = InlineKeyboardMarkup()
+def shop_edit_open_fp(remover, user_id):
+    get_my_shops = get_shopsxx(admin=user_id)
+    keyboard = InlineKeyboardMarkup()
     count = 0
-    if len(shops) < 10:
-        for shop in shops:
-            kb.add(ikb(f"{shop[1]}",
-                                callback_data=f"shop_edit_here:{shop[0]}:{remover}"))
 
+    for a in range(remover, len(get_my_shops)):
+        if count < cpage:
+            keyboard.add(ikb(f"{get_my_shops[a]['name']}",
+                             callback_data=f"shop_edit:{get_my_shops[a]['shop_id']}:{remover}:{user_id}"))
+        count += 1
 
-
+    if len(get_my_shops) <= 10:
+        pass
+    elif len(get_my_shops) > cpage and remover < 10:
+        keyboard.add(
+            ikb("🔸 1 🔸", callback_data="..."),
+            ikb("Далее ➡", callback_data=f"shop_edit_nextp:{remover + cpage}:{user_id}")
+        )
+    elif remover + cpage >= len(get_my_shops):
+        keyboard.add(
+            ikb("⬅ Назад", callback_data=f"F:{remover - cpage}:{user_id}"),
+            ikb(f"🔸 {str(remover + cpage)[:-1]} 🔸", callback_data="...")
+        )
     else:
-        pg_cnt = len(shops) // 10
-        print(f'pg_cnt {pg_cnt}')
-        print(f'page {remover}')
-
-        if remover > 0:
-            bt3 = ikb('Предыдущая страница', callback_data=f'change_shop_edit_pg:{remover - 1}')
-            kb.add(bt3)
-
-        pg_end = (int(remover) + 1) * 10
-        print(f'pg_end {pg_end}')
-        for shop in shops[pg_end - 10:pg_end]:
-            bt2 = ikb(f'+{shop[1]}', callback_data=f'shop_edit_here:{shop[0]}')
-            kb.add(bt2)
-
-        if remover < pg_cnt:
-            bt4 = ikb('Следующая страница', callback_data=f'change_shop_edit_pg:{remover + 1}')
-            kb.add(bt4)
-    return kb
+        keyboard.add(
+            ikb("⬅ Назад", callback_data=f"shop_edit_backp:{remover - cpage}:{user_id}"),
+            ikb(f"🔸 {str(remover + cpage)[:-1]} 🔸", callback_data="..."),
+            ikb("Далее ➡", callback_data=f"shop_edit_nextp:{remover + cpage}:{user_id}"),
+        )
+    return keyboard
 
 
 # Стартовые страницы выбора категории для добавления позиции
@@ -65,3 +67,4 @@ def position_create_shop_fp(remover):
         )
 
     return keyboard
+

@@ -7,17 +7,17 @@ from tgbot.data.config import get_admins
 # Команды для юзеров
 user_commands = [
     BotCommand("start", "♻ Перезапустить бота"),
-    BotCommand("support", "☎ Поддержка/FAQ"),
-    #BotCommand("user_seller_request", "Хочу продавать"),
+    BotCommand("support", "☎ Поддержка"),
+    BotCommand("user_seller_request", "Я продавец"),
     BotCommand("faq", "ℹ FAQ"),
 ]
 
 # Команды для админов
 admin_commands = [
     BotCommand("start", "♻ Перезапустить бота"),
-    BotCommand("support", "☎ Поддержка/FAQ"),
+    BotCommand("support", "☎ Поддержка"),
     BotCommand("faq", "ℹ FAQ"),
-    #BotCommand("check_seller_requests", "Заявки в продавцы"),
+    BotCommand("check_seller_requests", "Заявки в продавцы"),
     BotCommand("db", "📦 Получить Базу Данных"),
     BotCommand("log", "🖨 Получить логи"),
 ]

@@ -17,8 +17,6 @@ async def geo_1(cb: types.CallbackQuery, state: FSMContext):
     await cb.message.answer('Отправьте локацию или выберите город из списка', reply_markup=geo_11_kb())
 
 # приём локации
-
-
 @dp.message_handler(content_types=['location'], state=geo_choice.location)
 async def geo_2(msg: types.Message, state: FSMContext):
     await msg.delete()
@@ -52,10 +50,10 @@ async def geo_5(cb: types.CallbackQuery, state: FSMContext):
     info = str(cb.data).split('#')[1]
     city_info = get_city(info, cb.from_user.id)
     add_city(city_info[0], cb.from_user.id, city_info[3])
-    await cb.message.answer("🔸 Покупай, продавай, арендуй игры из Steam по самой низкой цене.\n"
-                            "🔸 Если не появились вспомогательные кнопки\n"
-                            "▶ Введите /start",
-                            reply_markup=menu_frep(cb.from_user.id))
+    await cb.message.answer("🔸 Бот готов к использованию.\n"
+                         "🔸 Если не появились вспомогательные кнопки\n"
+                         "▶ Введите /start",
+                         reply_markup=menu_frep(cb.from_user.id))
 
 
 # ==============================================================================================================
@@ -76,8 +74,6 @@ async def geo_position_1(msg: types.Message, state: FSMContext):
         await msg.answer(f'Ваш город: {city[0]}?', reply_markup=geo_2_kb(0))
 
 # выбор буквы города при нажатии кнопки
-
-
 @dp.message_handler(lambda msg: msg.text == '📋 Выбрать из списка', state='here_change_city')
 async def geo_3(msg: types.Message, state: FSMContext):
     await msg.answer('Первая буква названия вашего города', reply_markup=geo_3_kb())

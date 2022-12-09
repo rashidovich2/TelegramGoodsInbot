@@ -1,7 +1,7 @@
 # - *- coding: utf- 8 - *-
 from aiogram.types import Update
 
-from tgbot.keyboards.inline_z_page import products_item_category_open_fp, products_item_position_open_fp
+from tgbot.keyboards.inline_z_page import products_item_category_swipe_fp, products_item_position_swipe_fp
 from tgbot.loader import dp
 from tgbot.services.api_sqlite import get_categoryx, get_all_categoriesx, get_positionx, get_positionsx
 from tgbot.utils.misc.bot_logging import bot_logger
@@ -27,7 +27,7 @@ async def all_errors(update: Update, exception):
 
                 if len(get_categories) >= 1:
                     await update.callback_query.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
-                                                                  reply_markup=products_item_category_open_fp(0))
+                                                                  reply_markup=products_item_category_swipe_fp(0))
                     await update.callback_query.answer("❗ Категория была изменена или удалена")
                 else:
                     await update.callback_query.message.edit_text("<b>🎁 Товары в данное время отсутствуют.</b>")
@@ -40,7 +40,7 @@ async def all_errors(update: Update, exception):
 
                 if len(get_positions) >= 1:
                     await update.callback_query.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
-                                                                  reply_markup=products_item_position_open_fp(
+                                                                  reply_markup=products_item_position_swipe_fp(
                                                                       split_data[2], split_data[3]))
                     await update.callback_query.answer("❗ Позиция была изменена или удалена")
                 else:

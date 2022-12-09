@@ -10,7 +10,7 @@ from tgbot.keyboards.inline_z_all import ad_confirm_inl
 from tgbot.loader import dp, bot
 from tgbot.services.api_sqlite import *
 from tgbot.utils.misc.bot_filters import IsAdmin
-from tgbot.utils.misc_functions import open_profile_search, open_profile_search_req, upload_text, generate_sales_report
+from tgbot.utils.misc_functions import open_profile_search, open_profile_search_req, upload_text, generate_sales_report, open_profile_search_seller
 #from munch import Munch
 
 
@@ -48,6 +48,7 @@ async def functions_seller_requests(message: Message, state: FSMContext):
 
     await message.answer("<b>🧾 Посмотрим запросы продавцов:</b>")
 
+
     all_requests = get_all_requestx()
     #print(all_requests)
     if len(all_requests) >= 1:
@@ -56,6 +57,27 @@ async def functions_seller_requests(message: Message, state: FSMContext):
         for request in all_requests:
 
             await message.answer(open_profile_search_req(request['user_id']), reply_markup=profile_search_reqs(request['user_id']))
+
+
+
+# Просмотр запросов продавцов
+@dp.message_handler(IsAdmin(), text="📊 Отчет о продажах", state="*")
+async def functions_seller_requests(message: Message, state: FSMContext):
+    await state.finish()
+
+    #await state.set_state("check_seller_requests")
+
+    await message.answer(generate_sales_report())
+
+    get_users = get_purchasesbysellers()
+    #print(all_requests)
+    if len(get_users)>= 1:
+        await message.answer("Топ - продавцов" + str(len(get_users)) + "шт.")
+
+        for user in get_users:
+            #if user['user_id'] is None: continue
+
+            await message.answer(open_profile_search_seller(user_id=user['user_id']), reply_markup=profile_search_finl(user['user_id']))
 
 ########################################### CALLBACKS ###########################################
 # Подтверждение отправки рассылки
@@ -192,26 +214,6 @@ async def functions_profile_refresh(call: CallbackQuery, state: FSMContext):
     await call.message.delete()
     await call.message.answer(open_profile_search(user_id), reply_markup=profile_search_finl(user_id))
 
-
-
-# Просмотр запросов продавцов
-@dp.message_handler(IsAdmin(), text="📊 Отчет о продажах", state="*")
-async def functions_seller_requests(message: Message, state: FSMContext):
-    await state.finish()
-
-    #await state.set_state("check_seller_requests")
-
-    await message.answer(generate_sales_report())
-
-    get_users = get_purchasesbysellers()
-    #print(all_requests)
-    if len(get_users)>= 1:
-        await message.answer("Топ - продавцов" + str(len(get_users)) + "шт.")
-
-        for user in get_users:
-            #if user['user_id'] is None: continue
-
-            await message.answer(open_profile_search_seller(user_id=user['user_id']), reply_markup=profile_search_finl(user['user_id']))
 
 ######################################## СМЕНА СТАТУСОВ ПОЛЬЗОВАТЕЛЯ ############################
 

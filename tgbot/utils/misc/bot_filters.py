@@ -15,7 +15,6 @@ class IsAdmin(BoundFilter):
              return False
         #return True
 
-
 # Проверка на админа
 class IsShopAdmin(BoundFilter):
     async def check(self, message: types.Message):

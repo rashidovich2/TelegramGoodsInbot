@@ -14,7 +14,7 @@ API_TOKEN = '5402212470:AAGFv7hY2bYGeaCOi_77cZJlOd31crtXK9k'
 #API_TOKEN = '5337905343:AAFnZEexDdOAhn16AEw1zofEzVrPPEag89Q'
 #API_TOKEN = '5337905343:AAFnZEexDdOAhn16AEw1zofEzVrPPEag89Q'
 #CHANNEL_ID = -1001683374540
-CHANNEL_ID =  919148970
+CHANNEL_ID =  5337905343
 
 
 bot = Bot(token=API_TOKEN, parse_mode=types.ParseMode.HTML)
@@ -22,7 +22,6 @@ bot = Bot(token=API_TOKEN, parse_mode=types.ParseMode.HTML)
 def tick():
     print('Tick! The time is: %s' % datetime.now())
 #get_message, get_image = get_position_of_day()
-
 
 
 def send_photo_telegram(file_id):

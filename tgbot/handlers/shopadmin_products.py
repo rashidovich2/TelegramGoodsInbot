@@ -52,8 +52,7 @@ async def product_category_remove(message: Message, state: FSMContext):
 
 
 # Начальные категории для изменения позиции
-# !!!!!!!   Изменить позицию
-@dp.message_handler(IsShopAdmin(), text="📁 Изменить позицию 🖍", state="*")
+@dp.message_handler(IsShopAdmin(), text="📁 Изменить позицию 🖍", state="*")  # !!!!!!!   Изменить позицию
 async def product_position_edit(message: Message, state: FSMContext):
     print(f'📁 Изменить позицию 🖍  shop_admin_products.py 73')
     await state.finish()
@@ -289,8 +288,6 @@ async def product_position_create_next(call: CallbackQuery, state: FSMContext):
                                  reply_markup=position_create_next_page_fp(remover))
 
 # Предыдущая страница выбора категорий для создания позиций
-
-
 @dp.callback_query_handler(IsProductsShopAdmin(), text_startswith="position_create_backp:", state="*")
 async def product_position_create_back(call: CallbackQuery, state: FSMContext):
     remover = int(call.data.split(":")[1])
@@ -299,29 +296,16 @@ async def product_position_create_back(call: CallbackQuery, state: FSMContext):
                                  reply_markup=position_create_back_page_fp(remover))
 
 
-@dp.callback_query_handler(IsProductsShopAdmin(), text_startswith="position_create_here:", state="*")
-async def product_position_create(call: CallbackQuery, state: FSMContext):
-    category_id = int(call.data.split(":")[1])
-
-    await state.update_data(here_cache_change_shop_id=category_id)
-
-    if len(get_all_categoriesx()) >= 1:
-        await call.message.answer("<b>📁 Выберите категорию для позиции</b>",
-                                  reply_markup=position_create_open_fp(0))
-    else:
-        await call.message.answer("<b>❌ Отсутствуют категории для создания позиции.</b>")
-
-
 # Выбор категории для создания позиции
-@dp.callback_query_handler(IsProductsShopAdmin(), text_startswith="position_create_here:", state="*")
+@dp.callback_query_handler(IsProductsShopAdmin(), text_startswith="shop_create_here:", state="*")
 async def product_position_create_select_category(call: CallbackQuery, state: FSMContext):
     print('position_create_here')
-    category_id = int(call.data.split(":")[1])
+    #category_id = int(call.data.split(":")[1])
 
-    await state.update_data(here_cache_change_category_id=category_id)
+    #await state.update_data(here_cache_change_category_id=category_id)
 
     await state.set_state("here_position_name")
-    await call.message.edit_text("<b>📁 Введите название для позиции 🏷</b>")
+    await call.message.edit_text("<b>📁 Введите название vf 🏷</b>")
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Заготовка под принятие города магазином
 # Принятие города для создания позиции
@@ -331,13 +315,12 @@ async def product_position_create_select_category(call: CallbackQuery, state: FS
 #     city_user = get_city_user(message.from_user.id)
 
 # Принятие имени для создания позиции
-
-
 @dp.message_handler(IsProductsShopAdmin(), state="here_position_name")
 async def product_position_create_name(message: Message, state: FSMContext):
     print(f'Принятие имени для создания позиции  shopadmin_products.py 337')
     if len(message.text) <= 100:
-        await state.update_data(here_position_name=clear_html(message.text), here_position_city=get_city_user(message.from_user.id)[0], position_city_id=get_city_user(message.from_user.id)[2])
+        await state.update_data(here_position_name=clear_html(message.text), here_position_city=get_city_user(message.from_user.id)[0]
+                                , position_city_id=get_city_user(message.from_user.id)[2])
 
         await state.set_state("here_position_price")
         await message.answer("<b>📁 Введите цену для позиции 💰</b>")
@@ -414,23 +397,22 @@ async def product_position_create_photo(message: Message, state: FSMContext):
     else:
         position_photo = message.photo[-1].file_id
 
-    add_positionx(position_city, position_city_id, position_name, position_price,
-                  position_description, position_photo, catategory_id, position_user_id)
+    add_positionx(position_city, position_city_id, position_name, position_price, position_description, position_photo, catategory_id, position_user_id)
 
     await message.answer("<b>📁 Позиция была успешно создана ✅</b>")
 
 
 ################################################################################################
-####################################### ИЗМЕНЕНИЕ ПОЗИЦИЙ #####################################
+####################################### ИЗМЕНЕНИЕ МАГАЗИНОВ #####################################
 # Возвращение к начальным категориям для редактирования позиции
-@dp.callback_query_handler(IsAdmin(), text_startswith="position_edit_category_return", state="*")
+@dp.callback_query_handler(IsShopAdmin(), text_startswith="shop_edit_category_return", state="*")
 async def product_position_edit_return(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text("<b>📁 Выберите категорию с нужной позицией 🖍</b>",
                                  reply_markup=position_edit_category_open_fp(0))
 
 
 # Следующая страница категорий для редактирования позиции
-@dp.callback_query_handler(IsAdmin(), text_startswith="position_edit_category_nextp:", state="*")
+@dp.callback_query_handler(IsShopAdmin(), text_startswith="shop_edit_category_nextp:", state="*")
 async def product_position_edit_category_next(call: CallbackQuery, state: FSMContext):
     remover = int(call.data.split(":")[1])
 
@@ -512,42 +494,43 @@ async def product_position_edit_return(call: CallbackQuery, state: FSMContext):
         await call.answer("<b>❗ Позиции в данной категории отсутствуют</b>")
 
 
-######################################## САМО ИЗМЕНЕНИЕ ПОЗИЦИИ ########################################
+######################################## САМО ИЗМЕНЕНИЕ МАГАЗИНА ########################################
 # Изменение имени позиции
-@dp.callback_query_handler(IsAdmin(), text_startswith="position_edit_name", state="*")
-async def product_position_edit_name(call: CallbackQuery, state: FSMContext):
-    print(f'Изменение имени позиции api_sqlite.py 529')
-    category_id = int(call.data.split(":")[1])
-    position_id = int(call.data.split(":")[2])
+@dp.callback_query_handler(IsAdmin(), text_startswith="shop_edit_name", state="*")
+async def product_shop_edit_name(call: CallbackQuery, state: FSMContext):
+    print(f'ИМЯ МАГАЗИНА ==- 581')
+    shop_id = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
     remover = int(call.data.split(":")[3])
 
-    await state.update_data(here_cache_category_id=category_id)
-    await state.update_data(here_cache_position_id=position_id)
+    await state.update_data(here_cache_shop_id=shop_id)
+    await state.update_data(here_cache_user_id=user_id)
     await state.update_data(here_cache_position_remover=remover)
 
-    await state.set_state("here_change_position_name")
+    await state.set_state("here_change_shop_name")
     await call.message.delete()
-    await call.message.answer("<b>📁 Введите новое название для позиции 🏷</b>")
+    await call.message.answer("<b>📁 Введите новое название для магазина 🏷</b>")
 
 
 # Принятие имени позиции для её изменения
-@dp.message_handler(IsAdmin(), state="here_change_position_name")
-async def product_position_edit_name_get(message: Message, state: FSMContext):
+@dp.message_handler(IsAdminorShopAdmin(), state="here_change_shop_name")
+print "||| РЕДАКТИРОВАНИЕ НАЗВАНИЯ МАГАЗИНА |||"
+async def product_shop_edit_name_get(message: Message, state: FSMContext):
     if len(message.text) <= 100:
         async with state.proxy() as data:
-            position_id = data['here_cache_category_id']
-            category_id = data['here_cache_position_id']
-            remover = data['here_cache_position_remover']
+            shop_id = data['here_cache_shop_id']
+            user_id = data['here_cache_user_id']
+            remover = data['here_cache_remover']
         await state.finish()
 
-        update_positionx(position_id, position_name=clear_html(message.text))
-        get_message, get_photo = get_position_admin(position_id)
+        update_shopx(shop_id, name=clear_html(message.text))
+        get_message, get_photo = get_shop_admin(shop_id)
 
         if get_photo is not None:
             await message.answer_photo(get_photo, get_message,
-                                       reply_markup=position_edit_open_finl(position_id, category_id, remover))
+                                       reply_markup=shop_edit_open_finl(shop_id, user_id, remover))
         else:
-            await message.answer(get_message, reply_markup=position_edit_open_finl(position_id, category_id, remover))
+            await message.answer(get_message, reply_markup=shop_edit_open_finl(shop_id, user_id, remover))
     else:
         await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
                              "📁 Введите новое название для позиции 🏷")
@@ -720,7 +703,7 @@ async def product_position_edit_description(call: CallbackQuery, state: FSMConte
 
 
 # принятие новой геопозиции для позиции
-@dp.callback_query_handler(text_startswith='geo_chosen_cities', state='here_change_city')
+@dp.callback_query_handler(text_startswith = 'geo_chosen_cities', state='here_change_city')
 async def geo_5(cb: CallbackQuery, state: FSMContext):
     info = int(str(cb.data).split('#')[1])
     if info == 0:
@@ -748,10 +731,11 @@ async def geo_5(cb: CallbackQuery, state: FSMContext):
 
     if get_photo is not None:
         await cb.message.answer_photo(get_photo, get_message,
-                                      reply_markup=position_edit_open_finl(position_id, category_id, remover))
+                                   reply_markup=position_edit_open_finl(position_id, category_id, remover))
     else:
         await cb.message.answer(get_message,
-                                reply_markup=position_edit_open_finl(position_id, category_id, remover))
+                             reply_markup=position_edit_open_finl(position_id, category_id, remover))
+
 
 
 # Выгрузка товаров
@@ -763,12 +747,10 @@ async def product_position_edit_items(call: CallbackQuery, state: FSMContext):
 
     get_position = get_positionx(position_id=position_id)
     get_items = get_itemsx(position_id=position_id)
-    save_items = ['АйдиТовара   -   Данные товара',
-                  "================================"]
+    save_items = ['АйдиТовара   -   Данные товара', "================================"]
 
     if len(get_items) >= 1:
-        for item in get_items:
-            save_items.append(f"{item['item_id']} - {item['item_data']}")
+        for item in get_items: save_items.append(f"{item['item_id']} - {item['item_data']}")
         save_items = "\n".join(save_items)
 
         save_items = await upload_text(call, save_items)
@@ -953,11 +935,11 @@ async def product_item_load_open(call: CallbackQuery, state: FSMContext):
 
     await state.set_state("here_add_items")
     await call.message.delete()
-    await call.message.answer("<b>📤 Отправьте данные товаров (доступы для входа).</b>\n"
+    await call.message.answer("<b>📤 Отправьте данные товаров.</b>\n"
                               "❗ Товары разделяются одной пустой строчкой. Пример:\n"
-                              "<code>Логин:... Пароль...\n\n"
-                              "Логин:... Пароль...\n\n"
-                              "Логин:... Пароль...</code>",
+                              "<code>Данные товара...\n\n"
+                              "Данные товара...\n\n"
+                              "Данные товара...</code>",
                               reply_markup=finish_load_rep)
 
 
@@ -997,8 +979,7 @@ async def product_item_load_get(message: Message, state: FSMContext):
         data['here_count_add_items'] += count_add
 
     get_user = get_userx(user_id=message.from_user.id)
-    add_itemx(category_id, position_id, get_all_items,
-              get_user['user_id'], get_user['user_name'])
+    add_itemx(category_id, position_id, get_all_items, get_user['user_id'], get_user['user_name'])
 
     await cache_msg.edit_text(f"<b>📥 Товары в кол-ве</b> <u>{count_add}шт</u> <b>были успешно добавлены ✅</b>")
 

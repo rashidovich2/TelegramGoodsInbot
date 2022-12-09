@@ -13,7 +13,7 @@ from tgbot.services.api_session import AsyncSession
 from tgbot.loader import bot
 from tgbot.services.api_sqlite import get_settingsx, update_settingsx, get_userx, get_all_positionsx, \
     update_positionx, get_all_categoriesx, get_all_purchasesx, get_all_refillx, get_all_usersx, get_all_itemsx, \
-    get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, get_orderx, get_purchasesx, get_purchasesxx
+    get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, get_orderx, get_purchasesx, get_purchasesxx, get_shopx
 from tgbot.utils.const_functions import get_unix, convert_day
 
 
@@ -213,7 +213,7 @@ def user_refill_my(user_id):
 
 
 def open_profile_my(user_id):
-    get_purchases = get_purchasesxx(user_id=user_id)
+    get_purchases = get_purchasesx(user_id=user_id)
     get_user = get_userx(user_id=user_id)
     count_items = 0
     how_days = get_unix() - get_user['user_unix'] // 60 // 60 // 24
@@ -609,6 +609,17 @@ def get_statisctics():
 
     return message
 
+# Автобэкапы БД для админов
+async def autobackup_admin():
+    for admin in get_admins():
+        with open(PATH_DATABASE, "rb") as document:
+            try:
+                await bot.send_document(admin,
+                                        document,
+                                        caption=f"<b>📦 AUTOBACKUP</b>\n"
+                                                f"🕰 <code>{get_date()}</code>")
+            except:
+                pass
 
 # Статистика бота
 def generate_sales_report():
@@ -688,4 +699,33 @@ def generate_sales_report():
 
     return message
 
+# Получить информацию о позиции для админа
+def get_shop_admin(shop_id):
+    print('Получить информацию о позиции для админа misc_functions.py 127')
+    #get_items = get_itemsx(position_id=position_id)
+    get_shop = get_shopx(shop_id=shop_id)
+    #get_category = get_categoryx(category_id=get_position['category_id'])
+    print(get_shop)
 
+    text_description = "<code>Отсутствует ❌</code>"
+    photo_text = "<code>Отсутствует ❌</code>"
+    get_photo = None
+
+    #len(get_shop['logo'])
+
+    if get_shop['logo'] != None:
+        photo_text = "<code>Присутствует ✅</code>"
+        get_photo = get_shop['logo']
+
+    if get_shop['description'] != "0":
+        text_description = f"\n{get_shop['description']}"
+
+    get_message = f"<b>📁 Магазин: <code>{get_shop['name']}</code></b>\n" \
+                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                  f"🏙 Город: <code></code>\n" \
+                  f"🗃 Основная категория: <code></code>\n" \
+                  f"📦 Остаток товаров: <code>шт</code>\n" \
+                  f"📸 Изображение: {photo_text}\n" \
+                  f"📜 Описание: {text_description}"
+
+    return get_message, get_photo
