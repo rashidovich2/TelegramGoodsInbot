@@ -108,3 +108,4 @@ A store with the functionality of multi-cities.
 - вывод средств продавцами.
 
 Работающий экземпляр пока только по России в 192 городах; https://t.me/Goodsinbot Чтобы торговать своими товарами в текущем экземпляре, отправьте [tooltip=529]запрос[/tooltip] на продавца из бота, нажав "Я продавец". По вопросам пишите пожалуйста в Телеграм: @raclear
+Скриншоты экранов и описание меню: https://github.com/rashidovich2/TelegramGoodsInbot/wiki
