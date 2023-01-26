@@ -1,5 +1,5 @@
 # TelegramGoodsInbot
-A store with the functionality of multi-cities.
+A store in Telegram.
 
 Магазин в Телеграм.
 
