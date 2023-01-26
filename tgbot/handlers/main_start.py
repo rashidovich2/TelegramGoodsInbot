@@ -1,6 +1,8 @@
 # - *- coding: utf- 8 - *-
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher import filters
 from aiogram.types import Message, CallbackQuery
+from aiogram.utils.deep_linking import get_start_link, decode_payload
 
 from tgbot.keyboards.inline_user import user_support_finl
 from tgbot.keyboards.reply_z_all import menu_frep
@@ -54,7 +56,6 @@ async def filter_work_callback(call: CallbackQuery, state: FSMContext):
 
     await call.answer("⛔ Бот находится на технических работах.", True)
 
-
 ####################################################################################################
 ########################################### СТАТУС ПОКУПОК #########################################
 # Фильтр на доступность покупок - сообщение
@@ -93,6 +94,18 @@ async def filter_refill_callback(call: CallbackQuery, state: FSMContext):
 
 ####################################################################################################
 ############################################## ПРОЧЕЕ ##############################################
+# В случае - если посетитель идет по deeplink'у
+'''@dp.message_handler(filters.CommandStart(deep_link='deep_link'))
+async def deep_link(message: Message):
+    await message.answer('Да, знаем мы такое:' + message.text)
+    args = message.get_args()
+    reference = decode_payload(args)
+    if reference : print(reference)
+
+@dp.message_handler(filters.CommandStart())
+async def command_start_handler(message: Message):
+    await message.answer(f'Ну привет, хотел чего?')'''
+
 # Открытие главного меню
 @dp.message_handler(text=['⬅ Главное меню', '/start', '⬆️ Выбрать город позже'], state="*")
 async def main_start(message: Message, state: FSMContext):
@@ -103,16 +116,16 @@ async def main_start(message: Message, state: FSMContext):
 
     if type_trade == 'hybrid' or type_trade == 'real':
         if message.text == '⬆️ Выбрать город позже':
-            await message.answer("🔸 Бот готов к использованию.\n"
-                                 "🔸 Если не появились вспомогательные кнопки\n"
+            await message.answer("🔸 Город не определен. Бот готов к использованию.\n"
+                                 "🔸 Если не появились вспомогательные кнопки.\n"
                                  "▶ Введите /start",
                                  reply_markup=menu_frep(message.from_user.id))
 
         else:
             if is_location(message.from_user.id) == True:
 
-                await message.answer("🔸 Бот готов к использованию.\n"
-                                     "🔸 Если не появились вспомогательные кнопки\n"
+                await message.answer(f"🔸 Город определен. Бот готов к использованию.\n"
+                                     "🔸 Если не появились вспомогательные кнопки.\n"
                                      "▶ Введите /start",
                                      reply_markup=menu_frep(message.from_user.id))
             else:
@@ -120,7 +133,7 @@ async def main_start(message: Message, state: FSMContext):
                 await message.answer('Отправьте локацию или выберите город из списка', reply_markup=geo_11_kb())
 
     elif type_trade == 'digital':
-        await message.answer("🔸 Бот готов к использованию.\n"
-                             "🔸 Если не появились вспомогательные кнопки\n"
+        await message.answer("🔸 Режим Digital. Бот готов к использованию.\n"
+                             "🔸 Если не появились вспомогательные кнопки.\n"
                              "▶ Введите /start",
                              reply_markup=menu_frep(message.from_user.id))

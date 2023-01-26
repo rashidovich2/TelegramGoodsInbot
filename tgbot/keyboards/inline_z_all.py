@@ -13,10 +13,23 @@ ad_confirm_inl = InlineKeyboardMarkup(
     InlineKeyboardButton("❌ Отменить", callback_data="confirm_ad:not")
 )
 
+# Рассылка
+ad_add_to_plan_inl = InlineKeyboardMarkup(
+).add(
+    InlineKeyboardButton("✅ Включить", callback_data="plan_once_ad:yes"),
+    InlineKeyboardButton("❌ Отправить только один раз", callback_data="plan_once_ad:not")
+)
+
 # Кнопки при поиске профиля через админ-меню
 refill_open_inl = InlineKeyboardMarkup(
 ).add(
     InlineKeyboardButton("💰 Пополнить", callback_data="user_refill")
+)
+
+partners_list_open_inl = InlineKeyboardMarkup(row_width=2
+).add(
+    InlineKeyboardButton("Обновить", callback_data="open_partners_list"),
+    InlineKeyboardButton("Разместить ссылку в каталоге", callback_data="partner_submit")
 )
 
 # Кнопки при поиске профиля через админ-меню
@@ -101,6 +114,13 @@ position_remove_confirm_inl = InlineKeyboardMarkup(
 ).add(
     InlineKeyboardButton("❌ Да, удалить все", callback_data="confirm_remove_position:yes"),
     InlineKeyboardButton("✅ Нет, отменить", callback_data="confirm_remove_position:not")
+)
+
+partners_list_inl = InlineKeyboardMarkup(
+).add(
+    InlineKeyboardButton("Психологическая помощь PsyBorBot", url="https://t.me/PsyBorBot")
+).add(
+    InlineKeyboardButton("Юридический сервис \"Спроси Юриста\"", url="https://t.me/SprosiYuristaRBot")
 )
 
 # Удаление товаров

@@ -1,12 +1,13 @@
 # - *- coding: utf- 8 - *-
 import asyncio
 
+from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.exceptions import CantParseEntities
 
 from tgbot.keyboards.inline_admin import profile_search_finl, profile_search_reqs
-from tgbot.keyboards.inline_z_all import ad_confirm_inl
+from tgbot.keyboards.inline_z_all import ad_confirm_inl, ad_add_to_plan_inl
 from tgbot.loader import dp, bot
 from tgbot.services.api_sqlite import *
 from tgbot.utils.misc.bot_filters import IsAdmin
@@ -22,6 +23,158 @@ async def functions_ad(message: Message, state: FSMContext):
     await state.set_state("here_ad_text")
     await message.answer("<b>📢 Введите текст для рассылки пользователям</b>\n"
                          "❕ Вы можете использовать HTML разметку")
+
+# Рассылка
+@dp.message_handler(IsAdmin(), text="📢 Рассылка2", state="*")
+async def functions_ad(message: Message, state: FSMContext):
+    await state.finish()
+
+    await state.set_state("here_ad_post")
+    await message.answer("<b>📢 Введите текст для рассылки пользователям</b>\n"
+                         "❕ Вы можете использовать HTML разметку")
+
+######################################## ПРИНЯТИЕ ДАННЫХ ########################################
+# Принятие текста для рассылки
+@dp.message_handler(IsAdmin(), state="here_ad_post", content_types=types.ContentType.ANY)
+async def functions_ad_get(message: Message, state: FSMContext):
+    await state.reset_state(with_data=False)
+
+    get_users = get_all_usersx()
+    user_id = message.from_user.id
+    mode = "tohour"
+
+    if types.ContentType.TEXT == message.content_type:
+        ct = 'text'
+        await state.update_data(ct='text', here_ad_post=str(message.html_text))
+        add_post_to_plan(ct, user_id, message.html_text, mode, caption='')
+    elif types.ContentType.PHOTO == message.content_type:
+        ct = 'photo'
+        caption=message.html_text if message.caption else None
+        await state.update_data(ct="photo", here_ad_photo=message.photo[-1].file_id, caption=caption)
+        add_post_to_plan(ct, user_id, message.photo[-1].file_id, mode, caption=caption)
+    elif types.ContentType.VIDEO == message.content_type:
+        ct = 'video'
+        caption=message.html_text if message.caption else None
+        await state.update_data(ct="video", here_ad_video=message.video.file_id, caption=caption)
+        add_post_to_plan(ct, user_id, message.video[-1].file_id, mode, caption=caption)
+    elif types.ContentType.ANIMATION == message.content_type:
+        ct = 'animation'
+        caption=message.html_text if message.caption else None
+        await state.update_data(ct="animation", here_ad_animation=message.animation.file_id, caption=caption)
+        add_post_to_plan(ct, user_id, message.animation[-1].file_id, mode, caption=caption)
+    post_id = get_lastpost()
+
+    print(post_id)
+
+    '''if types.ContentType.TEXT == message.content_type: # Если админ отправил текст
+        for user in get_users:
+            try:
+                await dp.bot.send_message(
+                    chat_id=user.user_id,
+                    text=message.html_text
+                )
+                await sleep(0.33)
+            except Exception:
+                pass
+        else:
+            await message.answer(
+                '<b> Рассылка завершена!</b>'
+            )'''
+
+    try:
+        #await message.answer("Тип поста:" + ct)
+        cache_msg = await message.answer("Тип поста:" + ct)
+        #await cache_msg.delete()
+
+        #await state.set_state("here_ad_plan_once")
+        await state.update_data(post_id=post_id)
+        print(post_id)
+        #post_text, post_photo, post_video, post_animation, caption =
+        await message.answer(
+            f"<b>📢 Включить пост в ротацию бота?</b>\n",
+            reply_markup=ad_add_to_plan_inl,
+            disable_web_page_preview=True
+        )
+    except CantParseEntities:
+        await message.answer("<b>❌ Ошибка синтаксиса HTML.</b>\n"
+                             "📢 Введите текст для рассылки пользователям.\n"
+                             "❕ Вы можете использовать HTML разметку.")
+
+
+# Подтверждение отправки рассылки
+@dp.callback_query_handler(IsAdmin(), text_startswith="plan_once_ad", state="*") #here_ad_plan_once")
+async def functions_ad_confirm(call: CallbackQuery, state: FSMContext):
+    get_action = call.data.split(":")[1]
+    get_users = get_all_usersx()
+    post_id = (await state.get_data())['post_id']
+    ct = (await state.get_data())['ct']
+
+    try:
+        if get_action == "yes":
+
+            cache_msg = await call.message.answer("Выбрано добавление в план:" + ct)
+            await cache_msg.delete()
+
+        await state.set_state("here_ad_post_confirm")
+        post = get_postx(post_id)
+        print(post)
+
+        await call.message.answer(
+            f"<b>📢 Отправить <code>{len(get_users)}</code> юзерам сообщение?</b>\n",
+            #f"{message.text}",
+            reply_markup=ad_confirm_inl,
+            disable_web_page_preview=True
+        )
+    except CantParseEntities:
+        await message.answer("<b>❌ Ошибка синтаксиса HTML.</b>\n"
+                             "📢 Введите текст для рассылки пользователям.\n"
+                             "❕ Вы можете использовать HTML разметку.")
+
+
+# Подтверждение отправки рассылки
+@dp.callback_query_handler(IsAdmin(), text_startswith="confirm_ad", state="here_ad_post_confirm")
+async def functions_ad_confirm(call: CallbackQuery, state: FSMContext):
+    get_action = call.data.split(":")[1]
+
+    ct = (await state.get_data())['ct']
+    mode = "evening"
+    if ct == "text":
+        #print("|")
+        send_message = (await state.get_data())['here_ad_post']
+        #add_post_to_plan(ct, send_message, mode, 0)
+    elif ct == "photo":
+        #print("||")
+        send_photo = (await state.get_data())['here_ad_photo']
+        caption = (await state.get_data())['caption']
+        #add_post_to_plan(ct, send_photo, mode, caption)
+    elif ct == "video":
+        #print("|||")
+        send_video = (await state.get_data())['here_ad_video']
+        caption = (await state.get_data())['caption']
+        #add_post_to_plan(ct, send_video, mode, caption)
+    elif ct == "animation":
+        #print("||||")
+        send_animation = (await state.get_data())['here_ad_animation']
+        caption = (await state.get_data())['caption']
+        #add_post_to_plan(ct, send_animation, mode, caption)
+
+    #send_message = (await state.get_data())['here_ad_post']
+    get_users = get_all_usersx()
+    await state.finish()
+
+    if get_action == "yes":
+        await call.message.edit_text(f"<b>📢 Рассылка началась... (0/{len(get_users)})</b>")
+        if ct == "text":
+            asyncio.create_task(functions_adext_make(ct, send_message, 0, call))
+        if ct == "photo":
+            asyncio.create_task(functions_adext_make(ct, send_photo, caption, call))
+        if ct == "video":
+            asyncio.create_task(functions_adext_make(ct, send_video, caption, call))
+        if ct == "animation":
+            asyncio.create_task(functions_adext_make(ct, send_animation, caption, call))
+    else:
+        await call.message.edit_text("<b>📢 Вы отменили отправку рассылки ✅</b>")
+
 
 # Поиск профиля
 @dp.message_handler(IsAdmin(), text="👤 Поиск профиля 🔍", state="*")
@@ -118,6 +271,48 @@ async def functions_profile_purchases(call: CallbackQuery, state: FSMContext):
     else:
         await call.answer("❗ У пользователя отсутствуют покупки", True)
 
+
+# Отправка рассылки
+async def functions_adext_make(ct, message, caption, call: CallbackQuery):
+    receive_users, block_users, how_users = 0, 0, 0
+    get_users = get_all_usersx()
+
+    for user in get_users:
+        try:
+            if ct == "text":
+                await dp.bot.send_message(user['user_id'], message, disable_web_page_preview=True)
+            elif ct == "photo":
+                await dp.bot.send_photo(
+                    chat_id=user['user_id'],
+                    photo=message, #.send_photo.file_id,
+                    caption=caption if caption else None)
+            elif ct == "video":
+                await dp.bot.send_video(
+                    chat_id=user['user_id'],
+                    video=message,
+                    caption=caption if caption else None)
+            elif ct == "animation":
+                await dp.bot.send_animation(
+                    chat_id=user['user_id'],
+                    animation=message,
+                    caption=caption if caption else None)
+
+            receive_users += 1
+        except:
+            block_users += 1
+
+        how_users += 1
+
+        if how_users % 10 == 0:
+            await call.message.edit_text(f"<b>📢 Рассылка началась... ({how_users}/{len(get_users)})</b>")
+
+        await asyncio.sleep(0.05)
+
+    await call.message.edit_text(
+        f"<b>📢 Рассылка была завершена ✅</b>\n"
+        f"👤 Пользователей получило сообщение: <code>{receive_users} ✅</code>\n"
+        f"👤 Пользователей не получило сообщение: <code>{block_users} ❌</code>"
+    )
 
 # Отправка рассылки
 async def functions_ad_make(message, call: CallbackQuery):

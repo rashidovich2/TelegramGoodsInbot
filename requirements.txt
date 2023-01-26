@@ -10,3 +10,4 @@ colorama
 async_class
 yoomoney
 geopy
+coinbase

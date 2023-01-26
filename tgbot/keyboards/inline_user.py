@@ -61,13 +61,19 @@ def give_number_inl():
     return keyboard
 
 # Кнопки при открытии самого товара
-def products_open_finl2(position_id, remover, category_id):
+def event_open_finl(event_id, remover, place_id, city_id):
     keyboard = InlineKeyboardMarkup(
     ).add(
-        InlineKeyboardButton("💰 Купить товар", callback_data=f"buy_item_select:{position_id}")
-    ).add(
-        InlineKeyboardButton("⬅ Вернуться ↩", callback_data=f"buy_position_return:{remover}:{category_id}")
+        InlineKeyboardButton("💰 Забронировать столик", callback_data=f"book_event_ticket:{event_id}")
     )
+    if place_id != 0:
+        keyboard.add(
+        InlineKeyboardButton("⬅ Вернуться в место ↩", callback_data=f"book_place_open:{place_id}")     #callback_data=f"events_place_swipe:{remover}:{place_id}:{city_id}")
+        )
+    if city_id != 0:
+        keyboard.add(
+        InlineKeyboardButton("⬅ Вернуться в город ↩", callback_data=f"events_city_swipe:{remover}:{city_id}")
+        )
 
     return keyboard
 
@@ -103,6 +109,7 @@ def products_open_finl(cart, position_id, remover, category_id, shop_id):
         ).add(
             InlineKeyboardButton("⬅ Вернуться ↩", callback_data=f"buy_position_return:{remover}:{category_id}:{0}")
         )
+
     if cart == 1 and shop_id != 0:
         keyboard = InlineKeyboardMarkup(
         ).add(
@@ -136,7 +143,6 @@ def switch_category_shop_finl():
     ).add(
         InlineKeyboardButton("⬅ Вернуться ↩", callback_data=f"buy_position_return:{remover}:{category_id}")
     )
-
     return keyboard
 
 

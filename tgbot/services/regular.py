@@ -10,12 +10,15 @@ from aiogram import Bot, types
 
 from tgbot.utils.misc_functions import get_position_of_day
 
-API_TOKEN = '5402212470:AAGFv7hY2bYGeaCOi_77cZJlOd31crtXK9k'
+#API_TOKEN = '5402212470:AAGFv7hY2bYGeaCOi_77cZJlOd31crtXK9k'
+#API_TOKEN = '5502549363:AAH2d3qoCiA8pQ8EDpT4CZ9rxD55eh2lmHo'
+#API_TOKEN = '5328800059:AAEv2GffGt2jJREnStKPYxkUdR1rqJ6-YuQ'
+API_TOKEN = '5337905343:AAFnZEexDdOAhn16AEw1zofEzVrPPEag89Q'
 #API_TOKEN = '5337905343:AAFnZEexDdOAhn16AEw1zofEzVrPPEag89Q'
-#API_TOKEN = '5337905343:AAFnZEexDdOAhn16AEw1zofEzVrPPEag89Q'
-#CHANNEL_ID = -1001683374540
-CHANNEL_ID =  5337905343
-
+CHANNEL_ID = -1001683374540
+#CHANNEL_ID = 5328800059
+#CHANNEL_ID =  5337905343
+#CHANNEL_ID = 5402212470
 
 bot = Bot(token=API_TOKEN, parse_mode=types.ParseMode.HTML)
 
@@ -33,8 +36,6 @@ def send_photo_telegram(file_id):
         raise Exception("post_text error")
 
 
-
-
 async def send_message_start():
     position, image = get_position_of_day()
     #await send_message(CHANNEL_ID, '<b>tttt</b>')
@@ -42,8 +43,8 @@ async def send_message_start():
     print(image)
     #await send_photo_telegram(image)
     #await send_photo(CHANNEL_ID, photo='file_id_' + image)
-    #await send_photo(CHANNEL_ID, image, position) 
-    await send_message(CHANNEL_ID, position)
+    await send_photo(CHANNEL_ID, photo=image, caption=position)
+    #await send_message(CHANNEL_ID, position)
     #await send_photo(chat_id=CHANNEL_ID, photo=image, caption=position, parse_mode=ParseMode.MARKDOWN)
     #if len(image) >= 5:
     #    photo = types.InputMediaPhoto(image)

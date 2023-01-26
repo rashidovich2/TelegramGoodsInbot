@@ -2,9 +2,18 @@
 import asyncio
 import json
 import random
+import datetime
+import time
 
 import requests
+
+import aiogram
 from aiogram import Dispatcher
+from aiogram import executor
+from aiogram import Bot, types
+#from aiogram.types import Message
+#from aiogram.utils import exceptions, executor
+#from aiogram.methods import SendMessage, SendPhoto, SendVideo, SendAnimation
 from bs4 import BeautifulSoup
 
 from tgbot.data.config import get_admins, BOT_VERSION, BOT_DESCRIPTION
@@ -13,9 +22,13 @@ from tgbot.services.api_session import AsyncSession
 from tgbot.loader import bot
 from tgbot.services.api_sqlite import get_settingsx, update_settingsx, get_userx, get_all_positionsx, \
     update_positionx, get_all_categoriesx, get_all_purchasesx, get_all_refillx, get_all_usersx, get_all_itemsx, \
-    get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, get_orderx, get_purchasesx, get_purchasesxx, get_shopx
+    get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, \
+    get_orderx, get_purchasesx, get_purchasesxx, get_shopx, get_artistx, get_planed_postx, get_planed_eventsx, get_tohour_postx, update_tohour_postx
+
+
 from tgbot.utils.const_functions import get_unix, convert_day
 
+#bot = Bot(token=BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 
 # Уведомление и проверка обновления при запуске бота
 async def on_startup_notify(dp: Dispatcher):
@@ -29,8 +42,6 @@ async def on_startup_notify(dp: Dispatcher):
         await check_update()
 
 # Рассылка сообщения всем администраторам
-
-
 async def send_admins(message, markup=None, not_me=0):
     for admin in get_admins():
         if markup == "default":
@@ -43,11 +54,8 @@ async def send_admins(message, markup=None, not_me=0):
             pass
 
 # Автоматическая очистка ежедневной статистики после 00:00
-
-
 async def update_profit_day():
     await send_admins(get_statisctics())
-
     update_settingsx(misc_profit_day=get_unix())
 
 
@@ -55,6 +63,171 @@ async def update_profit_day():
 async def update_profit_week():
     update_settingsx(misc_profit_week=get_unix())
 
+async def post_every_eighteen():
+    print("||||")
+    posts = get_planed_postx(mode="evening")
+    #print(posts)
+    for post in posts:
+        asyncio.create_task(functions_advertising_make_bg(post))
+
+async def post_evening_events():
+    print("||||)")
+    events = get_planed_eventsx()
+    for event in events:
+         asyncio.create_task(functions_advertising_events_bg(event))
+
+async def post_half_eight():
+    print("||||_")
+    posts = get_planed_postx(mode_evening="evening")
+    print(posts)
+    for post in posts:
+         asyncio.create_task(functions_advertising_make_bg(post))
+         #time.sleep(60)
+
+async def post_every_half_hour():
+    print("||||")
+    posts = get_planed_postx(mode="halfhour")
+    #print(posts)
+    for post in posts:
+         asyncio.create_task(functions_advertising_make_bg(post))
+         #time.sleep(60)
+
+
+async def post_every_hour():
+    print("||||")
+    posts = get_tohour_postx()
+    updposts = update_tohour_postx()
+    #print(posts)
+    for post in posts:
+         asyncio.create_task(functions_advertising_make_bg(post))
+
+
+async def functions_advertising_make_bg(post, markup=None):
+    receive_users, block_users, how_users = 0, 0, 0
+    get_users = get_all_usersx()
+    #get_users = get_userx(user_id=919148970)
+    test = "no"
+    #print(get_usersx)
+    print(post)
+    #dt_create = datetime.datetime.strptime(post[7], '%Y-%m-%d %H:%M:%S')
+    #utime = time.mktime(cur_time.timetuple())
+    #print(utime)
+    #dtpost_create = time.mktime(dt_create.timetuple())
+    #print(dtpost_create)
+
+    if markup == "default":
+        markup = menu_frep(admin)
+    #get_users = "919148970"
+
+    for user in get_users:
+        try:
+            if test == "yes": user['user_id'] = 919148970
+            if post[1] == "text":
+                await bot.send_message(user['user_id'], post[3], disable_web_page_preview=True)
+                #await bot.send_message(user['user_id'], post[2], reply_markup = markup, disable_web_page_preview=True)
+            elif post[1] == "photo":
+                await bot.send_photo(
+                    chat_id=user['user_id'],
+                    photo=post[4], #.send_photo.file_id,
+                    caption=post[9] if post[9] else None)
+            elif post[1] == "video":
+                #print("|_>>>>")
+                await bot.send_video(
+                    chat_id=user['user_id'],
+                    video=post[5],
+                    caption=post[9] if post[9] else None)
+            elif post[1] == "animation":
+                #print("|_>>>>>")
+                await bot.send_animation(
+                    chat_id=user['user_id'],
+                    animation=message,
+                    caption=post[9] if post[9] else None)
+
+            receive_users += 1
+        except:
+            block_users += 1
+
+        how_users += 1
+
+        if how_users % 10 == 0:
+            await send_admins(f"<b>📢 Рассылка началась... ({how_users}/{len(get_users)})</b>")
+
+        await asyncio.sleep(0.05)
+
+    await update_post(post[0], state = "sended")
+    await send_admins(
+        f"<b>📢 Рассылка была завершена ✅</b>\n"
+        f"👤 Пользователей получило сообщение: <code>{receive_users} ✅</code>\n"
+        f"👤 Пользователей не получило сообщение: <code>{block_users} ❌</code>"
+    )
+
+
+
+
+async def functions_advertising_events_bg(event, markup=None):
+    receive_users, block_users, how_users = 0, 0, 0
+    get_users = get_all_usersx()
+    #print(":::")
+    #get_users = get_userxx(user_city_id = post[10])
+    #get_users = get_userx(user_id=919148970)
+    test = "yes"
+    #print(get_usersx)
+    print(event)
+    if markup == "default":
+        markup = menu_frep(admin)
+        #get_users = "919148970"
+
+    '''ev_command = event[2] if event[2] else None
+    ev_desc = event[4] if event[4] else None
+    ev_place = event[16] if event[16] else None
+
+    caption = f" Коллектив: {ev_command}  \n"
+              f"<b>🔶 Описание: 🔶</b> {ev_desc} \n"
+              f"<b>🔶 Место: 🔶</b> {ev_place} \n"'''
+
+    #dtevent_time = datetime.datetime.strptime(event[6], '%Y-%m-%d %H:%M:%S')
+
+    for user in get_users:
+        try:
+            if test == "yes": user['user_id'] = 919148970
+            if event[5] == "":
+                await bot.send_message(user['user_id'], event[2], disable_web_page_preview=True)
+                #await bot.send_message(user['user_id'], post[2], reply_markup = markup, disable_web_page_preview=True)
+            elif event[5] != "":
+                await bot.send_photo(
+                    chat_id=user['user_id'],
+                    photo=event[5], #.send_photo.file_id, if event[2] else None
+                    caption=event[4] if event[4] else None)
+            elif event[1] == "video":
+                #print("|_>>>>")
+                await bot.send_video(
+                    chat_id=user['user_id'],
+                    video=event[5],
+                    caption=event[4] if event[4] else None)
+            elif event[1] == "animation":
+                #print("|_>>>>>")
+                await bot.send_animation(
+                    chat_id=user['user_id'],
+                    animation=message,
+                    caption=event[9] if event[9] else None)
+
+            receive_users += 1
+        except:
+            block_users += 1
+
+        how_users += 1
+
+        if how_users % 10 == 0:
+            await send_admins(f"<b>📢 Рассылка началась... ({how_users}/{len(get_users)})</b>")
+
+        await asyncio.sleep(0.05)
+
+    await send_admins(
+        f"<b>📢 Рассылка была завершена ✅</b>\n"
+        f"👤 Пользователей получило сообщение: <code>{receive_users} ✅</code>\n"
+        f"👤 Пользователей не получило сообщение: <code>{block_users} ❌</code>"
+    )
+    #update_post(event[0], state = 'sended')
 
 # Автоматическая проверка обновления каждые 24 часа
 async def check_update():
@@ -84,8 +257,6 @@ async def check_update(aSession: AsyncSession):
 '''
 
 # Получение faq
-
-
 def get_faq(user_id, send_message):
     get_user = get_userx(user_id=user_id)
 
@@ -177,6 +348,33 @@ def get_position_of_day():
 
 
 # Получить информацию о позиции для админа
+def get_artist_admin(artist_id):
+    print('Получить информацию об артисте для админа misc_functions.py 127')
+    #get_items = get_itemsx(position_id=position_id)
+    get_artist = get_artistx(artist_id=artist_id)
+    #get_category = get_categoryx(category_id=get_position['category_id'])
+
+    text_description = "<code>Отсутствует ❌</code>"
+    photo_text = "<code>Отсутствует ❌</code>"
+    get_photo = None
+
+    if len(get_artist['logo']) >= 5:
+        photo_text = "<code>Присутствует ✅</code>"
+        get_photo = get_artist['logo']
+
+    if get_artist['description'] != "0":
+        text_description = f"\n{get_artist['description']}"
+
+    get_message = f"<b>📁 Артист : <code>{get_artist['name']}</code></b>\n" \
+                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                  f"🏙 Город: <code>{get_artist['city']}</code>\n" \
+                  f"📸 Изображение: {photo_text}\n" \
+                  f"📜 Описание: {text_description}"
+
+    return get_message, get_photo
+
+
+# Получить информацию о позиции для админа
 def get_position_admin(position_id):
     print('Получить информацию о позиции для админа misc_functions.py 127')
     get_items = get_itemsx(position_id=position_id)
@@ -228,12 +426,23 @@ def open_profile_my(user_id):
         f"🆔 ID: <code>{get_user['user_id']}</code>\n" \
         f"💰 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
         f"🎁 Куплено товаров: <code>{count_items}шт</code>\n" \
-        f"🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>\n"
+        f"🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>\n" \
+        f"🏙 Город: <code>{get_user['user_city']}</code>"
 
     # if get_settings['type_trade'] != "digital":
     #  profile_my = f"{profile_my} 🏙 Город: <code>{get_user['user_city']}</code>"
 
     return profile_my
+
+def open_partners_list2():
+    get_partners = get_all_partnersx()
+
+    keyboard = types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
+    for partner in get_partners:
+        buttons_to_add = append(types.InlineKeyboardButton(text=f"{partner['name']}", url=f"{partner['link']}"))
+    keyboard.add(*buttons_to_add)
+
+    return keyboard
 
 #f"📡 Координаты: <code>{get_user['user_geocode']}</code>"
 
@@ -340,9 +549,8 @@ def open_profile_search(user_id):
            f"💰 Всего пополнено: <code>{get_user['user_refill']}₽</code>\n" \
            f"🎁 Куплено товаров: <code>{count_items}шт</code>"
 
+
 # Открытие профиля при поиске
-
-
 def open_profile_search_req(user_id):
     get_requests = get_requestx(requester=user_id)
     get_purchases = get_purchasesx(user_id=user_id)

@@ -10,29 +10,35 @@ from yoomoney import Quickpay
 
 
 from tgbot.services.api_session import RequestsSession
-from tgbot.services.api_sqlite import update_paymentx, get_upaymentx, get_paymentx
+from tgbot.services.api_sqlite import update_paymentx, get_upaymentx, get_paymentx, update_upaymentx
 from tgbot.utils.misc_functions import send_admins
 
 
 # Апи работы с YooMoney
 class YooAPI(AsyncClass):
-    async def __ainit__(self, acc_number=None, token=None, client_id=None, redirect_url=None):
+    async def __ainit__(self, suser_id=None, acc_number=None, token=None, client_id=None, redirect_url=None):
         #self.user_id = user_id
         #check_pass=False, user_bill_pass=False, user_check_pass=False
-        if token is not None:
-            self.token = token
-            self.client_id = client_id
-            self.acc_number = acc_number
-            self.redirect_url = redirect_url
+        if suser_id is not None:
+            self.suser_id = suser_id
+            self.token = get_upaymentx(self.suser_id)['yoo_token']
+            self.client_id = get_upaymentx(self.suser_id)['yoo_client_id']
+            self.acc_number = get_upaymentx(self.suser_id)['yoo_acc_number']
+            self.redirect_url = get_upaymentx(self.suser_id)['yoo_redirect_url']
+            #self.token = token
+            #self.client_id = client_id
+            #self.acc_number = acc_number
+            #self.redirect_url = redirect_url
         else:
             #self.login = get_upaymentx(self.user_id)['qiwi_login']
             #self.token = get_upaymentx(self.user_id)['qiwi_token']
             #self.secret = get_upaymentx(self.user_id)['qiwi_secret']
             #self.login = get_paymentx()['qiwi_login']
-            self.token = get_paymentx()['yoo_token']
-            self.client_id = get_paymentx()['yoo_client_id']
-            self.acc_number = get_paymentx()['yoo_acc_number']
-            self.redirect_url = get_paymentx()['yoo_redirect_url']
+            self.suser_id = 919148970
+            self.token = get_upaymentx(self.suser_id)['yoo_token']
+            self.client_id = get_upaymentx(self.suser_id)['yoo_client_id']
+            self.acc_number = get_upaymentx(self.suser_id)['yoo_acc_number']
+            self.redirect_url = get_upaymentx(self.suser_id)['yoo_redirect_url']
 
         #self.base_url = "https://yoomoney.ru/api/"
         #self.headers = {"authorization": f"Bearer {self.token}"}
@@ -42,7 +48,6 @@ class YooAPI(AsyncClass):
         #self.check_pass = check_pass
         #self.add_pass = add_pass
         #self.dp = dp
-        
 
     # Рассылка админам о нерабочем киви
     @staticmethod
@@ -50,10 +55,9 @@ class YooAPI(AsyncClass):
         await send_admins("<b> Yoo кошелёк недоступен ❌</b>\n"
                           "❗ Как можно быстрее его замените ❗")
 
-
     #Обновление данных
     async def update_yoo(self):
-        update_paymentx(yoo_acc_number=self.acc_number, yoo_token=self.token, yoo_client_id=self.client_id, yoo_redirect_url=self.redirect_url)
+        update_upaymentx(user_id=self.suser_id, yoo_acc_number=self.acc_number, yoo_token=self.token, yoo_client_id=self.client_id, yoo_redirect_url=self.redirect_url)
 
 
     # Обязательная проверка перед каждым запросом
@@ -68,7 +72,7 @@ class YooAPI(AsyncClass):
             if self.add_pass:
                 await self.dp.edit_text(response)
                 if status:
-                    update_paymentx(qiwi_login=self.login, qiwi_token=self.token, qiwi_secret=self.secret)
+                    update_upaymentx(user_id=self.suser_id, qiwi_login=self.login, qiwi_token=self.token, qiwi_secret=self.secret)
                 else:
                     return False
             elif self.check_pass:
@@ -153,17 +157,12 @@ class YooAPI(AsyncClass):
 
     # Создание платежа
     async def bill_pay(self, get_amount, get_way):
-        #response = await self.pre_checker()
-        #if response:
-        receipt = str(int(time.time() * 100))
+        #print(self, get_amount, get_way)
 
-        #print(get_way)
+        receipt = str(int(time.time() * 100))
+        #print(self)
 
         if get_way == "ForYm":
-            #yoo = yooAPI()
-            #bill = qiwi.bill(bill_id=receipt, amount=get_amount, comment=receipt)
-            #send_requests = bill.pay_url
-
             quickpay = Quickpay(
             receiver=self.acc_number, #'410011512189686', 
             quickpay_form="shop",
@@ -188,29 +187,18 @@ class YooAPI(AsyncClass):
                              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                              f"🔄 После оплаты, нажмите на <code>Проверить оплату</code>"
 
-
             return return_message, send_requests, receipt
         return False, False, False
-    #send_requests, 
 
     # Проверка платежа по форме
     async def check_formy(self, receipt):
-        #yoo = YooAPI()
+
         print(self.token)
-        #token = "410011512189686.0C1440CB73FD1452BC25E2B8FF48A4C8EA46FCF44A5A8E432F9B5F65E16AD45A5B07CAA9E8684E384ADD321358C4B4EDF10662A2AB8F9685CC27D6F6EF60B4DE851917851F2EB51FAD265BAA0AEDDA7E27D919C179C1491C140133FE01817816B6A1D4BA839E472C7CE1468E37470D312B8FB516242D1420D25802E2E66C2588"
+
         client = Client(self.token)
         history = client.operation_history(label=receipt)
-        #print(history.operations)
-        for operation in history.operations:
-        #r = list(get_pay)
-        #get_pay = qiwi_p2p.check(bill_id=receipt)
-        #print(r)
-        #print(get_pay)
-        #for pay in r:
-        #   print(pay)
 
-        #pay_status = 'success' # Получение статуса платежа
-        #pay_amount = '4'
+        for operation in history.operations:
 
             pay_status = operation.status  # Получение статуса платежа
             pay_amount = int(float(operation.amount))  # Получение суммы платежа в рублях

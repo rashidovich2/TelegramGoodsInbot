@@ -52,7 +52,7 @@ async def product_category_remove(message: Message, state: FSMContext):
 
 
 # Начальные категории для изменения позиции
-@dp.message_handler(IsShopAdmin(), text="📁 Изменить позицию 🖍", state="*")  # !!!!!!!   Изменить позицию
+@dp.message_handler(IsShopAdmin(), text="📁 Изменить позицию 🖍2", state="*")  # !!!!!!!   Изменить позицию
 async def product_position_edit(message: Message, state: FSMContext):
     print(f'📁 Изменить позицию 🖍  shop_admin_products.py 73')
     await state.finish()

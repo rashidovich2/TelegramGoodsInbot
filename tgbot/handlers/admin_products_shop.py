@@ -141,13 +141,13 @@ async def product_category_create_name(message: Message, state: FSMContext):
 @dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить магазин 🖍112", state="*")
 async def product_category_edit(message: Message, state: FSMContext):
     await state.finish()
-
+    user_id = message.form_user.id
     shops = get_all_shopx()
     print(f'shops {shops}')
 
     if len(shops) >= 1:
         await message.answer("<b>🏪 Выберите магазин для изменения 🖍</b>",
-                             reply_markup=shop_edit_open_fp(0, shops))
+                             reply_markup=shop_edit_open_fp(0, user_id))
     else:
         await message.answer("<b>🏪 Магазины отсутствуют 🖍</b>")
 
@@ -197,7 +197,7 @@ async def product_position_edit_open(call: CallbackQuery, state: FSMContext):
 
     get_message, get_photo = get_shop_admin(shop_id)
 
-    if get_photo is not None:
+    if get_photo is not None and get_photo != '':
         await call.message.delete()
         await call.message.answer_photo(get_photo, get_message,
                                         reply_markup=shop_edit_open_finl(shop_id, user_id, remover))

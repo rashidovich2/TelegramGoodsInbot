@@ -42,7 +42,6 @@ def update_format_args(sql, parameters: dict):
 
     return sql, list(parameters.values())
 
-
 ########################################### ЗАПРОСЫ НА ПРОДАВЦА ########################
 ########################################################################################
 def create_seller_request(user_id, requesttxt):
@@ -149,6 +148,12 @@ def get_all_tgaccounts_states():
         sql = "SELECT source, groupname, state, count(username) FROM storage_tgparse GROUP BY source, groupname, state"
         return con.execute(sql).fetchall()
 
+# Получение всех запросов продавцов
+def get_all_tgaccounts_to_invite():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_tgaccounts WHERE state='available'"
+        return con.execute(sql).fetchall()
 
 # Получение всех запросов продавцов
 def get_all_avtgaccounts():
@@ -156,6 +161,14 @@ def get_all_avtgaccounts():
         #con.row_factory = dict_factory
         sql = "SELECT * FROM storage_tgaccounts WHERE state='available'"
         return con.execute(sql).fetchall()
+
+# Получение всех покупок
+def get_all_partnersx():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_partners"
+        tt = con.execute(sql).fetchall()
+        return json.dumps(tt)
 
 # Получение номеров по статусам
 def get_all_tgaccounts_time_wb():
@@ -197,14 +210,114 @@ def add_tgacc_todb(username, user_id, access_hash, name, source, groupname, grou
         print("addok")
         con.commit()
 
+def add_post_to_plan(ct, user_id, send_message, mode, caption=''):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        cur_time = datetime.datetime.now()
+        if ct == 'text':
+            ct, user_id, post_text, post_photo, post_video, post_animation, cur_time, mode, caption  = ct, user_id, send_message, 0, 0, 0, cur_time, mode, 0
+        if ct == 'photo':
+            ct, user_id, post_text, post_photo, post_video, post_animation, cur_time, mode, caption   = ct, user_id, 0, send_message, 0, 0, cur_time, mode, caption
+        if ct == 'video':
+            ct, user_id, post_text, post_photo, post_video, post_animation, cur_time, mode, caption   = ct, user_id, 0, 0, send_message, 0, cur_time, mode, caption
+        if ct == 'animation':
+            ct, user_id, post_text, post_photo, post_video, post_animation, cur_time, mode, caption   = ct, user_id, 0, 0, 0, send_message, cur_time, mode, caption
+        state = "created"
+
+        con.execute("INSERT INTO storage_posts "
+                    "(ct, user_id, post_text, post_photo, post_video, post_animation, dtpost, mode_tohour, caption, state) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [ct, user_id, post_text, post_photo, post_video, post_animation, cur_time, mode, caption, state])
+
+        con.commit()
+
+# Получение всех запросов продавцов
+def get_lastpost():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        #sql = "SELECT state, invited24, last FROM storage_tgaccounts "
+        sql = "SELECT MAX(post_id) as post_id FROM storage_posts GROUP BY user_id"
+        return con.execute(sql).fetchone()[0]
+
+# Получение пользователя
+def get_postx(post_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_posts "
+        #sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql + "WHERE post_id = ?", [post_id]).fetchone()
+        #return con.execute(sql, parameters).fetchone()
+
+# Получение всех запросов продавцов
+def get_tohour_postx():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        print("-->")
+        sql = "SELECT * FROM storage_posts "
+        return con.execute(sql + "WHERE state='created' AND strftime('%s', dtpost) < strftime('%s', 'now')").fetchall()
+
+        #posts = con.execute("SELECT * FROM storage_posts WHERE state = 'created' AND dtpost < datetime('now')").fetchall()
+        #return posts
+
+# Получение всех запросов продавцов
+def update_tohour_postx():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.execute("UPDATE storage_posts SET state = 'sended' WHERE dtpost < datetime('now')")
+        con.commit()
+
+# Получение всех запросов продавцов
+def get_planed_postx(mode_evening = "evening"):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        print("-->")
+        sql = "SELECT * FROM storage_posts "
+        return con.execute(sql + "WHERE state = 'created' AND mode_evening = ?", [mode_evening]).fetchall()
+
+
+def get_planed_eventsx():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        print("-->")
+        sql = "SELECT * FROM storage_events "
+        #return con.execute(sql + "WHERE strftime('%s', event_date) > strftime('%s', 'now')").fetchall()
+        return con.execute(sql).fetchall()
+
+# Редактирование запроса
+def update_post(post_id, **kwargs):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"UPDATE storage_posts SET "
+        sql, parameters = update_format(sql, kwargs)
+        parameters.append(post_id)
+        con.execute(sql + "WHERE post_id = ?", parameters)
+        con.commit()
+
+# Редактирование запроса
+def update_event(event_id, **kwargs):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"UPDATE storage_events SET "
+        sql, parameters = update_format(sql, kwargs)
+        parameters.append(event_id)
+        con.execute(sql + "WHERE event_id = ?", parameters)
+        con.commit()
+
 #есть ли магазин у пользователя
 def check_user_shop_exist(user_id):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        sql = f"SELECT a.user_role, b.admin FROM storage_users a LEFT JOIN storage_shop b ON(a.user_id=b.admin)"
+        sql = f"SELECT a.user_role, b.admin, b.name FROM storage_users a LEFT JOIN storage_shop b ON(a.user_id=b.admin)"
         shopadmin = con.execute(sql + "WHERE a.user_id = ?", [user_id]).fetchone()
         print(shopadmin)
-        if shopadmin['user_role'] == "ShopAdmin" and shopadmin['admin'] != None: return 1
+        if shopadmin['user_role'] == "ShopAdmin" and not (shopadmin['admin'] is None): return shopadmin['name']
+        elif shopadmin['user_role'] == "Admin": return False
+        #else: return shopadmin['admin']
+
+#есть ли магазин у пользователя
+def check_user_artist_exist(user_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT a.user_role, b.admin, b.name FROM storage_users a LEFT JOIN storage_artists b ON(a.user_id=b.admin)"
+        shopadmin = con.execute(sql + "WHERE a.user_id = ?", [user_id]).fetchone()
+        print(shopadmin)
+        if shopadmin['user_role'] == "ShopAdmin" and not (shopadmin['admin'] is None): return shopadmin['name']
         elif shopadmin['user_role'] == "Admin": return False
         #else: return shopadmin['admin']
 
@@ -232,8 +345,15 @@ def get_lasttgaccount():
 def groups_telegram():
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
-        sql = f"SELECT distinct group_id, groupname FROM storage_tgparse WHERE groupname != '' AND source = 'groups' ORDER BY group_id ASC" # LIMIT {start},{count}
+        sql = f"SELECT group_id, groupname, count(acc_id) as countacc FROM storage_tgparse WHERE groupname != '' AND source = 'groups' AND state = 'created' GROUP BY group_id ORDER BY group_id ASC" # LIMIT {start},{count}
         return con.execute(sql).fetchall()
+
+# Пользователи группы для инвайта
+def first_grouptoinvitebyid(groupid, start, count):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_tgparse WHERE state = 'created' AND source = 'groups' AND group_id=? ORDER BY acc_id ASC LIMIT {start},{count}"
+        return con.execute(sql, [groupid]).fetchall()
 
 # Пользователи группы для инвайта
 def first_grouptoinvite(groupname, start, count):
@@ -275,6 +395,7 @@ def update_tgaccounts(account_id, pole):
         if pole == 'waitfor24': inc = " state = 'wait', waitfor24 = datetime('now', '+1 day') "
         if pole == 'banned': inc = " state = 'banned' "
         if pole == 'available': inc = " state = 'available', invited24 = 0 "
+        if pole == 'iter24': inc = " iter24 = iter24 + 1 "
         sql = f"UPDATE storage_tgaccounts SET " + inc
         #sql, parameters = update_format(sql, kwargs)
         #parameters.append(account_id)
@@ -354,6 +475,14 @@ def add_userx(user_id, user_login, user_name):
         con.commit()
 
 # Получение пользователя
+def get_userxx(**kwargs):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_users"
+        sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchall()
+
+# Получение пользователя
 def get_userx(**kwargs):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
@@ -426,7 +555,6 @@ def delete_userx(**kwargs):
 def get_upaymentx(user_id):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        #print("|||uyo|||")
         return con.execute("SELECT * FROM storage_payment WHERE user_id = ?", [user_id]).fetchone()
 
 def get_upaycount(user_id):
@@ -572,6 +700,15 @@ def get_all_shopx():
         return con.execute(sql).fetchall()
 
 # Получение магазина
+def get_eventxx(**kwargs):
+    print(f'Получение магазина api_sqlite.py 581')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_events"
+        sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchone()
+
+# Получение магазина
 def get_shopsxx(**kwargs):
     print(f'Получение магазина api_sqlite.py 318')
     with sqlite3.connect(PATH_DATABASE) as con:
@@ -580,13 +717,22 @@ def get_shopsxx(**kwargs):
         sql, parameters = update_format_args(sql, kwargs)
         return con.execute(sql, parameters).fetchall()
 
+# Получение магазина
+def get_artistsxx(**kwargs):
+    print(f'Получение артистов по критериям api_sqlite.py 318')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_artists"
+        sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchall()
+
 # Получение платежных реквизитов продавца
-def get_my_shopx(admin):
+def get_my_shopx(user_id):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         sql = "SELECT * FROM storage_shop "
         #sql, parameters = update_format(sql, kwargs)
-        return con.execute(sql, "WHERE admin = ?", [admin]).fetchall()
+        return con.execute(sql, "WHERE admin = ?", [user_id]).fetchall()
 
 # Получение платежных реквизитов продавца
 def get_my_shopx2(admin):
@@ -603,6 +749,19 @@ def get_all_categoriesx():
         sql = "SELECT * FROM storage_category"
         return con.execute(sql).fetchall()
 
+# Получение всех категорий
+def get_all_events():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_events a LEFT JOIN storage_places b USING(place_id) ORDER BY datetime(event_date) ASC"
+        return con.execute(sql).fetchall()
+
+# Получение всех категорий
+def get_all_places():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_places"
+        return con.execute(sql).fetchall()
 
 # Удаление всех категорий
 def clear_categoryx():
@@ -619,6 +778,14 @@ def remove_categoryx(**kwargs):
         sql = "DELETE FROM storage_category"
         sql, parameters = update_format_args(sql, kwargs)
         con.execute(sql, parameters)
+        con.commit()
+
+# Добавление магазина
+def add_artistx(name, description, webadress, admin, logo, city, geocode, city_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        con.execute("INSERT INTO storage_artists (artist_id, name, description, webaddress, admin, logo, city, geocode, city_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [random.randint(1000000000, 9999999999), name, description, webadress, admin, logo, city, geocode, city_id])
         con.commit()
 
 
@@ -656,12 +823,41 @@ def update_positionx(position_id, **kwargs):
         con.execute(sql + "WHERE position_id = ?", parameters)
         con.commit()
 
+# Изменение позиции
+def update_artistx(artist_id, **kwargs):
+    print('Изменение артиста api_sqlite.py 306')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"UPDATE storage_artists SET"
+        sql, parameters = update_format(sql, kwargs)
+        parameters.append(artist_id)
+        con.execute(sql + "WHERE artist_id = ?", parameters)
+        con.commit()
+
+# Получение магазина
+def get_placesx(**kwargs):
+    print(f'Получение магазина api_sqlite.py 642')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_places"
+        sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchone()
+
 # Получение магазина
 def get_shopx(**kwargs):
     print(f'Получение магазина api_sqlite.py 642')
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         sql = f"SELECT * FROM storage_shop"
+        sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchone()
+
+# Получение позиции
+def get_artistx(**kwargs):
+    print(f'Получение позиции api_sqlite.py 318')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_artists"
         sql, parameters = update_format_args(sql, kwargs)
         return con.execute(sql, parameters).fetchone()
 
@@ -788,6 +984,15 @@ def clear_positionx():
         con.execute(sql)
         con.commit()
 
+
+# Удаление позиции
+def remove_artistx(**kwargs):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "DELETE FROM storage_artists"
+        sql, parameters = update_format_args(sql, kwargs)
+        con.execute(sql, parameters)
+        con.commit()
 
 # Удаление позиции
 def remove_positionx(**kwargs):
@@ -1140,7 +1345,7 @@ def create_dbx():
             print("DB was not found(1/12) | Creating...")
 
         # Создание БД с хранением данных платежных систем
-        if len(con.execute("PRAGMA table_info(storage_payment)").fetchall()) == 13:
+        if len(con.execute("PRAGMA table_info(storage_payment)").fetchall()) == 16:
             print("DB was found(2/12)")
         else:
             con.execute("CREATE TABLE storage_payment("
@@ -1347,6 +1552,7 @@ def get_city_user(user_id):
     query = '''select user_city_id from storage_users where user_id = ?'''
     result = cur.execute(query, (user_id,)).fetchone()
     cur.close()
+    print(result)
     return result
 
 # возвращает город пользователя и координаты
@@ -1357,6 +1563,17 @@ def get_city_user3(user_id):
     query = '''select user_city, user_geocode, user_city_id from storage_users where user_id = ?'''
     result = cur.execute(query, (user_id,)).fetchone()
     cur.close()
+    return result
+
+# возвращает город пользователя и координаты
+def get_city_artist(artist_id):
+    print(f'возвращает город пользователя и координаты api_sqlite.py 675')
+    conn = sqlite3.connect(PATH_DATABASE)
+    cur = conn.cursor()
+    query = '''select city, geocode, city_id from storage_artists where artist_id = ?'''
+    result = cur.execute(query, (artist_id,)).fetchone()
+    cur.close()
+    print(result)
     return result
 
 
@@ -1467,6 +1684,48 @@ def get_position_on_city(category_id, city):
         cur.close()
         return result
 
+def get_eventx(event_id):
+    conn = sqlite3.connect(PATH_DATABASE)
+    cur = conn.cursor()
+    query = '''select distinct c.place_id, c.name
+        from storage_places c join storage_events e on c.place_id=e.place_id where event_id = ? order by c.name asc'''
+    result = cur.execute(query, (event_id,)).fetchall()
+    return result
+
+# категории в городе
+def get_events_in_place(place_id):
+    if place_id is None:
+        conn = sqlite3.connect(PATH_DATABASE)
+        cur = conn.cursor()
+        query = '''select distinct * 
+            from storage_places c join storage_events p on c.place_id=p.place_id order by c.name asc'''
+        result = cur.execute(query).fetchall()
+        return result
+    else:
+        conn = sqlite3.connect(PATH_DATABASE)
+        cur = conn.cursor()
+        query = '''select * from storage_events p where p.place_id = ?'''
+        result = cur.execute(query, (place_id,)).fetchall()
+        #print(result)
+        return result
+
+
+# категории в городе
+def get_events_in_city(city_id):
+    if city_id is None:
+        conn = sqlite3.connect(PATH_DATABASE)
+        cur = conn.cursor()
+        query = '''select distinct c.place_id, c.name
+            from storage_places c join storage_events p on c.place_id=p.place_id order by c.name asc'''
+        result = cur.execute(query).fetchall()
+        return result
+    else:
+        conn = sqlite3.connect(PATH_DATABASE)
+        cur = conn.cursor()
+        query = '''select distinct c.place_id, c.name
+            from storage_places c join storage_events p on c.place_id=p.place_id where event_city_id = ? order by c.name asc'''
+        result = cur.execute(query, (city_id,)).fetchall()
+        return result
 
 # категории в городе
 def get_category_in_city(city_id):
@@ -1485,3 +1744,11 @@ def get_category_in_city(city_id):
         result = cur.execute(query, (city_id,)).fetchall()
         return result
 
+
+# Последние 10 покупок
+def get_eventsxx(**kwargs):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_events"
+        sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchall()

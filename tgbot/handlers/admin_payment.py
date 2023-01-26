@@ -91,16 +91,19 @@ async def payment_qiwi_edit(message: Message, state: FSMContext):
 async def payment_qiwi_check(message: Message, state: FSMContext):
     print("||| Проверка КИВИ админом площадки. |||")
     await state.finish()
+    user_id = message.from_user.id
+    print(user_id)
 
-    await (await QiwiAPI(message, check_pass=True)).pre_checker()
+    await (await QiwiAPI(message, suser_id=user_id, check_pass=True)).pre_checker()
 
 
 # Баланс QIWI
 @dp.message_handler(IsAdminorShopAdmin(), text="🥝 Баланс QIWI 👁", state="*")
 async def payment_qiwi_balance(message: Message, state: FSMContext):
     await state.finish()
+    user_id = message.from_user.id
 
-    await (await QiwiAPI(message)).get_balance()
+    await (await QiwiAPI(message, suser_id=user_id)).get_balance()
 
 ######################################## YooMoney ################################
 # Изменение реквизитов Yoo
@@ -197,13 +200,14 @@ async def payment_qiwi_edit_secret(message: Message, state: FSMContext):
         qiwi_token = data['here_qiwi_token']
         if message.text == "0": qiwi_secret = "None"
         if message.text != "0": qiwi_secret = message.text
+        user_id = message.from_user.id
 
     await state.finish()
 
     cache_message = await message.answer("<b>🥝 Проверка введённых QIWI данных... 🔄</b>")
     await asyncio.sleep(0.5)
 
-    await (await QiwiAPI(cache_message, qiwi_login, qiwi_token, qiwi_secret, True)).pre_checker()
+    await (await QiwiAPI(cache_message, qiwi_login, qiwi_token, qiwi_secret, add_pass=True, suser_id=user_id)).pre_checker()
 
 
 # Принятие приватного ключа для Yoo

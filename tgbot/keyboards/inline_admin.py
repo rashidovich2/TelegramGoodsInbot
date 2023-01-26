@@ -207,11 +207,11 @@ def position_edit_open_finl(position_id, category_id, remover):
     ).add(
         ikb("📜 Изм. описание", callback_data=f"position_edit_description:{position_id}:{category_id}:{remover}"),
         ikb("📸 Изм. фото", callback_data=f"position_edit_photo:{position_id}:{category_id}:{remover}"),
-# добавил 12.08.22    -----------------------------------------------------------
+        # добавил 12.08.22    -----------------------------------------------------------
     ).add(
         ikb("🏙 Изм. город", callback_data=f"position_edit_city:{position_id}:{category_id}:{remover}"),
-        ikb("Для симметрии", callback_data=f"position____edit_photo:{position_id}:{category_id}:{remover}"),
-    # -------------------------------------------------------------------------
+        ikb("🏙 Изм. магазин", callback_data=f"position_edit_shop:{position_id}:{category_id}:{remover}"),
+        # -------------------------------------------------------------------------
     ).add(
         ikb("🗑 Очистить", callback_data=f"position_edit_clear:{position_id}:{category_id}:{remover}"),
         ikb("🎁 Добавить товары", callback_data=f"products_add_position:{position_id}:{category_id}"),
@@ -223,6 +223,37 @@ def position_edit_open_finl(position_id, category_id, remover):
     )
 
     return keyboard
+
+
+# Кнопки при открытии позиции для изменения
+def artist_edit_open_finl(artist_id, user_id, remover):
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        ikb("🏷 Изм. название", callback_data=f"artist_edit_name:{artist_id}:{user_id}:{remover}"),
+        ikb("🏙 Изм. город", callback_data=f"artist_edit_city:{artist_id}:{user_id}:{remover}"),
+    ).add(
+        ikb("📜 Изм. описание", callback_data=f"artist_edit_description:{artist_id}:{user_id}:{remover}"),
+        ikb("📸 Изм. фото", callback_data=f"artist_edit_photo:{artist_id}:{user_id}:{remover}"),
+    # -------------------------------------------------------------------------
+    ).add(
+        ikb("🗑 Очистить", callback_data=f"artist_edit_clear:{artist_id}:{user_id}:{remover}"),
+        ikb("❌ Удалить", callback_data=f"artist_edit_delete:{artist_id}:{user_id}:{remover}"),
+    ).add(
+        ikb("⬅ Вернуться ↩", callback_data=f"artist_edit_return:{user_id}:{remover}"),
+    )
+
+    return keyboard
+
+# Подтверждение удаления позиции
+def artist_edit_delete_finl():
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        ikb("❌ Да, удалить", callback_data=f"artist_delete:yes:{position_id}:{category_id}:{remover}"),
+        ikb("✅ Нет, отменить", callback_data=f"artist_delete:not:{position_id}:{category_id}:{remover}")
+    )
+
+    return keyboard
+
 
 
 

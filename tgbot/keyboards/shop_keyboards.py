@@ -1,7 +1,7 @@
 # - *- coding: utf- 8 - *-
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as ikb
 
-from tgbot.services.api_sqlite_shop import get_all_shopx
+from tgbot.services.api_sqlite_shop import get_all_shopx, get_shopx
 from tgbot.services.api_sqlite import get_shopsxx
 
 cpage = 10
@@ -18,6 +18,7 @@ def shop_edit_open_fp(remover, user_id):
     get_my_shops = get_shopsxx(admin=user_id)
     keyboard = InlineKeyboardMarkup()
     count = 0
+    print(len(get_my_shops))
 
     for a in range(remover, len(get_my_shops)):
         if count < cpage:

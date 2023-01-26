@@ -8,35 +8,48 @@ from async_class import AsyncClass
 from pyqiwip2p import QiwiP2P
 
 from tgbot.services.api_session import RequestsSession
-from tgbot.services.api_sqlite import update_paymentx, get_upaymentx, get_paymentx
+from tgbot.services.api_sqlite import update_paymentx, get_upaymentx, update_upaymentx, get_settingsx
 from tgbot.utils.misc_functions import send_admins
 
 
 # Апи работы с QIWI
 class QiwiAPI(AsyncClass):
-    async def __ainit__(self, dp, login=None, token=None, secret=None, add_pass=False,
+    async def __ainit__(self, dp, suser_id=None, login=None, token=None, secret=None, add_pass=False,
                         check_pass=False, user_bill_pass=False, user_check_pass=False):
-        #self.user_id = user_id
-        if login is not None:
-            self.login = login
-            self.token = token
-            self.secret = secret
+#buser_id=None, suser_id=None,
+        if suser_id is not None:
+            #self.login = login
+            #self.token = token
+            #self.secret = secret
+            self.suser_id = suser_id
+            self.login = get_upaymentx(self.suser_id)['qiwi_login']
+            self.token = get_upaymentx(self.suser_id)['qiwi_token']
+            self.secret = get_upaymentx(self.suser_id)['qiwi_secret']
+
         else:
             #self.login = get_upaymentx(self.user_id)['qiwi_login']
             #self.token = get_upaymentx(self.user_id)['qiwi_token']
             #self.secret = get_upaymentx(self.user_id)['qiwi_secret']
-            self.login = get_paymentx()['qiwi_login']
-            self.token = get_paymentx()['qiwi_token']
-            self.secret = get_paymentx()['qiwi_secret']
+            #режим площадки
+            #если {digital|hybrid} или {level_seller <= 1} = > admin && platform
+            #user_seller_level =
+            #get_settings = get_settingsx()
+            #if get_settings['type_trade'] == 'digital':
+            self.suser_id = 919148970
+            self.login = get_upaymentx(self.suser_id)['qiwi_login']
+            self.token = get_upaymentx(self.suser_id)['qiwi_token']
+            self.secret = get_upaymentx(self.suser_id)['qiwi_secret']
 
         self.base_url = "https://edge.qiwi.com/{}/{}/persons/{}/{}"
         self.headers = {"authorization": f"Bearer {self.token}"}
-        self.nickname = get_paymentx()['qiwi_nickname']
+        self.nickname = get_upaymentx(self.suser_id)['qiwi_nickname']
         self.user_check_pass = user_check_pass
         self.user_bill_pass = user_bill_pass
         self.check_pass = check_pass
         self.add_pass = add_pass
         self.dp = dp
+
+        print(self)
         
 
     # Рассылка админам о нерабочем киви
@@ -57,7 +70,7 @@ class QiwiAPI(AsyncClass):
             if self.add_pass:
                 await self.dp.edit_text(response)
                 if status:
-                    update_paymentx(qiwi_login=self.login, qiwi_token=self.token, qiwi_secret=self.secret)
+                    update_upaymentx(user_id=self.suser_id, qiwi_login=self.login, qiwi_token=self.token, qiwi_secret=self.secret)
                 else:
                     return False
             elif self.check_pass:
@@ -247,7 +260,7 @@ class QiwiAPI(AsyncClass):
                                  f"🏷 Комментарий: <code>{receipt}</code>\n" \
                                  f"💰 Сумма пополнения: <code>{get_amount}₽</code>\n" \
                                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-                                 f"🔄 После оплаты, нажмите на <code>Проверить оплату</code>"
+                                 f"🔄 Важно!!! После оплаты, нажмите на <code>Проверить оплату</code>"
             elif get_way == "Nickname":
                 send_requests = f"https://qiwi.com/payment/form/99999?amountInteger={get_amount}&amountFraction=0&currency=643" \
                                 f"&extra%5B%27comment%27%5D={receipt}&extra%5B%27account%27%5D={self.nickname}&blocked%5B0%5D=" \

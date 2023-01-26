@@ -17,7 +17,6 @@ async def settings_data_edit(message: Message, state: FSMContext):
 
     await message.answer("<b>🖍 Изменение настроек бота.</b>", reply_markup=settings_open_finl())
 
-
 # Выключатели бота
 @dp.message_handler(IsAdmin(), text="🕹 Выключатели", state="*")
 async def settings_turn_edit(message: Message, state: FSMContext):

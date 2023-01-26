@@ -67,13 +67,10 @@ def get_shopadmins():
         con.row_factory = dict_factory
         sql = f"SELECT user_id FROM storage_users WHERE user_role='ShopAdmin'"
         allshopadmins = con.execute(sql).fetchall()
-        #print(allshopadmins)
         shopadmins=[]
         for admin in allshopadmins:
             k = admin['user_id']
             shopadmins.append(k)
-        #print(shopadmins)
-        #print(type(shopadmins))
 
     return shopadmins
 

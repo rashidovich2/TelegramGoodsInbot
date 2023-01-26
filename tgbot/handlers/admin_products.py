@@ -330,7 +330,7 @@ async def product_position_create_select_category(call: CallbackQuery, state: FS
     get_user_shops = get_shopsxx(admin=user_id)
     if len(get_user_shops) >= 1:
         await call.message.edit_text("<b>Выберите магазин для добавления позиции.</b>",
-                                     reply_markup=position_select_shop_fp(0))
+                                     reply_markup=position_select_shop_fp(user_id))
 
         await state.set_state("here_position_addtoshop")
         await call.message.edit_text("<b>📁 Введите название для позиции 🏷</b>")

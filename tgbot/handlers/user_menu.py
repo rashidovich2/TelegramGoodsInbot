@@ -4,21 +4,22 @@ import json
 from aiogram.dispatcher import FSMContext
 #from aiogram import Bot
 from aiogram import Dispatcher
-
+from aiogram.utils.deep_linking import get_start_link, decode_payload
 from aiogram.types import CallbackQuery, Message, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 from tgbot.data.config import BOT_DESCRIPTION
 from tgbot.keyboards.inline_admin import category_edit_open_finl, position_edit_open_finl, category_edit_delete_finl, \
-    position_edit_clear_finl, position_edit_delete_finl, payment_choice_finl
+    position_edit_clear_finl, position_edit_delete_finl, payment_choice_finl, artist_edit_open_finl
 from tgbot.keyboards.inline_user import user_support_finl, products_open_finl, products_confirm_finl, \
     products_addcart_confirm_finl, payment_as_choice_finl, accept_saved_adr, accept_saved_phone, \
-    cart_enter_message_finl, give_number_inl, reply_order_message_finl, refill_choice_finl, charge_button_add, switch_category_shop_finl, shop_creation_request_finl
+    cart_enter_message_finl, give_number_inl, reply_order_message_finl, refill_choice_finl, charge_button_add, switch_category_shop_finl, shop_creation_request_finl, event_open_finl
 from tgbot.keyboards.inline_z_all import category_remove_confirm_inl, position_remove_confirm_inl, \
     item_remove_confirm_inl, close_inl, confirm_delete_user_cart_inl
-from tgbot.keyboards.inline_z_all import refill_open_inl, profile_open_inl, cart_open_created_inl, cart_open_delivery_inl, checkout_step2_accept, order_user_refill
+from tgbot.keyboards.inline_z_all import refill_open_inl, profile_open_inl, cart_open_created_inl, cart_open_delivery_inl, checkout_step2_accept, order_user_refill, partners_list_inl
 from tgbot.keyboards.inline_z_page import *
 from tgbot.keyboards.reply_z_all import finish_load_rep
-from tgbot.keyboards.reply_z_all import menu_frep, items_sh_frep
+from tgbot.keyboards.reply_z_all import menu_frep, items_sh_frep, events_frep
+from tgbot.keyboards.shop_keyboards import shop_edit_open_fp
 from tgbot.loader import dp
 from tgbot.loader import bot
 from tgbot.services.api_qiwi import QiwiAPI
@@ -27,9 +28,12 @@ from tgbot.services.api_sqlite import *
 from tgbot.utils.const_functions import get_date, split_messages, get_unix, clear_list
 from tgbot.utils.misc.bot_filters import IsShopAdmin, IsAdminorShopAdmin, IsAdmin
 from tgbot.utils.misc_functions import user_refill_my, calc_cart_summ, open_cart_my, open_profile_my, upload_text, get_faq, send_admins
-from tgbot.utils.misc_functions import get_position_admin, upload_text
+from tgbot.utils.misc_functions import get_position_admin, upload_text, get_artist_admin
 from tgbot.keyboards.location_keyboards import geo_1_kb
-from tgbot.services.location_function import update_position_city, get_city_info
+from tgbot.services.location_function import update_position_city, get_city_info, is_location, update_artist_city
+from tgbot.services.location_stat import geo_choice
+from tgbot.keyboards.location_keyboards import geo_11_kb
+
 
 async def notify(dp: Dispatcher, msg):
     print('Уведомление!')
@@ -43,16 +47,32 @@ async def user_seller_request(message: Message, state: FSMContext):
     await state.set_state("here_seller_request_direction")
     await message.answer("<b>📁 Введите вид товаров или услуг, которые Вы предлагаете:</b>")
 
+
+# Открытие товаров
+@dp.message_handler(text="Админ Афиши", state="*")
+async def user_seller_request(message: Message, state: FSMContext):
+    # await state.finish()
+    await state.set_state("here_afisha_admin_request_direction")
+    await message.answer("<b>📁 Опишите пожалуйста события или среду, которые Вы создаете:</b>")
+
+
+# Управление событиями
+@dp.message_handler(IsAdminorShopAdmin(), text="🎫 Управление событиями 🖍", state="*")
+async def admin_products(message: Message, state: FSMContext):
+    await state.finish()
+    await message.answer("<b>🎫 Редактирование событий.</b>", reply_markup=events_frep())
+
+
 # Управление товарами
 @dp.message_handler(IsShopAdmin(), text="🎁 Управление товарами дмаг.🖍", state="*")
 async def shopadmin_products(message: Message, state: FSMContext):
     await state.finish()
     await message.answer("<b>🎁 Редактирование товаров дмаг.</b>", reply_markup=items_sh_frep())
 
+
 @dp.message_handler(text="🗃 Создать категорию ➕", state="*")
 async def product_category_create(message: Message, state: FSMContext):
     await state.finish()
-
     await state.set_state("here_category_name")
     await message.answer("<b>🗃 Введите название для категории 🏷</b>")
 
@@ -108,6 +128,157 @@ async def user_shop(message: Message, state: FSMContext):
                              reply_markup=products_item_shop_swipe_fp(0, 0))
 
 
+# Открытие товаров
+@dp.message_handler(text="Афиша", state="*")
+async def user_afisha(message: Message, state: FSMContext):
+    print(f'Открытие афишы  user_menu.py 115')
+    await state.finish()
+
+    if is_location(message.from_user.id) == True:
+        #await message.answer("🔸 Афиша работает только в случае, если у Вас выбран город.\n"
+        #                 "🔸 Если не появились вспомогательные кнопки\n"
+        #                 "▶ Введите /start",
+        #                 reply_markup=menu_frep(message.from_user.id))
+        city_id = get_city_user(message.from_user.id)[0]
+        print(city_id)
+        if len(get_events_in_city(city_id)) >= 1:
+            await message.answer("<b>Выберите интересное для Вас:</b>",
+                                 reply_markup=events_in_city_swipe_fp(0, city_id))
+
+    else:
+        await geo_choice.location.set()
+        await message.answer('Отправьте локацию или выберите город из списка', reply_markup=geo_11_kb())
+
+# события в заведении
+# заведения в городе
+# события в городе
+'''
+    get_settings = get_settingsx()
+    if(get_settings['type_trade'] != 'digital'):
+        city_id = get_city_user(message.from_user.id)[0]
+        #get_categories = get_category_in_city(city_id)
+        if len(get_events_in_city(city_id=city_id)) >= 1:
+            await message.answer("<b>Выберите интересное для Вас:</b>",
+                                 reply_markup=events_in_city_swipe_fp(0, city_id))
+        else:
+            await message.answer("<b>🎁 В вашем городе товаров нет, выберите другой город</b>\n\n"
+                                 "🏙 Изменить город вы можете в личном кабинете")
+    else: #if len(get_all_categoriesx()) >= 1
+        await message.answer("<b>Выберите интересное для Вас:</b>",
+                             reply_markup=events_in_city_swipe_fp(0, 0))'''
+
+
+# Переключение страниц категорий для покупки
+@dp.callback_query_handler(text_startswith="events_city_swipe:", state="*")
+async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContext):
+    remover = int(call.data.split(":")[1])
+    city_id = int(call.data.split(":")[2])
+
+    if remover == 0:
+        await call.message.answer("<b>События в городе, выберите что-нибудь интересное:</b>",
+                                  reply_markup=events_in_city_swipe_fp(remover, city_id))
+    else:
+        await call.message.edit_text("<b>События в городе, выберите что-нибудь интересное:</b>",
+                                     reply_markup=events_in_city_swipe_fp(remover, city_id))
+
+# Переключение страниц категорий для покупки
+@dp.callback_query_handler(text_startswith="events_place_swipe:", state="*")
+async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContext):
+    remover = int(call.data.split(":")[1])
+    place_id = int(call.data.split(":")[2])
+    city_id = int(call.data.split(":")[3])
+
+    if remover == 0:
+        await call.message.answer("<b>События в месте, выберите что-нибудь интересное:</b>",
+                                reply_markup=events_in_place_swipe_fp(remover, place_id, city_id))
+    else:
+        await call.message.edit_text("<b>События в месте, выберите что-нибудь интересное:</b>",
+                                  reply_markup=events_in_place_swipe_fp(remover, place_id, city_id))
+
+
+# Переключение страниц категорий для покупки
+@dp.callback_query_handler(text_startswith="places_city_swipe:", state="*")
+async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContext):
+    remover = int(call.data.split(":")[1])
+    city_id = int(call.data.split(":")[2])
+
+    await call.message.edit_text("<b>События в городе, выберите что-нибудь интересное:</b>",
+                                 reply_markup=places_in_city_swipe_fp(remover, city_id))
+
+
+# Переключение страниц категорий для покупки
+@dp.callback_query_handler(text_startswith="open_inline_support", state="*")
+async def open_inline_support(call: CallbackQuery, state: FSMContext):
+    user_support = get_settingsx()['misc_support']
+    if str(user_support).isdigit():
+        get_user = get_userx(user_id=user_support)
+        await call.message.answer("<b>Напишите, что Вы хотите добавить, мы добавим.:</b>",
+                                 reply_markup=user_support_finl(get_user['user_login']))
+        return
+    else:
+        update_settingsx(misc_support="None")
+        await message.answer(f"☎ Поддержка. Измените их в настройках бота.\n➖➖➖➖➖➖➖➖➖➖\n{BOT_DESCRIPTION}",
+                            disable_web_page_preview=True)
+
+# Открытие позиции для покупки
+@dp.callback_query_handler(text_startswith="book_event_open:", state="*")
+async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
+    print(f'Карточка товара: user_menu.py  152')
+    event_id = int(call.data.split(":")[1])
+    place_id = int(call.data.split(":")[2])
+    city_id = int(call.data.split(":")[3])
+
+    #category_id = int(call.data.split(":")[2])
+    #remover = int(call.data.split(":")[3])
+    #city_id = int(call.data.split(":")[4])
+    #print(position_id, category_id, remover, city_id)
+
+    city_id = get_city_user(call.from_user.id)[0]
+    get_event = get_eventxx(event_id=event_id)
+    #get_category = get_categoryx(category_id=category_id)
+    #get_items = get_itemsx(position_id=position_id)
+    get_settings = get_settingsx()
+    print(get_event)
+
+    if get_event['event_description'] == "0":
+        text_description = ""
+    else:
+        text_description = f"\n📜 Описание:\n" \
+                           f"{get_event['event_description']}"
+
+    send_msg = f"<b>Мероприятие:</b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"🏷 Название: <code>{get_event['event_name']}</code>\n" \
+               f"🏙 Город: <code>{get_event['event_city']}</code>\n" \
+               f"{text_description}"
+
+    #f"📦 Остаток: <code>{len(get_items)}шт</code>" \
+    print(get_settings['type_trade'])
+    tt = get_settings['type_trade']
+
+    if tt != "digital":
+        #    product_markup = products_open_finl(position_id, remover, category_id)
+        # product_markup = products_open_cart_finl(position_id, remover, category_id)
+        if len(get_event['event_photo']) >= 5:
+            print("\|")
+            await call.message.delete()
+            await call.message.answer_photo(get_event['event_photo'],
+                                            send_msg, reply_markup=event_open_finl(event_id, 0, place_id, city_id))
+        else:
+            print("\||")
+            await call.message.edit_text(send_msg,
+                                         reply_markup=event_open_finl(event_id, 0, place_id, city_id))
+    elif tt == "digital":
+        if len(get_position['event_photo']) >= 5:
+            print("\|")
+            await call.message.delete()
+            await call.message.answer_photo(get_event['event_photo'],
+                                            send_msg, reply_markup=event_open_finl(event_id, 0, place_id, city_id))
+        else:
+            print("\||")
+            await call.message.edit_text(send_msg,
+                                         reply_markup=event_open_finl(event_id, 0, place_id, city_id))
+
 # Открытие пополнения счета
 @dp.message_handler(text="💰 Пополнить", state="*")
 async def user_refill_b(message: Message, state: FSMContext):
@@ -121,6 +292,12 @@ async def user_refill_b(message: Message, state: FSMContext):
 async def user_profile(message: Message, state: FSMContext):
     await state.finish()
     await message.answer(open_profile_my(message.from_user.id), reply_markup=profile_open_inl)
+
+# Открытие профиля
+@dp.message_handler(text="Партнеры", state="*")
+async def open_partners_list(message: Message, state: FSMContext):
+    await state.finish()
+    await message.answer("Наши славные партнеры:", reply_markup=partners_list_inl)
 
 # Открытие корзины
 @dp.message_handler(text="🧮 Корзина", state="*")
@@ -149,6 +326,178 @@ async def user_faq(message: Message, state: FSMContext):
 
     await message.answer(get_faq(message.from_user.id, send_message), disable_web_page_preview=True)
 
+###############################################################################################
+##### ***** ###### *****         СОЗДАНИЕ АРТИСТА
+###############################################################################################
+# -----------------------------------------------------------------------------------------------------------
+# Создание нового магазина
+@dp.message_handler(IsAdminorShopAdmin(), text="🏪 Создать артиста ➕", state="*")
+async def product_shop_create(message: Message, state: FSMContext):
+    await state.finish()
+    print("user_menu - создание артиста")
+    print("-")
+    user_id = message.from_user.id
+    print(user_id)
+    my_artist = check_user_artist_exist(user_id)
+    print(my_artist)
+    if my_artist == True:
+        print("|")
+        await message.answer(f"<b>🏪 Артист уже существует 🏷 Выбирайте его в каталоге при создании позиций: {my_artist} </b>", parse_mode='HTML')
+    else:
+        print("||")
+        await state.set_state("here_artist_name")
+        await message.answer("<b>🏪 Введите название артиста или коллектива 🏷</b>", parse_mode='HTML')
+
+
+# принятие названия магазина, запрос описания
+@dp.message_handler(IsAdminorShopAdmin(), state="here_artist_name")
+async def product_category_create_name(message: Message, state: FSMContext):
+    if len(message.text) <= 100:
+        print("admin_products_shop - создание артиста")
+        await state.update_data(data={'name': message.text})
+        await state.set_state('here_artist_description')
+        await message.answer("<b>🏪 Введите Bio артиста 📜</b>\n"
+                             "❕ Отправьте <code>0</code> чтобы пропустить.", parse_mode='HTML')
+    else:
+        await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
+                             "🏪 Введите название для артиста 🏷", parse_mode='HTML')
+
+# принятие описания магазина, запрос адреса
+@dp.message_handler(IsAdminorShopAdmin(), state="here_artist_description")
+async def product_category_create_name(message: Message, state: FSMContext):
+    if len(message.text) <= 600:
+        if message.text == '0':
+            await state.update_data(data={'description': 'None'})
+        else:
+            await state.update_data(data={'description': message.text})
+        await state.set_state('here_artist_webadress')
+        await message.answer("<b>🏪 Отправьте веб-сайт артиста 📍</b>\n"
+                             "❕ Отправьте <code>0</code> чтобы пропустить.", parse_mode='HTML')
+
+
+    else:
+        await message.answer("<b>❌ Описание не может превышать 600 символов.</b>\n"
+                             "🏪 Введите новое Bio для артиста 📜\n"
+                             "❕ Отправьте <code>0</code> чтобы пропустить.", parse_mode='HTML')
+
+
+# принятие адреса магазина, запрос номера
+@dp.message_handler(IsAdminorShopAdmin(), state="here_artist_webadress")
+async def product_category_create_name(message: Message, state: FSMContext):
+    if message.text == '0':
+        await state.update_data(data={'webaddress': 'None'})
+    else:
+        await state.update_data(data={'webaddress': message.text})
+    await state.set_state('here_artist_logo')
+    await message.answer("<b>🏪 Отправьте лого артиста 📷</b>\n"
+                         "❕ Отправьте <code>0</code> чтобы пропустить.", parse_mode='HTML')
+
+# принятие лого магазина, запрос лого
+@dp.message_handler(IsAdminorShopAdmin(), content_types=['photo','text'], state="here_artist_logo")
+async def product_category_create_logo(message: Message, state: FSMContext):
+    if message.content_type == 'photo':
+        logo = message.photo[0].file_id
+    else:
+        logo = None
+
+    async with state.proxy() as data:
+        print(data)
+        name = data['name']
+        description = data['description']
+        webaddress = data['webaddress']
+
+    await state.finish()
+
+    type_trade = get_settingsx()
+    if type_trade['type_trade'] != "digital":
+        city = get_city_user3(message.from_user.id)
+        print(city)
+        city_id = city[0]
+        geocode = city[1]
+        city_name = city[2]
+    else:
+        city_id = 0
+        geocode = ''
+        city_name = ''
+    add_artistx(name, description, webaddress, message.from_user.id, logo, city_id, geocode, city_name)
+    await message.answer("<b>🏪 Карточка артиста была успешно создана ✅</b>", parse_mode='HTML')
+
+
+# -----------------------------------------------------------------------------------------------------------
+# Открытие страниц выбора магазина для редактирования
+@dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить артиста 🖍", state="*")
+async def artist_list_edit(message: Message, state: FSMContext):
+    await state.finish()
+    user_id=message.from_user.id
+    #if get_my_shopx(user_id):
+    artists = get_artistsxx(admin=user_id)
+    #shops = get_all_shopx()
+    #shops = get_all_shopx()
+    #print(f'shops {shops}')
+    print(artists)
+
+    if len(artists) >= 1:
+        await message.answer("<b>🏪 Выберите артиста для изменения 🖍</b>",
+                             reply_markup=artist_edit_open_fp(0, user_id))
+    else:
+        await message.answer("<b>🏪 Ваши артисты отсутствуют 🖍</b>")
+
+
+# Смена страницы выбора магазина
+@dp.message_handler(IsAdminorShopAdmin(), text_startswith="change_artist_edit_pg:", state="*")
+async def artist_list_edit_pg(call: CallbackQuery, state: FSMContext):
+    await state.finish()
+    remover = int(str(call.data).split(':')[1])
+    #user_id = message.from_user.id
+    user_id = int(str(call.data).split(':')[2])
+    artists = get_artistsxx(admin=user_id)
+
+    if len(artists) >= 1:
+        await call.message.answer("<b>🏪 Выберите артиста для изменения 🖍</b>",
+                                  reply_markup=artist_edit_open_fp(remover, user_id))
+    else:
+        await call.message.answer("<b>🏪 Артисты отсутствуют 🖍</b>")
+
+
+# Выбор позиции для редактирования
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_edit:", state="*")
+async def artist_edit_open(call: CallbackQuery, state: FSMContext):
+    print(f'Выбор артиста для редактирования api_sqlite.py 496')
+    artist_id = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
+    remover = int(call.data.split(":")[3])
+    print(artist_id, user_id, remover)
+
+    get_message, get_photo = get_artist_admin(artist_id)
+
+    if get_photo is not None and get_photo != '':
+        await call.message.delete()
+        await call.message.answer_photo(get_photo, get_message,
+                                        reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+    else:
+        await call.message.edit_text(get_message,
+                                     reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+
+
+# Возвращение к выбору позиции для изменения
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_edit_return", state="*")
+async def artist_edit_return(call: CallbackQuery, state: FSMContext):
+    user_id = int(call.data.split(":")[1])
+    remover = int(call.data.split(":")[2])
+    user_id = call.from_user.id
+    print(user_id)
+    artists = get_artistsxx(admin=user_id)
+    #shops = get_all_shopx()
+    #shops = get_all_shopx()
+    #print(f'shops {shops}')
+    print(artists)
+
+    if len(artists) >= 1:
+        await call.message.delete()
+        await call.message.answer("<b>📁 Выберите нужного Вам артиста 🖍</b>",
+                                  reply_markup=artist_edit_open_fp(0, user_id))
+    else:
+        await call.answer("<b>❗ У Вас отсутствуют Артисты</b>")
 
 # -----------------------------------------------------------------------------------------------------------
 # Создание нового магазина
@@ -159,9 +508,11 @@ async def product_shop_create(message: Message, state: FSMContext):
     print("-")
     user_id = message.from_user.id
     print(user_id)
-    if check_user_shop_exist(user_id) == 1:
+    my_shop = check_user_shop_exist(user_id)
+    print(my_shop)
+    if my_shop == True:
         print("|")
-        await message.answer("<b>🏪 Магазин уже существует 🏷</b>", parse_mode='HTML')
+        await message.answer(f"<b>🏪 Магазин уже существует 🏷 Выбирайте его в каталоге при создании позиций: {my_shop} </b>", parse_mode='HTML')
     else:
         print("||")
         await state.set_state("here_shop_name")
@@ -256,13 +607,13 @@ async def product_category_create_logo(message: Message, state: FSMContext):
     add_shopx(name, description, address, phone, message.from_user.id, logo, city_id, geocode, city_name)
     await message.answer("<b>🏪 Магазин был успешно создан ✅</b>", parse_mode='HTML')
 
+# -----------------------------------------------------------------------------------------------------------
 # Открытие страниц выбора магазина для редактирования
-@dp.message_handler(IsShopAdmin(), text="🏪 Изменить магазин 🖍", state="*")
+@dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить магазин 🖍112", state="*")
 async def product_category_edit(message: Message, state: FSMContext):
     await state.finish()
-    user_id = message.from_user.id
 
-    shops = get_my_shopx(user_id)
+    shops = get_all_shopx()
     print(f'shops {shops}')
 
     if len(shops) >= 1:
@@ -270,6 +621,40 @@ async def product_category_edit(message: Message, state: FSMContext):
                              reply_markup=shop_edit_open_fp(0, shops))
     else:
         await message.answer("<b>🏪 Магазины отсутствуют 🖍</b>")
+
+
+# -----------------------------------------------------------------------------------------------------------
+# Открытие страниц выбора магазина для редактирования
+@dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить магазин 🖍", state="*")
+async def shop_list_edit(message: Message, state: FSMContext):
+    await state.finish()
+    user_id=message.from_user.id
+    #if get_my_shopx(user_id):
+    shops = get_shopsxx(admin=user_id)
+    #shops = get_all_shopx()
+    #shops = get_all_shopx()
+    #print(f'shops {shops}')
+    print(shops)
+
+    if len(shops) >= 1:
+        await message.answer("<b>🏪 Выберите магазин для изменения 🖍</b>",
+                             reply_markup=shop_edit_open_fp(0, user_id))
+    else:
+        await message.answer("<b>🏪 Ваши магазины отсутствуют 🖍</b>")
+
+
+# Смена страницы выбора магазина
+@dp.message_handler(IsAdminorShopAdmin(), text_startswith="change_shop_edit_pg:", state="*")
+async def shop_list_edit(call: CallbackQuery, state: FSMContext):
+    await state.finish()
+    page = int(str(call.data).split(':')[1])
+
+
+    if len(shops) >= 1:
+        await call.message.answer("<b>🏪 Выберите магазин для изменения 🖍</b>",
+                                  reply_markup=shop_edit_open_fp(page, 0))
+    else:
+        await call.message.answer("<b>🏪 Магазины отсутствуют 🖍</b>")
 
 
 # Открытие сообщения с ссылкой на поддержку
@@ -452,20 +837,23 @@ async def payment_qiwi_edit(message: Message, state: FSMContext):
 
 
 # Проверка работоспособности QIWI
-@dp.message_handler(IsShopAdmin(), text="🥝 Проверить QIWI ♻", state="*")
+@dp.message_handler(IsAdminorShopAdmin(), text="🥝 Проверить QIWI ♻", state="*")
 async def payment_qiwi_check(message: Message, state: FSMContext):
-    print("Проверка КИВИ админом магазина")
+    print("||| Проверка КИВИ админом площадки. |||")
     await state.finish()
+    user_id = message.from_user.id
+    print(user_id)
 
-    await (await QiwiAPI(message, check_pass=True)).pre_checker()
+    await (await QiwiAPI(message, suser_id=user_id, check_pass=True)).pre_checker()
 
 
 # Баланс QIWI
-@dp.message_handler(IsShopAdmin(), text="🥝 Баланс QIWI 👁", state="*")
+@dp.message_handler(IsAdminorShopAdmin(), text="🥝 Баланс QIWI 👁", state="*")
 async def payment_qiwi_balance(message: Message, state: FSMContext):
     await state.finish()
+    user_id = message.from_user.id
 
-    await (await QiwiAPI(message)).get_balance()
+    await (await QiwiAPI(message, suser_id=user_id)).get_balance()
 
 
 ######################################## ПРИНЯТИЕ QIWI ########################################
@@ -502,20 +890,21 @@ async def payment_qiwi_edit_token(message: Message, state: FSMContext):
 
 
 # Принятие приватного ключа для QIWI
-@dp.message_handler(IsShopAdmin(), state="here_qiwi_secret")
+@dp.message_handler(IsAdminorShopAdmin(), state="here_qiwi_secret")
 async def payment_qiwi_edit_secret(message: Message, state: FSMContext):
     async with state.proxy() as data:
         qiwi_login = data['here_qiwi_login']
         qiwi_token = data['here_qiwi_token']
         if message.text == "0": qiwi_secret = "None"
         if message.text != "0": qiwi_secret = message.text
+        user_id = message.from_user.id
 
     await state.finish()
 
     cache_message = await message.answer("<b>🥝 Проверка введённых QIWI данных... 🔄</b>")
     await asyncio.sleep(0.5)
 
-    await (await QiwiAPI(cache_message, qiwi_login, qiwi_token, qiwi_secret, True)).pre_checker()
+    await (await QiwiAPI(cache_message, qiwi_login, qiwi_token, qiwi_secret, add_pass=True, suser_id=user_id)).pre_checker()
 
 
 ################################################################################################
@@ -907,8 +1296,8 @@ async def product_position_edit_name(call: CallbackQuery, state: FSMContext):
 async def product_position_edit_name_get(message: Message, state: FSMContext):
     if len(message.text) <= 100:
         async with state.proxy() as data:
-            position_id = data['here_cache_category_id']
-            category_id = data['here_cache_position_id']
+            position_id = data['here_cache_position_id']
+            category_id = data['here_cache_category_id']
             remover = data['here_cache_position_remover']
         await state.finish()
 
@@ -923,7 +1312,6 @@ async def product_position_edit_name_get(message: Message, state: FSMContext):
     else:
         await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
                              "📁 Введите новое название для позиции 🏷")
-
 
 # Изменение цены позиции
 @dp.callback_query_handler(IsShopAdmin(), text_startswith="position_edit_price", state="*")
@@ -1070,12 +1458,40 @@ async def product_position_edit_photo_get(message: Message, state: FSMContext):
     else:
         await message.answer(get_message, reply_markup=position_edit_open_finl(position_id, category_id, remover))
 
+# Изменение города продукта
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_edit_city", state="*")
+async def product_position_edit_description2(call: CallbackQuery, state: FSMContext):
+    print(f'Изменение города продукта  admin_products.py 715')
+    print(call.data)
+    category_id = int(call.data.split(":")[2])
+    position_id = int(call.data.split(":")[1])
+    remover = int(call.data.split(":")[3])
+
+    current_city = get_city_user(call.from_user.id)[0]
+    get_user_shops = get_shopsxx(admin=user_id)
+    if len(get_user_shops) >= 1:
+        await call.message.edit_text("<b>Выберите магазин для добавления позиции.</b>",
+                                 reply_markup=position_select_shop_fp(0))
+
+    await state.set_state("here_change_shop")
+
+    # await state.update_data(here_cache_category_id=category_id)
+    # await state.update_data(here_cache_position_id=position_id)
+    # await state.update_data(here_cache_position_remover=remover)
+
+
+    #await state.update_data({'position_id': position_id, 'category_id': category_id, 'remover': remover})
+    #await call.message.delete()
+    #await call.message.answer("<b>📁 Выберите другой город 🏙</b>\n"
+    #                          "❕ Вы можете использовать геолокацию или выбрать город из списка\n"
+    #                          f"❕  Город товара: <code>{current_city}</code>", reply_markup=geo_1_kb())
+
 
 # ---------------------------  Добавлено 12.08.22 ------------------------------------------
 
 # Изменение города продукта
-@dp.callback_query_handler(IsShopAdmin(), text_startswith="position_edit_city", state="*")
-async def product_position_edit_description(call: CallbackQuery, state: FSMContext):
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="position_edit_city", state="*")
+async def product_position_edit_city(call: CallbackQuery, state: FSMContext):
     print(f'Изменение города продукта  admin_products.py 715')
     print(call.data)
     category_id = int(call.data.split(":")[2])
@@ -1093,7 +1509,7 @@ async def product_position_edit_description(call: CallbackQuery, state: FSMConte
     await call.message.delete()
     await call.message.answer("<b>📁 Выберите другой город 🏙</b>\n"
                               "❕ Вы можете использовать геолокацию или выбрать город из списка\n"
-                              f"❕  Город товара: <code>{current_city}</code>", reply_markup=geo_1_kb())
+                              f"❕ Город товара: <code>{current_city}</code>", reply_markup=geo_1_kb())
 
 
 # принятие новой геопозиции для позиции
@@ -1130,8 +1546,256 @@ async def geo_5(cb: CallbackQuery, state: FSMContext):
         await cb.message.answer(get_message,
                                 reply_markup=position_edit_open_finl(position_id, category_id, remover))
 
+######################################## САМО ИЗМЕНЕНИЕ ПОЗИЦИИ ########################################
+# Изменение имени позиции
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_edit_name", state="*")
+async def tgartist_edit_name(call: CallbackQuery, state: FSMContext):
+    print(f'Изменение имени артиста api_sqlite.py 529')
+    artist_id = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
+    remover = int(call.data.split(":")[3])
 
+    await state.update_data(here_cache_artist_id=artist_id)
+    await state.update_data(here_cache_user_id=user_id)
+    await state.update_data(here_cache_artist_remover=remover)
+
+    await state.set_state("here_change_artist_name")
+    await call.message.delete()
+    await call.message.answer("<b>📁 Введите новое название для артиста 🏷</b>")
+
+
+# Принятие имени артиста для его изменения
+@dp.message_handler(IsAdminorShopAdmin(), state="here_change_artist_name")
+async def artist_edit_name_get(message: Message, state: FSMContext):
+    if len(message.text) <= 100:
+        async with state.proxy() as data:
+            artist_id = data['here_cache_artist_id']
+            user_id = data['here_cache_user_id']
+            remover = data['here_cache_artist_remover']
+        await state.finish()
+
+        update_artistx(artist_id, name=clear_html(message.text))
+        get_message, get_photo = get_artist_admin(artist_id)
+
+        if get_photo is not None:
+            await message.answer_photo(get_photo, get_message,
+                                       reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+        else:
+            await message.answer(get_message, reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+    else:
+        await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
+                             "📁 Введите новое название для артиста 🏷")
 ################################################################################################
+# РЕДАКТИРОВАНИЕ ОПИСАНИЯ АРТИСТА
+###################################
+# Изменение описания артиста
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_edit_description", state="*")
+async def artist_edit_description(call: CallbackQuery, state: FSMContext):
+    artist_id = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
+    remover = int(call.data.split(":")[3])
+
+    await state.update_data(here_cache_artist_id=artist_id)
+    await state.update_data(here_cache_user_id=user_id)
+    await state.update_data(here_cache_artist_remover=remover)
+
+    await state.set_state("here_change_artist_description")
+    await call.message.delete()
+    await call.message.answer("<b>📁 Введите новое описание для артиста 📜</b>\n"
+                              "❕ Вы можете использовать HTML разметку\n"
+                              "❕ Отправьте <code>0</code> чтобы пропустить.")
+
+
+# Принятие описания позиции для её изменения
+@dp.message_handler(IsAdminorShopAdmin(), state="here_change_artist_description")
+async def product_artist_edit_description_get(message: Message, state: FSMContext):
+    async with state.proxy() as data:
+        artist_id = data['here_cache_artist_id']
+        user_id = data['here_cache_user_id']
+        remover = data['here_cache_artist_remover']
+
+    try:
+        if len(message.text) <= 600:
+            await state.finish()
+
+            if message.text != "0":
+                cache_msg = await message.answer(message.text)
+                await cache_msg.delete()
+
+            update_artistx(artist_id, description=clear_html(message.text))
+            get_message, get_photo = get_artist_admin(artist_id)
+
+            if get_photo is not None:
+                await message.answer_photo(get_photo, get_message,
+                                           reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+            else:
+                await message.answer(get_message,
+                                     reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+        else:
+            await message.answer("<b>❌ Описание не может превышать 600 символов.</b>\n"
+                                 "📁 Введите новое описание для артиста 📜\n"
+                                 "❕ Вы можете использовать HTML разметку\n"
+                                 "❕ Отправьте <code>0</code> чтобы пропустить.")
+    except CantParseEntities:
+        await message.answer("<b>❌ Ошибка синтаксиса HTML.</b>\n"
+                             "📁 Введите новое описание для артиста 📜\n"
+                             "❕ Вы можете использовать HTML разметку\n"
+                             "❕ Отправьте <code>0</code> чтобы пропустить.")
+##############################################################################################
+########################## ARTIST _____ EDIT ________ PHOTO
+##############################################################################################
+# Изменение изображения позиции
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_edit_photo", state="*")
+async def artist_edit_photo(call: CallbackQuery, state: FSMContext):
+    artist_id = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
+    remover = int(call.data.split(":")[3])
+
+    await state.update_data(here_cache_artist_id=artist_id)
+    await state.update_data(here_cache_user_id=user_id)
+    await state.update_data(here_cache_artist_remover=remover)
+
+    await state.set_state("here_change_artist_photo")
+    await call.message.delete()
+    await call.message.answer("<b>📁 Отправьте новое изображение для артиста 📸</b>\n"
+                              "❕ Отправьте <code>0</code> чтобы пропустить.")
+
+
+# Принятие нового фото для позиции
+@dp.message_handler(IsAdminorShopAdmin(), content_types="photo", state="here_change_artist_photo")
+@dp.message_handler(IsAdminorShopAdmin(), text="0", state="here_change_artist_photo")
+async def product_artist_edit_photo_get(message: Message, state: FSMContext):
+    async with state.proxy() as data:
+        artist_id = data['here_cache_artist_id']
+        user_id = data['here_cache_user_id']
+        remover = data['here_cache_artist_remover']
+    await state.finish()
+
+    artist = get_artistx(artist_id = artist_id)
+    print(artist['name'])
+
+    if "text" in message:
+        artist_photo = ""
+    else:
+        artist_photo = message.photo[-1].file_id
+
+
+    update_artistx(artist_id, logo=artist_photo)
+    get_message, get_photo = get_artist_admin(artist_id)
+    await notify(dp, f"Был отредактирован артист: {artist['name']}")
+
+    if get_photo is not None:
+        await message.answer_photo(get_photo, get_message,
+                                   reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+    else:
+        await message.answer(get_message, reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+
+
+# Изменение города продукта
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_edit_city", state="*")
+async def product_position_edit_description(call: CallbackQuery, state: FSMContext):
+    print(f'Изменение города артиста  admin_products.py 715')
+    print(call.data)
+    artist_id = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
+    remover = int(call.data.split(":")[3])
+
+    current_city = get_city_artist(artist_id=artist_id)[0]
+
+    # await state.update_data(here_cache_category_id=category_id)
+    # await state.update_data(here_cache_position_id=position_id)
+    # await state.update_data(here_cache_position_remover=remover)
+
+    await state.set_state("here_change_city_artist")
+    await state.update_data({'artist_id': artist_id, 'user_id': user_id, 'remover': remover})
+    await call.message.delete()
+    await call.message.answer("<b>📁 Выберите другой город 🏙</b>\n"
+                              "❕ Вы можете использовать геолокацию или выбрать город из списка\n"
+                              f"❕ Город артиста: <code>{current_city}</code>", reply_markup=geo_1_kb())
+
+
+# принятие новой геопозиции для позиции
+@dp.callback_query_handler(text_startswith='geo_chosen_cities', state='here_change_city_artist')
+async def geo_5(cb: CallbackQuery, state: FSMContext):
+    info = int(str(cb.data).split('#')[1])
+    if info == 0:
+        async with state.proxy() as data:
+            city = data['city']
+            artist_id = int(data['artist_id'])
+            user_id = data['user_id']
+            remover = data['remover']
+            city_id = data['city_id']
+
+    else:
+        async with state.proxy() as data:
+            artist_id = int(data['artist_id'])
+            user_id = data['user_id']
+            remover = data['remover']
+
+        city_id = info
+        city = get_city_info(info)
+
+    await state.finish()
+    update_artist_city(city, city_id, artist_id)
+
+    # update_positionx(position_id)
+    get_message, get_photo = get_artist_admin(artist_id)
+
+    if get_photo is not None:
+        await cb.message.answer_photo(get_photo, get_message,
+                                      reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+    else:
+        await cb.message.answer(get_message,
+                                reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+
+# Удаление позиции
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_edit_delete", state="*")
+async def artist_edit_delete(call: CallbackQuery, state: FSMContext):
+    artist_id = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
+    remover = int(call.data.split(":")[3])
+
+    await state.update_data(here_cache_artist_id=artist_id)
+    await state.update_data(here_cache_user_id=user_id)
+    await state.update_data(here_cache_artist_remover=remover)
+
+    await call.message.delete()
+    await call.message.answer("<b>📁 Вы действительно хотите удалить позицию? ❌</b>",
+                              reply_markup=artist_edit_delete_finl())
+
+
+# Подтверждение удаления позиции
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="artist_delete", state="*")
+async def artist_edit_delete_confirm(call: CallbackQuery, state: FSMContext):
+    get_action = call.data.split(":")[1]
+    async with state.proxy() as data:
+        artist_id = data['here_cache_artist_id']
+        user_id = data['here_cache_user_id']
+        remover = data['here_cache_artist_remover']
+    await state.finish()
+
+    if get_action == "yes":
+        #remove_itemx(position_id=position_id)
+        remove_artistx(artist_id=artist_id)
+
+        await call.answer("📁 Вы успешно удалили артиста ✅")
+
+        if len(get_artistx(admin=user_id)) >= 1:
+            await call.message.edit_text("<b>📁 Выберите нужного Вам артиста 🖍</b>",
+                                         reply_markup=artist_edit_open_fp(remover, user_id))
+        else:
+            await call.message.delete()
+    else:
+        get_message, get_photo = get_artist_admin(artist_id)
+
+        if get_photo is not None:
+            await call.message.delete()
+            await call.message.answer_photo(get_photo, get_message,
+                                            reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+        else:
+            await call.message.edit_text(get_message,
+                                         reply_markup=artist_edit_open_finl(artist_id, user_id, remover))
+
 # Просмотр истории покупок
 @dp.callback_query_handler(text="user_history", state="*")
 async def user_history(call: CallbackQuery, state: FSMContext):
@@ -1246,15 +1910,154 @@ async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
     get_positions = get_shopposition_on_city(shop_id, city_id)  # get_positionsx(category_id=category_id)
 
     if len(get_positions) >= 1:
-        #if get_shop['logo'] != None:
+        #if get_shop['logo'] != None or get_place['logo'] != '':
         logo = get_shop[0]['logo']
-        await call.message.answer_photo(logo, "<b>🎁 Выберите нужный вам товар:</b>",
-                                            reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id))
+        await call.message.answer_photo(logo, f"<b>Магазин : {get_shop[0]['name']}</b>\n" \
+                                        f"Адрес : {get_shop[0]['address']}\n" \
+                                        f"Телефон : {get_shop[0]['phone']}")
+        #await call.message.answer_photo(logo, "<b>🎁 Выберите нужный вам товар:</b>",
+        #                                    reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id))
         #else:
-        await call.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
+        #media = types.MediaGroup()
+        #media.attach_photo(types.InputFile('media/Starbucks_Logo.jpg'), 'Превосходная фотография')
+        #media.attach_photo(types.InputFile('media/Starbucks_Logo_2.jpg'), 'Превосходная фотография 2')
+        #await bot.send_media_group(call.message.chat.id, media=media)
+
+        await call.message.answer("<b>🎁 Выберите нужный вам товар:</b>",
                                      reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id))
     else:
         await call.answer(f"❕ Товары в магазине {get_shop[2]} отсутствуют")
+
+
+# Открытие магазина для покупки
+@dp.callback_query_handler(text_startswith="book_place_open", state="*")
+async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
+    print(f'Открытие магазина для покупки user_menu.py 133')
+    place_id = int(call.data.split(":")[1])
+    #get_shop = get_shopx(shop_id=shop_id)
+    get_place = get_placesx(place_id=place_id)
+    print(get_place)
+    #if get_shop[8] != None: logo = get_shop[8]
+    user_id = call.from_user.id
+    city_id = get_city_user(user_id)[0]
+    print("|||")
+    print(city_id, get_place['place_id'])
+    #print(remover, place_id, city_id)
+    #get_events = get_events_in_place(place_id)  # get_positionsx(category_id=category_id)
+
+    if get_place['place_id'] != "":
+        print("|||->")
+        if get_place['logo'] != None or get_place['logo'] != '':
+            logo = get_place['logo']
+            await call.message.answer_photo(logo, f"<b>Место : {get_place['name']}</b>\n" \
+                                              f"Адрес : {get_place['address']}\n" \
+                                              f"Телефон : {get_place['phone']}")
+
+            await call.message.answer("<b>Выберите что-нибудь интересное:</b>",
+                                      reply_markup=events_in_place_swipe_fp(0, place_id, city_id))
+        else:
+        #media = types.MediaGroup()
+        #media.attach_photo(types.InputFile('media/Starbucks_Logo.jpg'), 'Превосходная фотография')
+        #media.attach_photo(types.InputFile('media/Starbucks_Logo_2.jpg'), 'Превосходная фотография 2')
+        #await bot.send_media_group(call.message.chat.id, media=media)
+
+            await call.message.answer("<b>Выберите что-нибудь интересное:</b>",
+                                    reply_markup=events_in_place_swipe_fp(0, place_id, city_id))
+    else:
+        await call.answer(f"❕Cобытия места не загружены: {get_place['name']}, уточнить можно по телефону: {get_place['phone']}")
+
+
+# Открытие магазина для покупки
+@dp.callback_query_handler(text_startswith="book_event_open", state="*")
+async def user_evebt_in_city_open(call: CallbackQuery, state: FSMContext):
+    print(f'Открытие городских событий user_menu.py 1368')
+    event_id = int(call.data.split(":")[1])
+    get_event = get_eventxx(event_id=event_id)
+    #city_id = int(call.data.split(":")[1])
+    #get_shop = get_shopx(shop_id=shop_id)
+    #get_events_in_city
+    #get_shop = get_shopsxx(place_id=place_id)
+    print(get_event)
+    #if get_shop[8] != None: logo = get_shop[8]
+    user_id = call.from_user.id
+    #city_id = get_city_user(user_id)[0]
+    get_positions = get_shopposition_on_city(shop_id, city_id)  # get_positionsx(category_id=category_id)
+
+    if len(get_positions) >= 1:
+        #if get_shop['logo'] != None:
+        logo = get_shop[0]['logo']
+        await call.message.answer_photo(logo, f"<b>Магазин : {get_shop[0]['name']}</b>\n" \
+                                              f"Адрес : {get_shop[0]['address']}\n" \
+                                              f"Телефон : {get_shop[0]['phone']}")
+        #await call.message.answer_photo(logo, "<b>🎁 Выберите нужный вам товар:</b>",
+        #                                    reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id))
+        #else:
+        #media = types.MediaGroup()
+        #media.attach_photo(types.InputFile('media/Starbucks_Logo.jpg'), 'Превосходная фотография')
+        #media.attach_photo(types.InputFile('media/Starbucks_Logo_2.jpg'), 'Превосходная фотография 2')
+        #await bot.send_media_group(call.message.chat.id, media=media)
+
+        await call.message.answer("<b>🎁 Выберите нужный вам товар:</b>",
+                                  reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id))
+    else:
+        await call.answer(f"❕ Товары в магазине {get_shop[2]} отсутствуют")
+
+########################################### ПОЗИЦИИ ##########################################
+# Открытие позиции для покупки
+@dp.callback_query_handler(text_startswith="book_event_open2:", state="*")
+async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
+    print(f'Карточка товара: user_menu.py  1194')
+    event_id = int(call.data.split(":")[1])
+
+    print(event_id)
+    get_event = get_eventx(event_id=event_id)
+    #if category_id != 0: get_category = get_categoryx(category_id=category_id)
+    #else: get_category['category_name'] = 0
+    #get_items = get_itemsx(position_id=position_id)
+    get_settings = get_settingsx()
+    #get_shop = get_shopx(shop_id=shop_id)
+    print("|")
+
+    if get_event['event_description'] == "0":
+        text_description = ""
+    else:
+        text_description = f"\n📜 Описание:\n" \
+                           f"{get_event['event_description']}"
+    #get_shop['name']
+    send_msg = f"<b>Карточка:</b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"🏷 Название: <code>{get_position['position_name']}</code>\n" \
+               f"🏙 Магазин: <code>{get_shop['name']}</code>\n" \
+               f"🏙 Город: <code>{get_position['position_city']}</code>\n" \
+               f"🗃 Категория: <code></code>\n" \
+               f"💰 Стоимость: <code>{get_position['position_price']}₽</code>\n" \
+               f"{text_description}"
+    #{get_category['category_name']}
+    #f"📦 Остаток: <code>{len(get_items)}шт</code>" \
+    print(get_settings['type_trade'])
+    tt = get_settings['type_trade']
+    print("||")
+
+    if tt != "digital":
+        print("|||-")
+        #    product_markup = products_open_finl(position_id, remover, category_id)
+        # product_markup = products_open_cart_finl(position_id, remover, category_id)
+        if len(get_position['position_photo']) >= 5:
+            await call.message.delete()
+            await call.message.answer_photo(get_position['position_photo'],
+                                            send_msg, reply_markup=products_open_finl(1, position_id, remover, 0, shop_id))
+        else:
+            await call.message.edit_text(send_msg,
+                                         reply_markup=products_open_finl(1, position_id, remover, 0, shop_id))
+    elif tt == "digital":
+        print("|||--")
+        if len(get_position['position_photo']) >= 5:
+            await call.message.delete()
+            await call.message.answer_photo(get_position['position_photo'],
+                                            send_msg, reply_markup=products_open_finl(0, position_id, remover, 0, shop_id))
+        else:
+            await call.message.edit_text(send_msg,
+                                         reply_markup=products_open_finl(0, position_id, remover, 0, shop_id))
 
 # Вернуться к категориям для покупки
 @dp.callback_query_handler(text_startswith="buy_parcategory_return", state="*")
@@ -1396,6 +2199,8 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     remover = int(call.data.split(":")[3])
     city_id = int(call.data.split(":")[4])
     print(position_id, category_id, remover, city_id)
+    #link = await get_start_link(str(f"buy_position_open:{position_id}:0:0:0"), encode=True)
+    link = await get_start_link(str(f"deep_link&position_id={position_id}"), encode=True)
 
     get_position = get_positionx(position_id=position_id)
     get_category = get_categoryx(category_id=category_id)
@@ -1411,6 +2216,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     send_msg = f"<b>Карточка:</b>\n" \
                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                f"🏷 Название: <code>{get_position['position_name']}</code>\n" \
+               f"🏷 Ссылка: <code>{link}</code>\n" \
                f"🏙 Город: <code>{get_position['position_city']}</code>\n" \
                f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
                f"💰 Стоимость: <code>{get_position['position_price']}₽</code>\n" \
@@ -1438,6 +2244,15 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
         else:
             await call.message.edit_text(send_msg,
                                          reply_markup=products_open_finl(0, position_id, remover, category_id, 0))
+
+# Переключение страниц категорий для покупки
+@dp.callback_query_handler(text_startswith="artist_edit_swipe:", state="*")
+async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContext):
+    remover = int(call.data.split(":")[1])
+    user_id = int(call.data.split(":")[2])
+
+    await call.message.edit_text("<b>🎁 Выберите нужного артиста:</b>",
+                                 reply_markup=artist_edit_open_fp(remover, user_id))
 
 # Переключение страниц категорий для покупки
 @dp.callback_query_handler(text_startswith="buy_category_swipe:", state="*")
@@ -1593,6 +2408,8 @@ async def user_addcart_confirm(call: CallbackQuery, state: FSMContext):
 
         if 1 <= int(get_count) <= len(get_items):
             save_items, send_count, split_len = buy_itemx(get_items, get_count)
+            #await notify(dp, f"Позиция: {get_position['position_name']} добавлена в корзину пользователем: {call.from_user.id}.")
+
 
             # уточнение цены за количество в наличии
             if get_count != send_count:
@@ -1636,6 +2453,10 @@ async def user_addcart_confirm(call: CallbackQuery, state: FSMContext):
             # price = int(get_position['position_price'])
             add_order_itemx(order_id, position_id, get_count, get_position['position_price'], receipt, get_position['position_user_id'])
             # add_order_itemx(1, 1, 1, 1, 1)
+            if len(get_user['user_login']) >= 1: auser = get_user['user_login']
+            else: auser = get_user['user_id']
+
+            await notify(dp, f"Позиция: {get_position['position_name']} добавлена в корзину. Пользователь: @{auser}.")
 
             await call.message.answer(f"<b>✅ Вы успешно добавили товар(ы) в корзину</b>\n"
                                       f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"

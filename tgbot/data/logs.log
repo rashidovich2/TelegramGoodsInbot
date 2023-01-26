@@ -1,2 +1,83 @@
-ERROR | 2022-12-04 16:30:14,219 | main.py:48 | BOT WAS STARTED
+ERROR | 2023-01-26 02:20:30,207 | main.py:59 | BOT WAS STARTED
 NoneType: None
+ERROR | 2023-01-26 02:20:42,054 | z_all_errors.py:64 | Exception: Unsupported parse_mode
+Update: {"update_id": 36060785, "message": {"message_id": 413, "from": {"id": 919148970, "is_bot": false, "first_name": "Oleg R", "username": "raclear", "language_code": "ru"}, "chat": {"id": 919148970, "first_name": "Oleg R", "username": "raclear", "type": "private"}, "date": 1674688841, "text": "1"}}
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 256, in process_update
+    return await self.message_handlers.notify(update.message)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/handler.py", line 116, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/Users/oleg/PycharmProjects/bot3101f/tgbot/handlers/user_menu.py", line 2376, in user_purchase_select_count
+    await message.answer(f"<b>🎁 Вы действительно хотите добавить в корзину товар(ы)?</b>\n"
+  File "/usr/local/lib/python3.10/site-packages/aiogram/types/message.py", line 397, in answer
+    return await self.bot.send_message(
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/bot.py", line 341, in send_message
+    result = await self.request(api.Methods.SEND_MESSAGE, payload)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/base.py", line 236, in request
+    return await api.make_request(await self.get_session(), self.server, self.__token, method, data, files,
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/api.py", line 140, in make_request
+    return check_result(method, response.content_type, response.status, await response.text())
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/api.py", line 115, in check_result
+    exceptions.BadRequest.detect(description)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/utils/exceptions.py", line 141, in detect
+    raise cls(description)
+aiogram.utils.exceptions.BadRequest: Unsupported parse_mode
+ERROR | 2023-01-26 02:20:42,087 | base_events.py:1752 | Task exception was never retrieved
+future: <Task finished name='Task-33' coro=<Dispatcher._process_polling_updates() done, defined at /usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py:407> exception=BadRequest('Unsupported parse_mode')>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 415, in _process_polling_updates
+    for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 235, in process_updates
+    return await asyncio.gather(*tasks)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/handler.py", line 116, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 256, in process_update
+    return await self.message_handlers.notify(update.message)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/handler.py", line 116, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/Users/oleg/PycharmProjects/bot3101f/tgbot/handlers/user_menu.py", line 2376, in user_purchase_select_count
+    await message.answer(f"<b>🎁 Вы действительно хотите добавить в корзину товар(ы)?</b>\n"
+  File "/usr/local/lib/python3.10/site-packages/aiogram/types/message.py", line 397, in answer
+    return await self.bot.send_message(
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/bot.py", line 341, in send_message
+    result = await self.request(api.Methods.SEND_MESSAGE, payload)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/base.py", line 236, in request
+    return await api.make_request(await self.get_session(), self.server, self.__token, method, data, files,
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/api.py", line 140, in make_request
+    return check_result(method, response.content_type, response.status, await response.text())
+  File "/usr/local/lib/python3.10/site-packages/aiogram/bot/api.py", line 115, in check_result
+    exceptions.BadRequest.detect(description)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/utils/exceptions.py", line 141, in detect
+    raise cls(description)
+aiogram.utils.exceptions.BadRequest: Unsupported parse_mode
+ERROR | 2023-01-26 02:20:53,221 | z_all_errors.py:64 | Exception: 'NoneType' object is not subscriptable
+Update: {"update_id": 36060789, "callback_query": {"id": "3947714767902753460", "from": {"id": 919148970, "is_bot": false, "first_name": "Oleg R", "username": "raclear", "language_code": "ru"}, "message": {"message_id": 420, "from": {"id": 5246027043, "is_bot": true, "first_name": "SmokyBro", "username": "ClearGbot"}, "chat": {"id": 919148970, "first_name": "Oleg R", "username": "raclear", "type": "private"}, "date": 1674688848, "text": "Суммы на Вашем балансе не достаточно для оформления заказа.\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n Баланс: 0\n Сумма заказа: 560", "entities": [{"type": "bold", "offset": 0, "length": 59}, {"type": "code", "offset": 83, "length": 1}, {"type": "code", "offset": 100, "length": 3}], "reply_markup": {"inline_keyboard": [[{"text": "✅ Да, пополнить баланс", "callback_data": "user_refill"}, {"text": "❌ Вернуться в Корзину", "callback_data": "user_cart"}]]}}, "chat_instance": "-4999502982090407535", "data": "user_refill"}}
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 283, in process_update
+    return await self.callback_query_handlers.notify(update.callback_query)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/handler.py", line 116, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/Users/oleg/PycharmProjects/bot3101f/tgbot/handlers/user_transactions.py", line 20, in refill_way
+    get_kb = refill_choice_finl()
+  File "/Users/oleg/PycharmProjects/bot3101f/tgbot/keyboards/inline_user.py", line 14, in refill_choice_finl
+    if get_payments['way_form'] == "True":
+TypeError: 'NoneType' object is not subscriptable
+ERROR | 2023-01-26 02:20:53,226 | base_events.py:1752 | Task exception was never retrieved
+future: <Task finished name='Task-56' coro=<Dispatcher._process_polling_updates() done, defined at /usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py:407> exception=TypeError("'NoneType' object is not subscriptable")>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 415, in _process_polling_updates
+    for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 235, in process_updates
+    return await asyncio.gather(*tasks)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/handler.py", line 116, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/dispatcher.py", line 283, in process_update
+    return await self.callback_query_handlers.notify(update.callback_query)
+  File "/usr/local/lib/python3.10/site-packages/aiogram/dispatcher/handler.py", line 116, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "/Users/oleg/PycharmProjects/bot3101f/tgbot/handlers/user_transactions.py", line 20, in refill_way
+    get_kb = refill_choice_finl()
+  File "/Users/oleg/PycharmProjects/bot3101f/tgbot/keyboards/inline_user.py", line 14, in refill_choice_finl
+    if get_payments['way_form'] == "True":
+TypeError: 'NoneType' object is not subscriptable
+WARNING | 2023-01-26 02:41:55,216 | executor.py:329 | Goodbye!

@@ -96,6 +96,16 @@ def update_position_city(city, city_id, user_id):
     cur.execute(query, items)
     conn.commit()
 
+# добавляет город в позиции
+def update_artist_city(city, city_id, artist_id):
+    conn = sqlite3.connect(PATH_DATABASE)
+    cur = conn.cursor()
+    query = 'update storage_artists set city = ?, city_id = ? where artist_id = ?'
+    items = [city, city_id, artist_id]
+    cur.execute(query, items)
+    conn.commit()
+
+
 # город по айди
 def get_city_info(id):
     conn = sqlite3.connect('tgbot/data/data_cities.db')
