@@ -144,5 +144,5 @@ https://github.com/rashidovich2/TelegramGoodsInbot/wiki
 
 Группа: https://t.me/shoptelegramg
 
-Канал: https://t.me/goodsinbot_releases
+Канал: https://t.me/godsinbot_releases
 
