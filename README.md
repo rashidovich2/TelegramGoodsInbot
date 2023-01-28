@@ -150,7 +150,9 @@ https://github.com/rashidovich2/TelegramGoodsInbot/wiki
 Работающий экземпляр системы: https://t.me/Goodsinbot.
 
 
+
 **Развертывание своего экземпляра:**
+
 Придумайте наименование для Вашего бота: 
 Имя.
 И «имя пользователя» ИмяBot.
