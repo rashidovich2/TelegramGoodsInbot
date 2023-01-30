@@ -954,7 +954,7 @@ def get_orders_holdsx(order_id):
 
 # Получение позиций
 def get_positionsx(**kwargs):
-    print(f'Получение позиции (дубль)  api_sqlite.py  752')
+    print(f'Получение позиций (дубль)  api_sqlite.py  752')
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         sql = f"SELECT * FROM storage_position"

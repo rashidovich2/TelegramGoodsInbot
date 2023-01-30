@@ -39,6 +39,18 @@ def refill_choice_finl():
 
     return keyboard
 
+
+# Проверка киви платежа
+def open_deep_link_object_finl(object_id, category_id, remover, city_id):
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        InlineKeyboardButton("✅ Открыть", callback_data=f"buy_position_open:{object_id}:{category_id}:{remover}:{city_id}")    #f"Open:{object}:id:{object_id}")
+    ).add(
+        InlineKeyboardButton("❌ Стартовать магазин", callback_data=f"start")
+    )
+
+    return keyboard
+
 # Проверка киви платежа
 def refill_bill_finl(send_requests, get_receipt, get_way):
     keyboard = InlineKeyboardMarkup(

@@ -2079,7 +2079,7 @@ async def user_purchase_category_return(call: CallbackQuery, state: FSMContext):
 # Открытие позиции для покупки
 @dp.callback_query_handler(text_startswith="buy_parposition_open:", state="*")
 async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
-    print(f'Карточка товара: user_menu.py  1194')
+    print(f'Карточка товара: user_menu.py  um2082')
     if call.data.split(":")[4]: city_id = 0
     position_id = int(call.data.split(":")[1])
     #category_id = int(call.data.split(":")[2])
@@ -2200,7 +2200,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     city_id = int(call.data.split(":")[4])
     print(position_id, category_id, remover, city_id)
     #link = await get_start_link(str(f"buy_position_open:{position_id}:0:0:0"), encode=True)
-    link = await get_start_link(str(f"deep_link&position_id={position_id}"), encode=True)
+    link = await get_start_link(str(f"deep_link&position_id&{position_id}"), encode=True)
 
     get_position = get_positionx(position_id=position_id)
     get_category = get_categoryx(category_id=category_id)

@@ -4,10 +4,10 @@ from aiogram.dispatcher import filters
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.deep_linking import get_start_link, decode_payload
 
-from tgbot.keyboards.inline_user import user_support_finl
+from tgbot.keyboards.inline_user import user_support_finl, open_deep_link_object_finl
 from tgbot.keyboards.reply_z_all import menu_frep
 from tgbot.loader import dp
-from tgbot.services.api_sqlite import get_settingsx, get_userx
+from tgbot.services.api_sqlite import get_settingsx, get_userx, get_positionx
 from tgbot.utils.misc.bot_filters import IsBuy, IsRefill, IsWork
 from tgbot.utils.misc_functions import get_position_of_day
 from tgbot.services.location_function import is_location
@@ -106,11 +106,78 @@ async def deep_link(message: Message):
 async def command_start_handler(message: Message):
     await message.answer(f'Ну привет, хотел чего?')'''
 
-# Открытие главного меню
-@dp.message_handler(text=['⬅ Главное меню', '/start', '⬆️ Выбрать город позже'], state="*")
-async def main_start(message: Message, state: FSMContext):
-    await state.finish()
+''''@dp.message.register(main_start, CommandStart(deep_link=True, command_magic=filters.args.regexp(r"u(\d+)")))
+async def deep_link(message: Message):
+    await message.answer('Да, знаем мы такое:' + message.text)
+    args = message.get_args()
+    reference = decode_payload(args)
+    if reference : print(reference)'''
 
+# Открытие главного меню
+#@dp.message_handler(text=['start'], state="*")
+''''@dp.message_handler(filters.CommandStart())
+async def deep_link(message: Message):
+    args = message.get_args()
+    payload = decode_payload(args)
+    print(payload.split("&"))
+
+    await message.answer(f"Your payload: {payload}")'''
+
+# Открытие главного меню
+@dp.message_handler(filters.CommandStart())
+async def main_start(message: Message, state: FSMContext):
+    #await state.finish()
+    args = message.get_args()
+    payload = decode_payload(args)
+    #print(payload)
+    list = payload.split("&")
+    print(list)
+    #print(payload[1].split('='))
+    #if payload[1] != "":
+    category_id = 0
+    object_id = 0
+    print(list[0])
+    object_id = list[2]
+    position = get_positionx(position_id=object_id)
+    user = get_userx(user_id=message.from_user.id)
+    print(position)
+    print(user)
+    remover= 0
+    city_id = 34
+    category_id = position['category_id']
+    await message.answer("🔸 Открываем объект по внешней ссылке.\n"
+                         "▶ Добро пожаловать в TelegramGoodsinbot!",
+                         reply_markup=open_deep_link_object_finl(object_id, category_id, remover, city_id))
+
+#@dp.message_handler(filters.CommandStart())
+@dp.message_handler(text=['⬅ Главное меню', '/start', '⬆️ Выбрать город позже', 'start'], state="*")
+async def main_start(message: Message, state: FSMContext):
+    #await state.finish()
+    '''args = message.get_args()
+    payload = decode_payload(args)
+    print(payload.split("&"))
+    #print(payload[1].split('='))
+    #if payload[1] != "":
+    category_id=0
+    object_id = 0
+    if payload:
+        for arg in payload:
+            x =+ 1
+            if x == 1: object = arg
+            if x == 2:
+                object_id = arg
+                position = get_positionx(position_id=object_id)
+                user = get_userx(user_id=message.from_user.id)
+                print(position)
+                print(user['city_id'])
+                remover= 0
+                city_id = 34
+                category_id = position['category_id']
+        await message.answer("🔸 Открываем объект по внешней ссылке.\n"
+                             "▶ Добро пожаловать в TelegramGoodsinbot!",
+                             reply_markup=open_deep_link_object_finl(object_id, category_id, remover, city_id))'''
+
+    #await message.answer(f"Your payload: {payload}")
     get_settings = get_settingsx()
     type_trade = get_settings['type_trade']
 
