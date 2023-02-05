@@ -124,34 +124,62 @@ async def deep_link(message: Message):
     await message.answer(f"Your payload: {payload}")'''
 
 # Открытие главного меню
-@dp.message_handler(filters.CommandStart())
+'''@dp.message_handler(filters.CommandStart())
 async def main_start(message: Message, state: FSMContext):
     #await state.finish()
+    print(message.text)
     args = message.get_args()
-    payload = decode_payload(args)
-    #print(payload)
-    list = payload.split("&")
-    print(list)
-    #print(payload[1].split('='))
-    #if payload[1] != "":
-    category_id = 0
-    object_id = 0
-    print(list[0])
-    object_id = list[2]
-    position = get_positionx(position_id=object_id)
-    user = get_userx(user_id=message.from_user.id)
-    print(position)
-    print(user)
-    remover= 0
-    city_id = 34
-    category_id = position['category_id']
-    await message.answer("🔸 Открываем объект по внешней ссылке.\n"
-                         "▶ Добро пожаловать в TelegramGoodsinbot!",
-                         reply_markup=open_deep_link_object_finl(object_id, category_id, remover, city_id))
+    if len(args) > 1:
+        payload = decode_payload(args)
+        #print(payload)
+        list = payload.split("&")
+        print(list)
+        #print(payload[1].split('='))
+        #if payload[1] != "":
+        category_id = 0
+        object_id = 0
+        print(list[0])
+        object_id = list[2]
+        position = get_positionx(position_id=object_id)
+        user = get_userx(user_id=message.from_user.id)
+        print(position)
+        print(user)
+        remover= 0
+        city_id = 34
+        category_id = position['category_id']
+        await message.answer("🔸 Открываем объект по внешней ссылке.\n"
+                             "▶ Добро пожаловать в TelegramGoodsinbot!",
+                             reply_markup=open_deep_link_object_finl(object_id, category_id, remover, city_id))'''
 
 #@dp.message_handler(filters.CommandStart())
+@dp.message_handler(filters.CommandStart())
 @dp.message_handler(text=['⬅ Главное меню', '/start', '⬆️ Выбрать город позже', 'start'], state="*")
 async def main_start(message: Message, state: FSMContext):
+    #await state.finish()
+    print(message.text)
+    args = message.get_args()
+    if len(args) > 1:
+        payload = decode_payload(args)
+        #print(payload)
+        list = payload.split("&")
+        print(list)
+        #print(payload[1].split('='))
+        #if payload[1] != "":
+        category_id = 0
+        object_id = 0
+        print(list[0])
+        object_id = list[2]
+        position = get_positionx(position_id=object_id)
+        user = get_userx(user_id=message.from_user.id)
+        print(position)
+        print(user)
+        remover= 0
+        city_id = 34
+        category_id = position['category_id']
+        await message.answer("🔸 Открываем объект по внешней ссылке.\n"
+                             "▶ Добро пожаловать в TelegramGoodsinbot!",
+                             reply_markup=open_deep_link_object_finl(object_id, category_id, remover, city_id))
+
     #await state.finish()
     '''args = message.get_args()
     payload = decode_payload(args)
