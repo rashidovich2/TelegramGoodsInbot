@@ -16,11 +16,11 @@ from tgbot.utils.misc_functions import send_admins
 
 # Апи работы с YooMoney
 class YooAPI(AsyncClass):
-    async def __ainit__(self, suser_id=None, acc_number=None, token=None, client_id=None, redirect_url=None):
-        #self.user_id = user_id
-        #check_pass=False, user_bill_pass=False, user_check_pass=False
+    async def __ainit__(self, suser_id = None, acc_number=None, token=None, client_id=None, redirect_url=None):
+        #suser_id=None,
+        #print(suser_id['chat']['id'])
         if suser_id is not None:
-            self.suser_id = suser_id
+            self.suser_id = suser_id['chat']['id']
             self.token = get_upaymentx(self.suser_id)['yoo_token']
             self.client_id = get_upaymentx(self.suser_id)['yoo_client_id']
             self.acc_number = get_upaymentx(self.suser_id)['yoo_acc_number']
@@ -34,12 +34,13 @@ class YooAPI(AsyncClass):
             #self.token = get_upaymentx(self.user_id)['qiwi_token']
             #self.secret = get_upaymentx(self.user_id)['qiwi_secret']
             #self.login = get_paymentx()['qiwi_login']
-            self.suser_id = 919148970
+            self.suser_id = suser_id['chat']['id']
             self.token = get_upaymentx(self.suser_id)['yoo_token']
             self.client_id = get_upaymentx(self.suser_id)['yoo_client_id']
             self.acc_number = get_upaymentx(self.suser_id)['yoo_acc_number']
             self.redirect_url = get_upaymentx(self.suser_id)['yoo_redirect_url']
 
+        #print(acc_number, token, client_id, redirect_url)
         #self.base_url = "https://yoomoney.ru/api/"
         #self.headers = {"authorization": f"Bearer {self.token}"}
         #self.client_id = get_paymentx()['yoo_client_id']
@@ -157,10 +158,10 @@ class YooAPI(AsyncClass):
 
     # Создание платежа
     async def bill_pay(self, get_amount, get_way):
-        #print(self, get_amount, get_way)
+        print(self, get_amount, get_way)
 
         receipt = str(int(time.time() * 100))
-        #print(self)
+        print(receipt)
 
         if get_way == "ForYm":
             quickpay = Quickpay(

@@ -4,7 +4,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as ikb
 
 from tgbot.services.api_sqlite import get_all_categoriesx, get_itemsx, get_positionsx, get_all_shopx, get_city_user\
     , get_position_on_city, get_category_in_city, get_shopsxx, get_paramposition_on_city, get_shopposition_on_city,\
-    get_all_shopx, get_my_shopx, get_events_in_city, get_all_events, get_all_places, get_eventxx, get_events_in_place, get_eventsxx,  get_artistsxx
+    get_all_shopx, get_my_shopx, get_events_in_city, get_all_events, get_all_places, get_eventxx, get_events_in_place, \
+    get_eventsxx,  get_artistsxx, get_category_in_cityx, get_shop_in_cityx
 
 cpage = 10
 
@@ -691,8 +692,11 @@ def request_seller_role(user_id):
 ####################################### ПОКУПКИ ТОВАРОВ #####################################
 # Страницы категорий при покупке товара
 def products_item_category_swipe_fp(remover, city_id):
+    print(city_id)
     #get_categories = get_category_in_city(city_id)
-    get_categories = get_all_categoriesx()
+    get_categories = get_category_in_cityx(position_city_id=city_id, position_type=1, flagallc=1)
+
+    #get_categories = get_all_categoriesx()
     print(len(get_categories))
     #keyboard = InlineKeyboardMarkup()
     count = 0
@@ -870,6 +874,7 @@ def products_item_shop_swipe_fp(remover, city_id):
     #get_categories = get_category_in_city(city_id)
     #get_categories = get_all_categoriesx()
     get_shops = get_all_shopx()
+    get_shops = get_shop_in_cityx(city_id=city_id, position_type=1, flagallc=1)
     #get_shops = get_shopsxx()
     print(len(get_shops))
     #keyboard = InlineKeyboardMarkup()

@@ -9,6 +9,7 @@ from pyqiwip2p import QiwiP2P
 
 from tgbot.services.api_session import RequestsSession
 from tgbot.services.api_sqlite import update_paymentx, get_upaymentx, update_upaymentx, get_settingsx
+from tgbot.data.config import get_admins
 from tgbot.utils.misc_functions import send_admins
 
 
@@ -21,7 +22,7 @@ class QiwiAPI(AsyncClass):
             #self.login = login
             #self.token = token
             #self.secret = secret
-            self.suser_id = suser_id
+            self.suser_id = suser_id['chat']['id']
             self.login = get_upaymentx(self.suser_id)['qiwi_login']
             self.token = get_upaymentx(self.suser_id)['qiwi_token']
             self.secret = get_upaymentx(self.suser_id)['qiwi_secret']
@@ -35,6 +36,7 @@ class QiwiAPI(AsyncClass):
             #user_seller_level =
             #get_settings = get_settingsx()
             #if get_settings['type_trade'] == 'digital':
+
             self.suser_id = 919148970
             self.login = get_upaymentx(self.suser_id)['qiwi_login']
             self.token = get_upaymentx(self.suser_id)['qiwi_token']

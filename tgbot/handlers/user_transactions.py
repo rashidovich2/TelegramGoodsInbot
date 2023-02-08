@@ -37,13 +37,13 @@ async def refill_way_choice(call: CallbackQuery, state: FSMContext):
 
 ###################################################################################
 #################################### ВВОД СУММЫ ###################################
-# Принятие суммы для пополнения средств через QIWI
+# Принятие суммы для пополнения средств через QIWI и YooMoney
 @dp.message_handler(state="here_pay_amount")
 async def refill_get(message: Message, state: FSMContext):
     if message.text.isdigit():
         cache_message = await message.answer("<b>♻ Подождите, платёж генерируется...</b>")
         pay_amount = int(message.text)
-        #pay_user_id = int(message.from_user.id)
+        pay_user_id = int(message.from_user.id)
         print(cache_message)
 
         if min_input_qiwi <= pay_amount <= 300000:
@@ -59,9 +59,9 @@ async def refill_get(message: Message, state: FSMContext):
                 print(pay_amount, get_way)
 
                 get_message, get_link, receipt = await (
-                await YooAPI(cache_message)
+                    await YooAPI(cache_message)
                 ).bill_pay(pay_amount, get_way)
-                #print(get_message, get_link, receipt)
+                print(get_message, get_link, receipt)
 
             if get_message:
                 await cache_message.edit_text(get_message, reply_markup=refill_bill_finl(get_link, receipt, get_way))
@@ -82,10 +82,17 @@ async def refill_get(message: Message, state: FSMContext):
 async def refill_check_form(call: CallbackQuery):
     receipt = call.data.split(":")[2]
     user_id = call.message.from_user.id
+    pay_scheme = 2
 
-    pay_status, pay_amount = await (
-        await QiwiAPI(call, suser_id=user_id, user_check_pass=True)
-    ).check_form(receipt)
+    if pay_scheme == 2:
+        pay_status, pay_amount = await (
+            await QiwiAPI(call, suser_id=user_id, user_check_pass=True)
+        ).check_form(receipt)
+
+    if pay_scheme == 1:
+        pay_status, pay_amount = await (
+            await QiwiAPI(call, user_check_pass=True)
+        ).check_form(receipt)
 
     if pay_status == "PAID":
         get_refill = get_refillx(refill_receipt=receipt)
@@ -105,7 +112,7 @@ async def refill_check_form(call: CallbackQuery):
 # Проверка оплаты через форму Yoo
 @dp.callback_query_handler(text_contains="Pay:ForYm")
 async def refill_check_formy(call: CallbackQuery):
-    print("UT 184")
+    print("UT 115")
     receipt = call.data.split(":")[2]
     print(call.data)
     print(receipt)

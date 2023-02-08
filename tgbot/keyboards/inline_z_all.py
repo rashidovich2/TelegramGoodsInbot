@@ -38,11 +38,21 @@ profile_open_inl = InlineKeyboardMarkup(row_width=2
     InlineKeyboardButton("💰 Пополнить", callback_data="user_refill"),
     InlineKeyboardButton("🎁 Мои покупки", callback_data="user_history")
 )
+
 if(type_trade != 'digital'):
     profile_open_inl = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton("💰 Пополнить", callback_data="user_refill"),
         InlineKeyboardButton("🎁 Мои покупки", callback_data="user_history"),
+        InlineKeyboardButton("➰ Ввести промокод", callback_data="enter_promocode"),
         InlineKeyboardButton("📡 Изменить город", callback_data="edit_locatoin")
+    )
+
+profile_seller_open_inl = InlineKeyboardMarkup(row_width=2).add(
+        InlineKeyboardButton("💰 Пополнить", callback_data="user_refill"),
+        InlineKeyboardButton("🎁 Мои покупки", callback_data="user_history"),
+        InlineKeyboardButton("➰ Ввести промокод", callback_data="enter_promocode"),
+        InlineKeyboardButton("📡 Изменить город", callback_data="edit_locatoin"),
+        InlineKeyboardButton("🚛 Изменить настройки доставки", callback_data="edit_delivery_settings")
     )
 
 give_number_inl = InlineKeyboardMarkup(

@@ -42,6 +42,16 @@ def update_format_args(sql, parameters: dict):
 
     return sql, list(parameters.values())
 
+# Форматирование запроса с аргументами
+def update_format_or_args(sql, parameters: dict):
+    sql = f"{sql} WHERE "
+
+    sql += " OR ".join([
+        f"{item} = ?" for item in parameters
+    ])
+
+    return sql, list(parameters.values())
+
 ########################################### ЗАПРОСЫ НА ПРОДАВЦА ########################
 ########################################################################################
 def create_seller_request(user_id, requesttxt):
@@ -414,6 +424,22 @@ def delete_tgacc(acc_id):
         con.commit()
 
 # Получение всех запросов продавцов
+def get_delivery_seller_options(order_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_orders_users_items "
+        result = con.execute(sql + "WHERE order_id = ?", [order_id]).fetchone()
+        return result
+
+# Получение всех запросов продавцов
+def get_users_by_cities():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "SELECT user_city, user_city_id, count(user_id) as countu FROM storage_users GROUP BY user_city_id ORDER BY countu DESC"
+        result = con.execute(sql).fetchall()
+        return result
+
+# Получение всех запросов продавцов
 def get_all_requestx():
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
@@ -429,6 +455,7 @@ def delete_requests_userx(user_id):
         #sql, user_id = update_format(sql, user_id)
         con.execute(sql + "WHERE requester = ?", [user_id])
         con.commit()
+
 
 # Редактирование запроса
 def update_requestx(user_id, **kwargs):
@@ -709,6 +736,24 @@ def get_eventxx(**kwargs):
         return con.execute(sql, parameters).fetchone()
 
 # Получение магазина
+def get_promocodex(**kwargs):
+    print(f'Получение магазина api_sqlite.py 581')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_promocode"
+        sql, parameters = update_format_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchone()
+
+# Получение магазина
+def get_shopsxy():
+    print(f'Получение магазина api_sqlite.py 739')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_shop"
+        return con.execute(sql).fetchall()
+
+
+# Получение магазина
 def get_shopsxx(**kwargs):
     print(f'Получение магазина api_sqlite.py 318')
     with sqlite3.connect(PATH_DATABASE) as con:
@@ -790,13 +835,13 @@ def add_artistx(name, description, webadress, admin, logo, city, geocode, city_i
 
 
 # Добавление категории ? позиции
-def add_positionx(position_city, position_city_id, position_name, position_price, position_description, position_photo, category_id, store_id, position_user_id):
+def add_positionx(position_city, position_city_id, position_name, position_price, position_type, position_description, position_photo, category_id, store_id, position_user_id):
     print(f'Добавление позиции  api_sqlite_shop.py  294')
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         con.execute("INSERT INTO storage_position "
-                    "(position_id, position_name, position_price, position_description, position_photo, position_date, category_id, position_city, store_id, position_city_id, position_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)",
-                    [random.randint(1000000000, 9999999999), position_name, position_price, position_description,
+                    "(position_id, position_name, position_price, position_type, position_description, position_photo, position_date, category_id, position_city, store_id, position_city_id, position_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [random.randint(1000000000, 9999999999), position_name, position_price, position_type, position_description,
                      position_photo, get_date(), category_id, position_city, store_id, position_city_id, position_user_id])
         con.commit()
 
@@ -954,7 +999,7 @@ def get_orders_holdsx(order_id):
 
 # Получение позиций
 def get_positionsx(**kwargs):
-    print(f'Получение позиций (дубль)  api_sqlite.py  752')
+    print(f'Получение позиций (дубль)  api_sqlite.py  1002')
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         sql = f"SELECT * FROM storage_position"
@@ -982,6 +1027,15 @@ def clear_positionx():
         con.row_factory = dict_factory
         sql = "DELETE FROM storage_position"
         con.execute(sql)
+        con.commit()
+
+# Удаление позиции
+def remove_shopx(**kwargs):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = "DELETE FROM storage_shop"
+        sql, parameters = update_format_args(sql, kwargs)
+        con.execute(sql, parameters)
         con.commit()
 
 
@@ -1150,6 +1204,13 @@ def get_orderx(user_id):
         orders = con.execute(f"SELECT * FROM storage_orders WHERE user_id = ?", [user_id]).fetchone()
         return orders
 
+# Проверка существования заказа
+def get_orderxo(order_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        order = con.execute(f"SELECT * FROM storage_orders WHERE order_id = ?", [order_id]).fetchone()
+        return order
+
 # Последние 10 покупок
 def get_params_orderx(**kwargs):
     with sqlite3.connect(PATH_DATABASE) as con:
@@ -1181,9 +1242,9 @@ def create_orderx(user_id, user_login, user_name, order_state, order_date, order
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         con.execute("INSERT INTO storage_orders "
-                "(user_id, user_login, user_name, order_state, order_date, order_unix) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                [user_id, user_login, user_name, order_state, order_date, order_unix])
+                    "(user_id, user_login, user_name, order_state, order_date, order_unix) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    [user_id, user_login, user_name, order_state, order_date, order_unix])
         con.commit()
 
 # Создание холда
@@ -1197,13 +1258,13 @@ def create_holdx(order_id, buyer, seller, amount, validity, state):
         con.commit()
 
 # Добавление товара в заказ
-def add_order_itemx(order_id, position_id, count, price, receipt, owner_uid):
+def add_order_itemx(user_id, order_id, position_id, count, price, receipt, owner_uid):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         con.execute("INSERT INTO storage_orders_items "
-                    "(order_id, position_id, count, price, receipt, owner_uid) "
-                    "VALUES (?, ?, ?, ?, ?, ?)",
-                    [order_id, position_id, count, price, receipt, owner_uid])
+                    "(user_id, order_id, position_id, count, price, receipt, owner_uid) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    [user_id, order_id, position_id, count, price, receipt, owner_uid])
         con.commit()
 
 
@@ -1272,7 +1333,7 @@ def get_purchasesx(**kwargs):
 def get_purchasesxx3(user_id):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-         #cur = conn.cursor()
+        #cur = conn.cursor()
         sql= f"SELECT c.user_id, a.purchase_position_name, SUM(a.purchase_count) as counts, SUM(a.purchase_price) as price FROM storage_purchases a LEFT JOIN storage_position b ON(a.purchase_position_id=b.position_id) LEFT JOIN storage_users c ON(c.user_id=b.position_user_id) WHERE c.user_id=? GROUP BY a.user_id, a.purchase_position_name"
         sql, parameters = update_format_args(sql, [user_id])
         return con.execute(sql, parameters).fetchall()
@@ -1479,7 +1540,7 @@ def create_dbx():
             if len(con.execute("PRAGMA table_info(storage_shop)").fetchall()) == 3:
                 print("DB was not found(9/12) | Creating...")
             else:
-            # Создание БД с хранением магазинов
+                # Создание БД с хранением магазинов
                 con.execute("CREATE TABLE IF NOT EXISTS storage_shop("
                             "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
                             "shop_id INTEGER,"
@@ -1490,36 +1551,36 @@ def create_dbx():
                 print("DB was found(10/12)")
             else:
                 con.execute("CREATE TABLE IF NOT EXISTS storage_purchases("
-                        "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        "user_id INTEGER,"
-                        "user_login TEXT,"
-                        "user_name TEXT,"
-                        "purchase_receipt TEXT,"
-                        "purchase_count INTEGER,"
-                        "purchase_price INTEGER,"
-                        "purchase_price_one INTEGER,"
-                        "purchase_position_id INTEGER,"
-                        "purchase_position_name TEXT,"
-                        "purchase_item TEXT,"
-                        "purchase_date TIMESTAMP,"
-                        "purchase_unix INTEGER,"
-                        "balance_before INTEGER,"
-                        "balance_after INTEGER)")
+                            "increment INTEGER PRIMARY KEY AUTOINCREMENT,"
+                            "user_id INTEGER,"
+                            "user_login TEXT,"
+                            "user_name TEXT,"
+                            "purchase_receipt TEXT,"
+                            "purchase_count INTEGER,"
+                            "purchase_price INTEGER,"
+                            "purchase_price_one INTEGER,"
+                            "purchase_position_id INTEGER,"
+                            "purchase_position_name TEXT,"
+                            "purchase_item TEXT,"
+                            "purchase_date TIMESTAMP,"
+                            "purchase_unix INTEGER,"
+                            "balance_before INTEGER,"
+                            "balance_after INTEGER)")
             print("DB was not found(10/12) | Creating...")
 
             if len(con.execute("PRAGMA table_info(storage_orders)").fetchall()) == 15:
                 print("DB was found(11/12)")
             else:
                 con.execute("CREATE TABLE IF NOT EXISTS storage_orders("
-                        "order_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        "user_id INTEGER,"
-                        "user_login TEXT,"
-                        "user_name TEXT,"
-                        "order_date TEXT,"
-                        "order_state INTEGER,"
-                        "order_unix INTEGER,"
-                        "phone TEXT,"
-                        "address TEXT)")
+                            "order_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                            "user_id INTEGER,"
+                            "user_login TEXT,"
+                            "user_name TEXT,"
+                            "order_date TEXT,"
+                            "order_state INTEGER,"
+                            "order_unix INTEGER,"
+                            "phone TEXT,"
+                            "address TEXT)")
 
             print("DB was not found(11/12) | Creating...")
 
@@ -1527,13 +1588,13 @@ def create_dbx():
                 print("DB was found(12/12)")
             else:
                 con.execute("CREATE TABLE IF NOT EXISTS storage_orders_items("
-                        "order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        "order_id INTEGER,"
-                        "position_id INTEGER,"
-                        "user_name TEXT,"
-                        "count INTEGER,"
-                        "price INTEGER,"
-                        "receipt INTEGER)")
+                            "order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                            "order_id INTEGER,"
+                            "position_id INTEGER,"
+                            "user_name TEXT,"
+                            "count INTEGER,"
+                            "price INTEGER,"
+                            "receipt INTEGER)")
 
             print("DB was not found(12/12) | Creating...")
 
@@ -1666,6 +1727,32 @@ def get_shopposition_on_city(shop_id, city_id):
         return result
 
 # позиции по городу и категории
+def get_position_in_city1(city):
+    print(f'позиции по городу и магазину api_sqlite.py 686')
+    if city is None or city == 0:
+        conn = sqlite3.connect(PATH_DATABASE)
+        cur = conn.cursor()
+        query = '''select * from storage_shop'''
+        result = cur.execute(query).fetchall()
+        cur.close()
+        return result
+    else:
+        conn = sqlite3.connect(PATH_DATABASE)
+        cur = conn.cursor()
+        query = '''select * from storage_position left join storage_shop on(storage_position.store_id=storage_shop.shop_id) where position_city_id = ?'''
+        items = [city]
+        result = cur.execute(query, items).fetchall()
+        cur.close()
+        return result
+
+def get_positions_in_cityx(category_id, position_city_id, flagallc=1, position_type=1):
+    print(f'Получение позиций api_sqlite.py 1749')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        result = con.execute("SELECT DISTINCT position_id, position_name FROM storage_position WHERE flagallc=1 OR position_type=1 OR category_id=? AND position_city_id=?", [category_id, position_city_id]).fetchall()
+        return result
+
+# позиции по городу и категории
 def get_position_on_city(category_id, city):
     print(f'позиции по городу и категории api_sqlite.py 686')
     if city is None:
@@ -1744,6 +1831,22 @@ def get_category_in_city(city_id):
         result = cur.execute(query, (city_id,)).fetchall()
         return result
 
+
+def get_category_in_cityx(**kwargs):
+    print(f'Получение категорий api_sqlite.py 1816')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT DISTINCT c.category_id, c.category_name FROM storage_category c LEFT JOIN storage_position p ON c.category_id=p.category_id"
+        sql, parameters = update_format_or_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchall()
+
+def get_shop_in_cityx(**kwargs):
+    print(f'Получение категорий api_sqlite.py 1833')
+    with sqlite3.connect(PATH_DATABASE) as con:
+        con.row_factory = dict_factory
+        sql = f"SELECT DISTINCT c.shop_id, c.name FROM storage_shop c LEFT JOIN storage_position p ON c.shop_id=p.store_id"
+        sql, parameters = update_format_or_args(sql, kwargs)
+        return con.execute(sql, parameters).fetchall()
 
 # Последние 10 покупок
 def get_eventsxx(**kwargs):

@@ -94,7 +94,7 @@ async def payment_qiwi_check(message: Message, state: FSMContext):
     user_id = message.from_user.id
     print(user_id)
 
-    await (await QiwiAPI(message, suser_id=user_id, check_pass=True)).pre_checker()
+    await (await QiwiAPI(message, check_pass=True)).pre_checker()
 
 
 # Баланс QIWI
@@ -103,7 +103,7 @@ async def payment_qiwi_balance(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
 
-    await (await QiwiAPI(message, suser_id=user_id)).get_balance()
+    await (await QiwiAPI(message)).get_balance()
 
 ######################################## YooMoney ################################
 # Изменение реквизитов Yoo
@@ -143,7 +143,7 @@ async def payment_qiwi_edit_login(message: Message, state: FSMContext):
         await state.set_state("here_yoo_token")
         await message.answer(
             "<b>🥝 Введите <code>токен API</code> Yoo кошелька 🖍</b>\n"
-            "❕ Получить можно тут 👉 <a href='https://yoomoney.ru/api'><b>Нажми на меня</b></a>\n"
+            "❕ Получить можно тут 👉 <a href='https://yoomoney.ru/docs/wallet'><b>Нажми на меня</b></a>\n"
             "❕ При получении токена, ставьте только первые 3 галочки.",
             disable_web_page_preview=True
         )
@@ -186,7 +186,7 @@ async def payment_qiwi_edit_token(message: Message, state: FSMContext):
     await state.set_state("here_yoo_redirect_url")
     await message.answer(
         "<b>🥝 Введите <code>Redirect URL 🖍</code></b>\n"
-        "❕ Получить можно тут 👉 <a href='https://yoomoney.ru/p2p-admin/transfers/api'><b>Нажми на меня</b></a>\n"
+        "❕ Получить можно в разделе Настройки YooMoney после аутентификации 👉 <a href='https://yoomoney.ru'><b>Нажми на меня</b></a>\n"
         "❕ Вы можете пропустить добавление оплаты по Форме, отправив: <code>0</code>",
         disable_web_page_preview=True
     )
@@ -217,18 +217,21 @@ async def payment_qiwi_edit_secret(message: Message, state: FSMContext):
         acc_number = data['here_yoo_acc_number']
         token = data['here_yoo_token']
         client_id = data['here_yoo_client_id']
+        user_id = message.from_user.id
+
         if message.text == "0": redirect_url = "None"
         if message.text != "0": redirect_url = message.text
+
+        print(acc_number, token, client_id, redirect_url)
 
     await state.finish()
 
     cache_message = await message.answer("<b>🥝 Проверка введённых Yoo данных... 🔄</b>")
     await asyncio.sleep(0.5)
     #await update_paymentx()
-    await (await YooAPI(acc_number, token, client_id, redirect_url)).update_yoo()
+    await (await YooAPI(user_id, acc_number, token, client_id, redirect_url)).update_yoo()
     await message.answer(
-        "<b>Данные yoomoney успешно обновлены!</b>\n"
-        "❕ Вы можете пропустить добавление оплаты по Форме, отправив: <code>0</code>",
+        "<b>Данные YooMoney успешно обновлены!</b>\n",
          disable_web_page_preview=True
     )
 

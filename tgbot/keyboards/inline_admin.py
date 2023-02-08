@@ -197,6 +197,16 @@ def category_edit_delete_finl(category_id, remover):
 
     return keyboard
 
+# Кнопки с удалением категории
+def shop_edit_delete_finl(shop_id, remover):
+    
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        ikb("❌ Да, удалить", callback_data=f"shop_delete:{shop_id}:yes:{remover}"),
+        ikb("✅ Нет, отменить", callback_data=f"shop_delete:{shop_id}:not:{remover}")
+    )
+
+    return keyboard
 
 # Кнопки при открытии позиции для изменения
 def position_edit_open_finl(position_id, category_id, remover):
@@ -208,6 +218,10 @@ def position_edit_open_finl(position_id, category_id, remover):
         ikb("📜 Изм. описание", callback_data=f"position_edit_description:{position_id}:{category_id}:{remover}"),
         ikb("📸 Изм. фото", callback_data=f"position_edit_photo:{position_id}:{category_id}:{remover}"),
         # добавил 12.08.22    -----------------------------------------------------------
+    ).add(
+        ikb("📜 Изменить остаток", callback_data=f"position_edit_rest:{position_id}:{category_id}:{remover}"),
+        ikb("📸 <---<ВП>-->", callback_data=f"position_edit_photo:{position_id}:{category_id}:{remover}"),
+        # добавил 1.02.23    -----------------------------------------------------------
     ).add(
         ikb("🏙 Изм. город", callback_data=f"position_edit_city:{position_id}:{category_id}:{remover}"),
         ikb("🏙 Изм. магазин", callback_data=f"position_edit_shop:{position_id}:{category_id}:{remover}"),
@@ -293,13 +307,23 @@ def shop_edit_open_finl(shop_id, remover, user_id):
         ikb("Для симметрии", callback_data=f"shop____edit_photo:{shop_id}:{user_id}:{remover}"),
         # -------------------------------------------------------------------------
     ).add(
-        ikb("🗑 Очистить", callback_data=f"shop_edit_clear:{shop_id}:{user_id}:{remover}"),
-        ikb("🎁 Добавить товары", callback_data=f"shop_add_position:{shop_id}:{user_id}"),
+        ikb("X🗑 Очистить", callback_data=f"shop_edit_clear:{shop_id}:{user_id}:{remover}"),
+        ikb("X🎁 Добавить товары", callback_data=f"shop_add_position:{shop_id}:{user_id}"),
     ).add(
-        ikb("📥 Товары", callback_data=f"shop_edit_items:{shop_id}:{user_id}:{remover}"),
+        #ikb("📥 Товары", callback_data=f"shop_edit_items:{shop_id}:{user_id}:{remover}"),
         ikb("❌ Удалить", callback_data=f"shop_edit_delete:{shop_id}:{user_id}:{remover}"),
     ).add(
         ikb("⬅ Вернуться ↩", callback_data=f"shop_edit_return:{user_id}:{remover}"),
+    )
+
+    return keyboard
+
+# Подтверждение покупки товара
+def shop_edit_delete_finl(shop_id, user_id):
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        ikb("✅ Да, удалить", callback_data=f"shop_delete:yes:{shop_id}:{user_id}"),
+        ikb("❌ Отменить удаление", callback_data=f"shop_delete:not:{shop_id}:{user_id}")
     )
 
     return keyboard

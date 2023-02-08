@@ -152,13 +152,15 @@ async def main_start(message: Message, state: FSMContext):
                              reply_markup=open_deep_link_object_finl(object_id, category_id, remover, city_id))'''
 
 #@dp.message_handler(filters.CommandStart())
+
 @dp.message_handler(filters.CommandStart())
 @dp.message_handler(text=['⬅ Главное меню', '/start', '⬆️ Выбрать город позже', 'start'], state="*")
 async def main_start(message: Message, state: FSMContext):
     #await state.finish()
     print(message.text)
     args = message.get_args()
-    if len(args) > 1:
+    #print(args)
+    if args:
         payload = decode_payload(args)
         #print(payload)
         list = payload.split("&")

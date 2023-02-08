@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.exceptions import CantParseEntities
 
 from tgbot.keyboards.inline_admin import category_edit_open_finl, position_edit_open_finl, category_edit_delete_finl, \
-    position_edit_clear_finl, position_edit_delete_finl, shop_edit_open_finl, shop_name_edit_open_finl
+    position_edit_clear_finl, position_edit_delete_finl, shop_edit_open_finl, shop_name_edit_open_finl, shop_edit_delete_finl
 from tgbot.keyboards.inline_z_all import category_remove_confirm_inl, position_remove_confirm_inl, \
     item_remove_confirm_inl, close_inl
 from tgbot.keyboards.shop_keyboards import *
@@ -12,7 +12,7 @@ from tgbot.keyboards.inline_z_page import position_create_open_fp
 from tgbot.loader import dp
 from tgbot.middlewares.throttling import rate_limit
 from tgbot.services.api_sqlite_shop import *
-from tgbot.services.api_sqlite import get_city_user, get_city_user3, check_user_shop_exist, get_settingsx, get_my_shopx
+from tgbot.services.api_sqlite import get_city_user, get_city_user3, check_user_shop_exist, get_settingsx, get_my_shopx, remove_shopx
 from tgbot.utils.const_functions import clear_list
 from tgbot.utils.misc.bot_filters import IsAdmin, IsShopAdmin, IsAdminorShopAdmin
 from tgbot.utils.misc_functions import get_position_admin, upload_text, get_shop_admin
@@ -138,22 +138,6 @@ async def product_category_create_name(message: Message, state: FSMContext):
 
 # -----------------------------------------------------------------------------------------------------------
 # Открытие страниц выбора магазина для редактирования
-@dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить магазин 🖍112", state="*")
-async def product_category_edit(message: Message, state: FSMContext):
-    await state.finish()
-    user_id = message.form_user.id
-    shops = get_all_shopx()
-    print(f'shops {shops}')
-
-    if len(shops) >= 1:
-        await message.answer("<b>🏪 Выберите магазин для изменения 🖍</b>",
-                             reply_markup=shop_edit_open_fp(0, user_id))
-    else:
-        await message.answer("<b>🏪 Магазины отсутствуют 🖍</b>")
-
-
-# -----------------------------------------------------------------------------------------------------------
-# Открытие страниц выбора магазина для редактирования
 @dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить магазин 🖍", state="*")
 async def shop_list_edit(message: Message, state: FSMContext):
     await state.finish()
@@ -187,7 +171,7 @@ async def shop_list_edit(call: CallbackQuery, state: FSMContext):
 
 
 # Выбор позиции для редактирования
-@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_edit:", state="*")
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_edit_open:", state="*")
 async def product_position_edit_open(call: CallbackQuery, state: FSMContext):
     print(f'Выбор магазина для редактирования api_sqlite.py 496')
     shop_id = int(call.data.split(":")[1])
@@ -285,8 +269,9 @@ async def product_shop_edit_name_get(message: Message, state: FSMContext):
 
 
 # Изменение описания позиции
-@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="position_edit_description", state="*")
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_edit_description", state="*")
 async def product_shop_edit_description(call: CallbackQuery, state: FSMContext):
+    print("|||| -= EDIT SHOP NAME =- ||||")
     shop_id = int(call.data.split(":")[1])
     user_id = int(call.data.split(":")[2])
     remover = int(call.data.split(":")[3])
@@ -295,7 +280,7 @@ async def product_shop_edit_description(call: CallbackQuery, state: FSMContext):
     await state.update_data(here_cache_user_id=user_id)
     await state.update_data(here_cache_shop_remover=remover)
 
-    await state.set_state("here_change_shpo_description")
+    await state.set_state("here_change_shop_description")
     await call.message.delete()
     await call.message.answer("<b>📁 Введите новое описание для позиции 📜</b>\n"
                               "❕ Вы можете использовать HTML разметку\n"
@@ -306,12 +291,12 @@ async def product_shop_edit_description(call: CallbackQuery, state: FSMContext):
 @dp.message_handler(IsAdminorShopAdmin(), state="here_change_shop_description")
 async def product_shop_edit_description_get(message: Message, state: FSMContext):
     async with state.proxy() as data:
-        shop_id = int(call.data.split(":")[1])
-        user_id = int(call.data.split(":")[2])
-        remover = int(call.data.split(":")[3])
+        shop_id = data['here_cache_shop_id']
+        remover = data['here_cache_shop_remover']
+        user_id = data['here_cache_user_id']
 
     try:
-        if len(message.text) <= 600:
+        if len(message.text) <= 900:
             await state.finish()
 
             if message.text != "0":
@@ -319,7 +304,7 @@ async def product_shop_edit_description_get(message: Message, state: FSMContext)
                 await cache_msg.delete()
 
             update_shopx(shop_id, description=message.text)
-            get_message, get_photo = get_position_admin(position_id)
+            get_message, get_photo = get_shop_admin(shop_id)
 
             if get_photo is not None:
                 await message.answer_photo(get_photo, get_message,
@@ -415,14 +400,14 @@ async def product_position_edit_back(call: CallbackQuery, state: FSMContext):
 
 
 # Выбор позиции для редактирования
-@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_edit:", state="*")
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_edit_open:", state="*")
 async def shop_edit_open(call: CallbackQuery, state: FSMContext):
-    print(f'Выбор позиции для редактирования api_sqlite.py 496')
+    print(f'Выбор магазина для редактирования api_sqlite.py 421')
     shop_id = int(call.data.split(":")[1])
     remover = int(call.data.split(":")[2])
     user_id = int(call.data.split(":")[3])
 
-    get_message, get_photo = get_shop(shop_id)
+    get_message, get_photo = get_shop_admin(shop_id)
 
     if get_photo is not None:
         await call.message.delete()
@@ -431,6 +416,7 @@ async def shop_edit_open(call: CallbackQuery, state: FSMContext):
     else:
         await call.message.edit_text(get_message,
                                      reply_markup=shop_edit_open_finl(shop_id, user_id, remover))
+
 
 
 # Следующая страница магазинов для их изменения
@@ -444,7 +430,7 @@ def shop_edit_next_page_fp(remover, user_id):
             #get_items = get_itemsx(position_id=get_positions[a]['position_id'])
             keyboard.add(ikb(
                 f"{get_shops[a]['name']}", # | {get_positions[a]['position_price']}₽ | {len(get_items)} шт",
-                callback_data=f"shop_edit:{get_shops[a]['shop_id']}:{remover}:{user_id}"))
+                callback_data=f"shop_edit_open:{get_shops[a]['shop_id']}:{remover}:{user_id}"))
         count += 1
 
     if remover + cpage >= len(get_shops):
@@ -475,7 +461,7 @@ def shop_edit_back_page_fp(remover, user_id):
             #get_items = get_itemsx(position_id=get_positions[a]['position_id'])
             keyboard.add(ikb(
                 f"{get_shops[a]['name']}", # | {get_shops[a]['position_price']}₽ | {len(get_items)} шт",
-                callback_data=f"shop_edit:{get_shops[a]['shop_id']}:{remover}:{user_id}"))
+                callback_data=f"shop_edit_open:{get_shops[a]['shop_id']}:{remover}:{user_id}"))
         count += 1
 
     if remover <= 0:
@@ -494,4 +480,43 @@ def shop_edit_back_page_fp(remover, user_id):
     return keyboard
 
 
+# Окно с уточнением удалить категорию
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_edit_delete", state="*")
+async def shop_edit_dellete(call: CallbackQuery, state: FSMContext):
+    shop_id = int(call.data.split(":")[1])
+    remover = int(call.data.split(":")[2])
+    print("shop_edit_delete")
+    #await call.answer("🗃 Магазин будет удален ✅")
 
+    await call.message.answer("<b>❗ Вы действительно хотите удалить один из магазинов?</b>",
+                                 reply_markup=shop_edit_delete_finl(shop_id, remover))
+
+
+# Отмена удаления категории
+@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="shop_delete:", state="*")
+async def shop_edit_delete_confirm(call: CallbackQuery, state: FSMContext):
+    get_action = call.data.split(":")[1]
+    shop_id = int(call.data.split(":")[2])
+    user_id = int(call.data.split(":")[3])
+    #remover = int(call.data.split(":")[3])
+    remover = 0
+
+    if get_action == "yes":
+        remove_shopx(shop_id=shop_id)
+        #remove_userx(category_id=category_id)
+        #remove_itemx(category_id=category_id)
+
+
+        if len(get_all_shopx()) >= 1:
+            await call.message.answer("🗃 Магазин был успешно удален ✅",
+                              reply_markup=shop_edit_open_fp(0, user_id))
+        else:
+            await call.message.delete()
+    else:
+        get_shop_count = len(get_shopx(store_id=shop_id))
+        get_shop = get_shopx(shop_id=shop_id)
+
+        await call.message.edit_text(f"<b>🗃 Магазин: <code>{get_shop['name']}</code></b>\n"
+                                     "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                     f"📁 Кол-во позиций: <code>{get_shop_count}шт</code>",
+                                     reply_markup=shop_edit_open_finl(shop_id, remover))
