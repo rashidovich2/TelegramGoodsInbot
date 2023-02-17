@@ -40,6 +40,39 @@ def refill_choice_finl():
     return keyboard
 
 
+# Открытие корзины
+def open_cart_created_finl(order_id):
+    keyboard = InlineKeyboardMarkup(
+).add(
+    InlineKeyboardButton("🏢 Ввести адрес", callback_data=f"enter_address_manualy:{order_id}"),
+    InlineKeyboardButton("📱 Ввести телефон", callback_data=f"enter_phone_manualy:{order_id}"),
+    InlineKeyboardButton(" ! Оформить заказ", callback_data=f"checkout_start:{order_id}"),
+).add(
+    InlineKeyboardButton("📱 Поделиться номером", callback_data=f"enter_phone_auto:{order_id}"),
+    InlineKeyboardButton("💰 Пополнить счет", callback_data=f"user_refill:{order_id}"),
+    InlineKeyboardButton("❓ Спросить продавца", callback_data=f"enter_message_manualy:{order_id}"),
+).add(
+    InlineKeyboardButton(" Удалить корзину", callback_data=f"del_user_cart:{order_id}"),
+)
+
+    return keyboard
+
+
+
+
+
+# Проверка киви платежа
+def position_select_type_finl():
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        InlineKeyboardButton("✅ Реальная", callback_data=f"here_position_type:real")    #f"Open:{object}:id:{object_id}")
+    ).add(
+        InlineKeyboardButton("❌ Цифровая", callback_data=f"here_position_type:digital")
+    )
+
+    return keyboard
+
+
 # Проверка киви платежа
 def open_deep_link_object_finl(object_id, category_id, remover, city_id):
     keyboard = InlineKeyboardMarkup(
@@ -197,22 +230,35 @@ def cart_open_created_finl(order_id):
 ).add(
     InlineKeyboardButton("🏢 Ввести адрес", callback_data=f"enter_address_manualy"),
     InlineKeyboardButton("📱 Ввести телефон", callback_data=f"enter_phone_manualy"),
-    InlineKeyboardButton(" ! Оформить заказ", callback_data=f"checkout_start:{order_id}"),
-).add(
     InlineKeyboardButton("📱 Поделиться номером", callback_data=f"enter_phone_auto"),
-    InlineKeyboardButton("💰 Пополнить счет", callback_data=f"user_refill"),
-    InlineKeyboardButton("❓ Спросить продавца", callback_data=f"enter_message_manualy"),
+
 ).add(
-    InlineKeyboardButton(" Удалить корзину", callback_data=f"del_user_cart"),
+    InlineKeyboardButton("   Оплата при получении", callback_data=f"pay_after_delivery:{order_id}"),
+    InlineKeyboardButton("💰 Пополнить счет", callback_data=f"user_refill"),
+    InlineKeyboardButton(f" ! Оформить заказ{order_id}", callback_data=f"checkout_start:{order_id}"),
+).add(
+    InlineKeyboardButton("   Удалить корзину", callback_data=f"del_user_cart"),
+    InlineKeyboardButton("❓ Спросить продавца", callback_data=f"enter_message_manualy"),
 )
 
     return keyboard
 
 
-def cart_open_delivery_finl():
+# Подтверждение оформления заказа
+def checkout_step2_accept_finl(order_id):
+    keyboard  = InlineKeyboardMarkup(
+).add(
+    InlineKeyboardButton(f"✅ Да, оформить{order_id}", callback_data=f"checkout_finish:{order_id}"),
+    InlineKeyboardButton("❌ Вернуться в Корзину", callback_data="user_cart")
+)
+
+    return keyboard
+
+#корзина - заказ в статусе доставка
+def cart_open_delivery_finl(order_id):
     keyboard = InlineKeyboardMarkup(
 ).add(
-    InlineKeyboardButton("📱 Подтвердить получение", callback_data=f"submit_order"),
+    InlineKeyboardButton("📱 Подтвердить получение", callback_data=f"submit_order:{order_id}"),
 ).add(
     #    InlineKeyboardButton("📱 Открыть спор", callback_data=f"open_debate"),
     InlineKeyboardButton("❓ Задать вопрос продавцу", callback_data=f"enter_message_manualy"),
@@ -220,6 +266,22 @@ def cart_open_delivery_finl():
 
     return keyboard
 
+# Корзина - заказ для администратора площадки
+def cart_open_admin_finl(order_id):
+    keyboard = InlineKeyboardMarkup(
+    ).add(
+        InlineKeyboardButton("🏢 Ввести адрес", callback_data=f"enter_address_manualy"),
+        InlineKeyboardButton("📱 Ввести телефон", callback_data=f"enter_phone_manualy"),
+        InlineKeyboardButton(" ! Оформить заказ", callback_data=f"checkout_start:{order_id}"),
+    ).add(
+        InlineKeyboardButton("📱 Изменить статус заказа", callback_data=f"enter_phone_auto"),
+        InlineKeyboardButton("💰 Написать покупателю", callback_data=f"user_refill"),
+        InlineKeyboardButton("❓ Написать продавцу", callback_data=f"enter_message_manualy"),
+    ).add(
+        InlineKeyboardButton(" Удалить корзину", callback_data=f"del_user_cart"),
+    )
+
+    return keyboard
 
 
 # Способы пополнения

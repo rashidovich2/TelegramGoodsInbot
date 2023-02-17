@@ -15,14 +15,15 @@ from tgbot.utils.misc_functions import send_admins
 
 # Апи работы с QIWI
 class QiwiAPI(AsyncClass):
-    async def __ainit__(self, dp, suser_id=None, login=None, token=None, secret=None, add_pass=False,
-                        check_pass=False, user_bill_pass=False, user_check_pass=False):
+    async def __ainit__(self, dp, login=None, token=None, secret=None, add_pass=False,
+                        check_pass=False, user_bill_pass=False, user_check_pass=False, **kwargs):
 #buser_id=None, suser_id=None,
-        if suser_id is not None:
+        print(dp['chat']['id'])
+        if dp['chat']['id']:
             #self.login = login
             #self.token = token
             #self.secret = secret
-            self.suser_id = suser_id['chat']['id']
+            self.suser_id = dp['chat']['id']
             self.login = get_upaymentx(self.suser_id)['qiwi_login']
             self.token = get_upaymentx(self.suser_id)['qiwi_token']
             self.secret = get_upaymentx(self.suser_id)['qiwi_secret']

@@ -1,26 +1,23 @@
 # - *- coding: utf- 8 - *-
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as ikb
 
-from tgbot.services.api_sqlite import get_paymentx, get_settingsx, get_userx, update_settingsx, get_upaymentx, get_upaycount, create_upayments_row
+from tgbot.services.api_sqlite import get_paymentx, get_settingsx, get_userx, update_settingsx, get_upaymentx, get_upaycount, create_upayments_row, get_places_in_cityx
 
 
 
 # Поиск профиля
-def sales_report_buttons(user_id):
-    keyboard = InlineKeyboardMarkup(
-    ).add(
-        ikb("💰 Изменить баланс", callback_data=f"admin_user_balance_set:{user_id}"),
-        ikb("💰 Выдать баланс", callback_data=f"admin_user_balance_add:{user_id}")
-    ).add(
-        ikb("🎁 Покупки", callback_data=f"admin_user_purchases:{user_id}"),
-        ikb("💌 Отправить СМС", callback_data=f"admin_user_message:{user_id}")
-    ).add(
-        ikb("🔄 Обновить", callback_data=f"admin_user_refresh:{user_id}")
-    )
+def select_place_finl(city_id):
+    remover = 0
+    get_places = get_places_in_cityx(city_id)
+    keyboard = InlineKeyboardMarkup()
+
+    for count, a in enumerate(range(remover, len(get_places))):
+        print(get_places[a]['place_id'])
+        if count < 10:
+            keyboard.add(ikb(get_places[a]['name'], # + " | " + get_places[a]['city_id'],
+                            callback_data=f"here_event_place:{get_places[a]['place_id']}"))
 
     return keyboard
-
-
 
 # Поиск профиля
 def profile_search_finl(user_id):
@@ -37,6 +34,7 @@ def profile_search_finl(user_id):
 
     return keyboard
 
+
 # Поиск профиля с запросом на продавца
 def profile_search_reqs(user_id):
     keyboard = InlineKeyboardMarkup(
@@ -52,7 +50,6 @@ def profile_search_reqs(user_id):
 # Способы пополнения
 def payment_choice_finl(user_id):
     keyboard = InlineKeyboardMarkup()
-    #get_payments = get_paymentx()
     print("inline_admin")
     print(user_id)
     count = get_upaycount(user_id)
@@ -61,13 +58,14 @@ def payment_choice_finl(user_id):
         cur = create_upayments_row(user_id)
     else:
         get_payments = get_upaymentx(user_id)
-    #get_payments = get_paymentx()
+
     print(get_payments)
 
     status_form_kb = ikb("✅", callback_data=f"change_payment:Form:False:{user_id}")
     status_number_kb = ikb("✅", callback_data=f"change_payment:Number:False:{user_id}")
     status_nickname_kb = ikb("✅", callback_data=f"change_payment:Nickname:False:{user_id}")
     status_formy_kb = ikb("✅", callback_data=f"change_payment:ForYm:False:{user_id}")
+    status_freecredi_kb = ikb("✅", callback_data=f"change_payment:FreeCredi:False:{user_id}")
 
     if get_payments['way_form'] == "False":
         status_form_kb = ikb("❌", callback_data=f"change_payment:Form:True:{user_id}")
@@ -77,11 +75,14 @@ def payment_choice_finl(user_id):
         status_nickname_kb = ikb("❌", callback_data=f"change_payment:Nickname:True:{user_id}")
     if get_payments['way_formy'] == "False":
         status_formy_kb = ikb("❌", callback_data=f"change_payment:ForYm:True:{user_id}")
+    if get_payments['way_freecredi'] == "False":
+        status_freecredi_kb = ikb("❌", callback_data=f"change_payment:FreeCredi:True:{user_id}")
 
     keyboard.add(ikb("📋 По форме", url="https://vk.cc/bYjKGM"), status_form_kb)
     keyboard.add(ikb("📞 По номеру", url="https://vk.cc/bYjKEy"), status_number_kb)
     keyboard.add(ikb("Ⓜ По никнейму", url="https://vk.cc/c8s66X"), status_nickname_kb)
     keyboard.add(ikb("📋 По Yoo", url="https://vk.cc/bYjKGM"), status_formy_kb)
+    keyboard.add(ikb("📋 Свободные реквизиты", url="https://vk.cc/bYjKGM"), status_freecredi_kb)
 
     return keyboard
 

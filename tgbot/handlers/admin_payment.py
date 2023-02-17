@@ -66,6 +66,8 @@ async def payment_systems_edit(call: CallbackQuery):
                 update_upaymentx(user_id, way_nickname=way_status, qiwi_nickname=response)
             else:
                 await call.answer(response, True)
+        elif way_pay == "FreeCredi":
+            update_upaymentx(user_id, way_freecredi=way_status)
     else:
         await call.answer("❗ Добавьте киви кошелёк перед включением Способов пополнений.", True)
 

@@ -220,7 +220,7 @@ async def product_position_create(message: Message, state: FSMContext):
 
     #if len(get_all_shopx()) >= 1:
     await message.answer("<b>📁 Выберите категорию для позиции</b>",
-                             reply_markup=position_create_open_fp(0))
+                             reply_markup=position_people_create_open_fp(0))
     #else:
         #await message.answer("<b>❌ Отсутствуют магазины для создания позиции.</b>")
 

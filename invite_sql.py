@@ -132,7 +132,7 @@ gusername = "goodnewsrussia1"
     source_group_name=groupdb[1]
     source_group_selected = 1'''
 
-source_group = 1467842316
+source_group = 1224708719 #1520545687 #1640509728 #1697116411
 rows = first_grouptoinvitebyid(source_group, start, count)
 
 if sys.argv[1] == 'geoparse': rows = firstgeo_toinvite(state, start, count)
@@ -504,9 +504,10 @@ for cp in cpass:
                     break
                 except PeerFloodError as e:
                     f += 1
-                    if f >= 5:
+                    if f >= 11:
                         update_tgaccounts(account_id, pole="waitfor24")
                         break
+                        #print("||||")
                     print(f"{cur_time} | Ошибка пользователя: Слишком много запросов!")
                     cur_day = cur_time.day
                     cur_hour = cur_time.hour

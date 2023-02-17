@@ -6,6 +6,7 @@ import datetime
 import time
 
 import requests
+import subprocess
 
 import aiogram
 from aiogram import Dispatcher
@@ -25,7 +26,8 @@ from tgbot.services.api_sqlite import get_settingsx, update_settingsx, get_userx
     update_positionx, get_all_categoriesx, get_all_purchasesx, get_all_refillx, get_all_usersx, get_all_itemsx, \
     get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, \
     get_orderx, get_purchasesx, get_purchasesxx, get_shopx, get_artistx, get_planed_postx, get_planed_eventsx, get_tohour_postx,\
-    update_tohour_postx, get_users_by_cities, get_delivery_seller_options, get_params_orderx, get_orderxo
+    update_tohour_postx, get_users_by_cities, get_users_by_citiesx, get_delivery_seller_options, get_params_orderx, get_orderxo, \
+    get_userxxx, get_upaymentx
 
 from tgbot.utils.const_functions import get_unix, convert_day
 
@@ -85,6 +87,76 @@ async def post_half_eight():
          asyncio.create_task(functions_advertising_make_bg(post))
          #time.sleep(60)
 
+
+async def reinvite_sellers_by_city():
+    print("*CITIES CITIZENS MESSAGING*")
+    cities = get_users_by_citiesx()
+    for city in cities:
+        print(city)
+        if city['user_city_id'] is None:
+            #message = "Выберите пожалуйста Ваш город в боте."
+            message = f"Выберите пожалуйста Ваш город в боте.\n" \
+                      f"Мы сможем предложить Вам товары \n" \
+                      f"от продавцов в Вашем городе."
+            print(message)
+        elif city['user_city_id'] != 0:
+            message = str(city['user_city']) + ", продавцы товаров, добро пожаловать!"
+            print(message)
+
+        receive_users, block_users, how_users = 0, 0, 0
+
+        posttype = "text"
+        test = "yes"
+        #get_users = get_all_usersx()
+        get_users = get_usersx(user_city_id=city['user_city_id'])
+
+        #get_users = get_userxx(user_city_id=34)
+        print(get_users)
+
+        for user in get_users:
+            if user['user_city_id']:
+                message = str(user['user_city']) + ", продавцы товаров, добро пожаловать!"
+            elif city['user_city_id']:
+                message = "Выберите пожалуйста свой город в профиле, наш бот Вам предложит товары в Вашем городе."
+            try:
+                if test == "yes": user['user_id'] = 919148970
+                if posttype == "text":
+                    await bot.send_message(user['user_id'], message, disable_web_page_preview=True)
+                elif post[1] == "photo":
+                    await bot.send_photo(
+                        chat_id=user['user_id'],
+                        photo=post[4],
+                        caption=post[9] if post[9] else None)
+                elif post[1] == "video":
+                    await bot.send_video(
+                        chat_id=user['user_id'],
+                        video=post[5],
+                        caption=post[9] if post[9] else None)
+                elif post[1] == "animation":
+                    await bot.send_animation(
+                        chat_id=user['user_id'],
+                        animation=message,
+                        caption=post[9] if post[9] else None)
+
+                receive_users += 1
+
+            except:
+                block_users += 1
+
+            how_users += 1
+
+            if how_users % 10 == 0:
+                await send_admins(f"<b>📢 Рассылка началась... ({how_users}/{len(get_users)})</b>")
+
+            await asyncio.sleep(0.05)
+
+        #await update_post(post[0], state = "sended")
+        await send_admins(
+            f"<b>📢 Рассылка была завершена ✅</b>\n"
+            f"👤 Пользователей получило сообщение: <code>{receive_users} ✅</code>\n"
+            f"👤 Пользователей не получило сообщение: <code>{block_users} ❌</code>"
+        )
+
 async def post_every_half_hour():
     print("||||")
     posts = get_planed_postx(mode="halfhour")
@@ -93,6 +165,21 @@ async def post_every_half_hour():
          asyncio.create_task(functions_advertising_make_bg(post))
          #time.sleep(60)
 
+async def sellers_news():
+    print("||||")
+    posts = get_sellers_news_postx(tag = "selnews")
+    #updposts = update_tohour_postx()
+    #print(posts)
+    for post in posts:
+        asyncio.create_task(functions_advertising_make_bg(post))
+
+async def posts3_every_hour():
+    print("||||")
+    posts = get_3tohour_postx()
+    #updposts = update_tohour_postx()
+    #print(posts)
+    for post in posts:
+        asyncio.create_task(functions_advertising_make_bg(post))
 
 async def post_every_hour():
     print("||||")
@@ -163,42 +250,42 @@ async def functions_advertising_make_bg(post, markup=None):
     )
 
 
-
-
 async def functions_advertising_events_bg(event, markup=None):
     receive_users, block_users, how_users = 0, 0, 0
     get_users = get_all_usersx()
     #print(":::")
     #get_users = get_userxx(user_city_id = post[10])
     #get_users = get_userx(user_id=919148970)
-    test = "yes"
+    test = "no"
     #print(get_usersx)
     print(event)
     if markup == "default":
         markup = menu_frep(admin)
         #get_users = "919148970"
 
-    '''ev_command = event[2] if event[2] else None
-    ev_desc = event[4] if event[4] else None
-    ev_place = event[16] if event[16] else None
+    '''ev_command = event[1] if event[1] else None
+    ev_desc = event[2] if event[2] else None
+    ev_place = event[3] if event[3] else None
+    ev_address = event[4] if event[4] else None
 
     caption = f" Коллектив: {ev_command}  \n"
-              f"<b>🔶 Описание: 🔶</b> {ev_desc} \n"
-              f"<b>🔶 Место: 🔶</b> {ev_place} \n"'''
+    f"<b>🔶 Описание: 🔶</b> {ev_desc} \n"\
+    f"<b>🔶 Место: 🔶</b> {ev_place} \n"\
+    f"<b>🔶 Адресс: 🔶</b> {ev_address} \n"'''
 
     #dtevent_time = datetime.datetime.strptime(event[6], '%Y-%m-%d %H:%M:%S')
 
     for user in get_users:
         try:
             if test == "yes": user['user_id'] = 919148970
-            if event[5] == "":
-                await bot.send_message(user['user_id'], event[2], disable_web_page_preview=True)
+            if event[0] == "":
+                await bot.send_message(user['user_id'], event[1], disable_web_page_preview=True)
                 #await bot.send_message(user['user_id'], post[2], reply_markup = markup, disable_web_page_preview=True)
-            elif event[5] != "":
+            elif event[0] != "":
                 await bot.send_photo(
                     chat_id=user['user_id'],
-                    photo=event[5], #.send_photo.file_id, if event[2] else None
-                    caption=event[4] if event[4] else None)
+                    photo=event[0],
+                    caption=event[1])   #event[4] if event[4] else None) #.send_photo.file_id, if event[2] else None
             elif event[1] == "video":
                 #print("|_>>>>")
                 await bot.send_video(
@@ -475,24 +562,26 @@ def calc_order_summ(order_id):
     #order = get_user_orderx(user_id=user_id)
     get_positions = []
     totalm = 0
-    get_positions = get_cart_positionsx(order_id=order['order_id'])
+    get_positions = get_cart_positionsx(order_id=order_id)
     for position in get_positions:
         poscost = position['count'] * position['position_price']
         totalm += poscost
     return totalm
 
 # Открытие своей корзины
-
-
 def open_cart_my(order_id):
     #orders = get_user_orderx(user_id=user_id)
-    #order = 0
+    orderdata = []
+    #заказ
     orderdata = get_orderxo(order_id=order_id)
     user_id = orderdata['user_id']
     get_user = get_userx(user_id=user_id)
+    #получаем баланс пользователя
     ub = get_user['user_balance']
+    #позиции заказа
     get_positions = []
-    get_positions = get_cart_positionsx(order_id=orderdata['order_id'])
+    get_positions = get_cart_positionsx(order_id=order_id)
+
     this_items = []
     this_itemst = this_itemst2 = this_itemst3 = ''
     #delivery = 200
@@ -508,13 +597,16 @@ def open_cart_my(order_id):
 
         this_itemst += f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽ \n"
 
-        print(
-            f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт.| {poscost}₽")
+        print(f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт.| {poscost}₽")
 
     this_itemst3 += "Всего по всем позициям: " + str(totalm) + "\n"
     #this_itemst += this_itemst2
     #cart_sum = calc_cart_summ(user_id=touser_id)
     #cart_sum = calc_order_summ(order_id=order_id)
+    get_payment = get_upaymentx(user_id=position['owner_uid'])
+    if get_payment['way_freecredi']:
+        freecredi_method = "Продавец поддерживает"
+    else: freecredi_method = "Не поддерживается"
     dso = get_delivery_seller_options(order_id)['free_delivery_point']
     print(dso)
     #free_delivery_point = dso['free_delivery_point']
@@ -549,11 +641,13 @@ def open_cart_my(order_id):
     return f"<b>👤 Ваша Корзина:</b>\n" \
            f"➖➖➖➖➖➖➖➖➖➖\n" \
            f"🆔 Корзина ID: <code>{orderdata['order_id']}</code>\n" \
+           f"🆔 Статус: <code>{orderdata['order_state']}</code>\n" \
            f"🆔 Telegram ID: <code>{get_user['user_id']}</code>\n" \
            f"💳 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
            f"🗃 Всего товаров: <code>{totalm}</code>\n" \
            f"   <code>{this_itemst}</code>\n" \
            f"🏙 Итого корзина: <code>{totalm2}₽</code>\n" \
+           f"🏙 Постоплата: <code>{freecredi_method}</code>\n" \
            f"🏙 Примечание: <code>{this_itemst2}</code>\n"
     # f"🆔 Telegram ID: <code>{get_user['user_id']}</code>\n" \
     # f"ID: {orderdata['order_id']} Статус корзины: <code>{orderdata['order_state']}</code>\n" \
@@ -583,7 +677,7 @@ def open_profile_search(user_id):
            f"➖➖➖➖➖➖➖➖➖➖\n" \
            f"🆔 ID: <code>{get_user['user_id']}</code>\n" \
            f"👤 Логин: <b>@{get_user['user_login']}</b>\n" \
-           f"👤 Роль: <b>@{get_user['user_role']}</b>\n" \
+           f"👤 Роль: <b>{get_user['user_role']}</b>\n" \
            f"Ⓜ Имя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a>\n" \
            f"🕰 Регистрация: <code>{get_user['user_date']} ({convert_day(how_days)})</code>\n" \
            f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \

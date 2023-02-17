@@ -1,10 +1,20 @@
 # - *- coding: utf- 8 - *-
+from aiogram import Dispatcher
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.types import Update
 
+
 from tgbot.data.config import get_admins
+from tgbot.loader import dp
 from tgbot.services.api_sqlite import get_userx, add_userx, update_userx, get_settingsx
 from tgbot.utils.const_functions import clear_html
+from tgbot.utils.misc_functions import send_admins
+
+
+
+async def notify(dp: Dispatcher, msg):
+    print('Уведомление!')
+    await send_admins(msg, markup="default")
 
 
 # Проверка юзеров в БД и его добавление
@@ -37,6 +47,8 @@ class ExistsUserMiddleware(BaseMiddleware):
 
                     if get_user is None:
                         add_userx(user_id, user_login.lower(), user_name)
+                        await notify(dp, f"В боте новый пользователь:{user_id}!")
+
                     else:
                         if user_name != get_user['user_name']:
                             update_userx(get_user['user_id'], user_name=user_name)

@@ -145,8 +145,16 @@ def remove_accountx(**kwargs):
 def get_all_tgaccounts_states():
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
-        sql = "SELECT source, groupname, state, count(username) FROM storage_tgparse GROUP BY source, groupname, state"
+        sql = "SELECT source, groupname, group_id, state, count(username) FROM storage_tgparse GROUP BY source, groupname, group_id, state"
         return con.execute(sql).fetchall()
+
+# Получение всех запросов продавцов
+def get_tgaccount_statecounts(account_id):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        #sql = "SELECT state, invited24, last FROM storage_tgaccounts "
+        sql = "SELECT invited24 FROM storage_tgaccounts "
+        return con.execute(sql + "WHERE account_id = ?", [account_id]).fetchone()
 
 # Получение всех запросов продавцов
 def get_all_tgaccounts_to_invite():
@@ -157,6 +165,13 @@ def get_all_tgaccounts_to_invite():
 
 # Получение всех запросов продавцов
 def get_all_avtgaccounts():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_tgaccounts WHERE state='available'"
+        return con.execute(sql).fetchall()
+
+# Получение всех запросов продавцов
+def get_all_avtgaccountsend():
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
         sql = "SELECT * FROM storage_tgaccounts WHERE state='available'"
@@ -192,7 +207,7 @@ def get_all_tgaccounts():
         return con.execute(sql).fetchall()
 
 # Получение всех запросов продавцов
-def get_tgaccount_statecounts(account_id):
+def get_tgaccounts_statecounts(account_id):
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
         #sql = "SELECT state, invited24, last FROM storage_tgaccounts "
@@ -307,6 +322,20 @@ def groups_telegram():
         return con.execute(sql).fetchall()
 
 # Пользователи группы для инвайта
+def first_grouptosendbyid(groupid, start, count):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_tgparse WHERE sendstate = 'created' AND source = 'groups' AND group_id=? ORDER BY acc_id ASC LIMIT {start},{count}"
+        return con.execute(sql, [groupid]).fetchall()
+
+def firstgeo_tosend(state, start, count):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = f"SELECT * FROM storage_tgparse WHERE sendstate = ? AND source = 'geoparse' ORDER BY acc_id ASC LIMIT {start},{count}"
+        return con.execute(sql, [state]).fetchall()
+        #return con.execute(sql).fetchall()
+
+# Пользователи группы для инвайта
 def first_grouptoinvitebyid(groupid, start, count):
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
@@ -354,6 +383,7 @@ def update_tgaccounts(account_id, pole):
         if pole == 'banned': inc = " state = 'banned' "
         if pole == 'available': inc = " state = 'available', invited24 = 0 "
         if pole == 'iter24': inc = " iter24 = iter24 + 1 "
+        if pole == 'sended24': inc = " sended24 = sended24 + 1 "
         sql = f"UPDATE storage_tgaccounts SET " + inc
         #sql, parameters = update_format(sql, kwargs)
         #parameters.append(account_id)

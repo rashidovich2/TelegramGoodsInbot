@@ -26,7 +26,7 @@ import time
 import random
 import requests, socket
 from sutils import *
-from tgbot.services.api_sqlite import *
+from tgbot.services.api_sqlite_advert import *
 
 print(type(datetime))
 
@@ -125,7 +125,7 @@ for cp in cpass:
     #sended = 0
     start = 0
     count = 39
-    rows =  first_tosend(state, start, count)
+    rows =  firstgeo_tosend(state, start, count)
     users = []
     for row in rows:
         user = {}

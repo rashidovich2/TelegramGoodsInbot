@@ -16,11 +16,11 @@ from tgbot.utils.misc_functions import send_admins
 
 # Апи работы с YooMoney
 class YooAPI(AsyncClass):
-    async def __ainit__(self, suser_id = None, acc_number=None, token=None, client_id=None, redirect_url=None):
+    async def __ainit__(self, suid, acc_number=None, token=None, client_id=None, redirect_url=None, **kwargs):
         #suser_id=None,
-        #print(suser_id['chat']['id'])
-        if suser_id is not None:
-            self.suser_id = suser_id['chat']['id']
+        print(suid['chat']['id'])
+        if suid['chat']['id']:
+            self.suser_id = suid['chat']['id']
             self.token = get_upaymentx(self.suser_id)['yoo_token']
             self.client_id = get_upaymentx(self.suser_id)['yoo_client_id']
             self.acc_number = get_upaymentx(self.suser_id)['yoo_acc_number']
@@ -34,7 +34,7 @@ class YooAPI(AsyncClass):
             #self.token = get_upaymentx(self.user_id)['qiwi_token']
             #self.secret = get_upaymentx(self.user_id)['qiwi_secret']
             #self.login = get_paymentx()['qiwi_login']
-            self.suser_id = suser_id['chat']['id']
+            self.suser_id = 919148970
             self.token = get_upaymentx(self.suser_id)['yoo_token']
             self.client_id = get_upaymentx(self.suser_id)['yoo_client_id']
             self.acc_number = get_upaymentx(self.suser_id)['yoo_acc_number']

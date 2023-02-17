@@ -18,7 +18,8 @@ from tgbot.services.regular import send_message_start
 from tgbot.utils.misc.bot_commands import set_commands
 from tgbot.utils.misc.bot_logging import bot_logger
 from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_notify, update_profit_day, \
-    update_profit_week, autobackup_admin, post_every_hour, post_every_eighteen, post_every_half_hour, post_half_eight, post_evening_events
+    update_profit_week, autobackup_admin, post_every_hour, post_every_eighteen, post_every_half_hour, \
+    post_half_eight, post_evening_events, posts3_every_hour, reinvite_sellers_by_city, sellers_news
 
 #CHANNEL_ID = '-1001683374540'
 #text = "test"
@@ -30,10 +31,13 @@ from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_
 async def scheduler_start():
     #scheduler.add_job(send_message_start, 'interval', seconds=600)
     #scheduler.add_job(post_every_hour, "cron", hour=21, minute=43)
+    scheduler.add_job(sellers_news, "cron", hour=15, minute=9)
+    scheduler.add_job(reinvite_sellers_by_city, "cron", hour=14, minute=47)
+    scheduler.add_job(posts3_every_hour, "interval", minutes=60)
     scheduler.add_job(post_every_hour, "interval", minutes=30)
     scheduler.add_job(post_half_eight, "cron", hour=18, minute=30)
     #scheduler.add_job(post_evening_events, "cron", hour=22, minute=45)
-    scheduler.add_job(post_evening_events, "cron", hour=16, minute=32)
+    scheduler.add_job(post_evening_events, "cron", hour=19, minute=50)
     #scheduler.add_job(post_half_eight, "interval", seconds=30)
     #scheduler.add_job(post_every_eighteen, "cron", hour=17)
     #scheduler.add_job(post_half_eight, "cron", hour=19, minute=35)
