@@ -1,188 +1,84 @@
-# TelegramGoodsInbot
-**The store in Telegram** |
-**Магазин в Телеграм**
-Электронная коммерция в Интернете продолжает набирать обороты и в этом году. Магазин в Telegram может стать отличным решением для малого бизнеса. Он позволяет отправлять напоминания и обновления своей клиентской базе без необходимости делать массовые электронные письма или рассылки. Клиент видит обновления, когда открывает свое приложение Telegram, и может нажать на уведомление, чтобы перейти прямо к товару. Магазин также может быть использован в качестве рынка для покупателей и продавцов. TelegramGoodsinbot позволяет пользователям создавать магазины, которые затем будут доступны другим пользователям через их группы или в результатах поиска в Интернет. Магазин также является отличным способом получения дохода для площадки TelegramGoodsinbot. Они могут взимать плату с предприятий за размещение товаров в магазине и зарабатывать на транзакциях, совершаемых на платформе. Наша площадка еще только начала свою работу, но уже ясно, что он имеет определенный потенциал, чтобы стать важной частью бизнес-модели Telegram в будущем. TelegramGoodsinbot также может использовать торговлю в магазинах как способ заработать на пользователях. Магазин можно использовать для продажи физических товаров или цифровых продуктов. Это позволит TelegramGoodsinbot получать доход, взимая плату с предприятий и частных лиц, которые хотят разместить товары в магазине. Перед Вами исходный код TelegramGoodsInbot. Добро пожаловать!
+# Binance Pump Alerts
 
-**Торговый модуль**
-поддерживает три режима работы:
-- digital - торговля цифровыми товарами и услугами(загрузка товаров через бота в анонимное хранилище, расчет сразу по реквизитам продавца).
+BPA is a simple application which gets the price data from Binance Spot or Futures API and sends Telegram messages based on parameters set used to detect pumps and dumps on the Binance Exchange.
 
-- real - торговля материальными товарами и услугами(корзина и данные заказа).
+[Demo Telegram Channel](https://t.me/binance_pump_alerts) hosted on AWS ec2 running the 'Base Stable Version' release 24/7.
 
-- hybrid - торговля цифровыми и материальными товарами и услугами(микс двух режимов на основании признака товара/услуги).
+![image](https://user-images.githubusercontent.com/63389110/128601355-4be90b36-5e54-4be6-bf85-00fc395645de.png)
 
+## Manual Setup
 
-**Модуль афишы**
-- каталог событий, мест и творческих коллективов.
-- рекомендации для подписчиков конкретного города по событиям их локации.
+1. On the command-line, run the command `pip install -r requirements.txt` while located at folder with code.
+1. Create a new telegram bot token from [@botfather](https://t.me/BotFather).
+1. Get telegram `chat_id` from [@get_id_bot](https://telegram.me/get_id_bot).
+   - Alternatively, a `channel_id` can be used as well.
+1. Add pairs to watch into the watchlist or leave it empty to monitor all tickers on Binance.
+1. Run the script with the command `python pumpAlerts.py`.
 
+## Docker Setup
 
-**Функции всей площадки**
-- рассылки мультимедиа, в том числе запланированные.
-- карточка продавца.
-- карточка магазина.
-- индивидуальные реквизиты продавцов.
-- безопасная сделка и корзина.
-- справочник городов - 192 города России.
-- ссылки на товары(deep_link).
+1. Use environment variables in the `docker-compse.yml` file to provide your config.
+   - See `entrypoint.sh` for environment variable names and the config possibilities.
+   - You can also use a `.env` file during development.
+   - If changing the config parameters, you have to make sure that search and replace will place the right parameter in the `config.yml`
+   - Emojis are more tricky therefore defining it with some tricks e.g. `PUMP_EMOJI="! \"\\\\U0001F4B9\""`
+1. On the command line run `docker-compose up -d --build` to create and run the docker image/container.
 
+## Configuration
 
-**Функции для пользователя магазина**
-- каталог двух уровней, категория - товар.
-- корзина.
-- поддержка (контакты) - ссылка в диалог с администратором.
-- FAQ - сообщение для пользователей с HTML разметкой.
-- подробная Статистика бота: кол-во пополнений, покупок, пользователей, позиций, категорий, чистой прибыли.
-- определение местонахождения пользователя.
-- функция барахолки([Продать]), объявления города от частных лиц
+### Mandatory Params
 
+1. `telegramToken`: The token obtained from[@botfather](https://t.me/BotFather).
+2. `telegramChatId`: The bot will send the messages to this `chat_id`. It can be a group or channel as well.
 
-**Функции для пользователя афишы**
-- каталог четырех срезов, город - место - артист - событие
+## Main Customizable Params
 
+1. `chartIntervals`: Can be modified to consider other timeframes, follow the format of 's' for seconds, 'm' for minutes, 'h' for hours.
+1. `outlierIntervals`: (0.01 -> 1% , 0.1 -> 10%), modify accordingly based on needs. Avoid setting it too low to avoid noise.
+1. `extractInterval`: Default is `1s`, Interval at which we retrieve the price information from Binance.
+1. `pairsOfInterest`: Default is _USDT_. Other options include BUSD, BTC, ETH etc.
+1. `topReportIntervals`: Default is `1h`,`3h`and `6h` Intervals for top pump and dump reports to be sent, ensure it is in chartIntervals + outlierIntervals as well.
 
-**Функции продавца**
-- управление товарами
-- добавление собственных реквизитов QIWI, YooMoney
-- просмотр и управление заказами своих товаров покупателей
+### Optional features to enable
 
+1. `watchlist`: Default if left empty it'll look at ALL symbols after filtering by pairs of interest. If pairs are added to the watchlist, the application will _only track the pairs specified_.
+1. `dumpEnabled`: If `True`, the application will alert on dumps as well.
 
-**Функции администратора афишы**
-- управление артистами, местами, событиями.
+#### Top Pump & Dump Params
 
+1. `topPumpEnabled`: If `True`, the application will send the Top X pumps at the defined interval.
+1. `topDumpEnabled`: If `True`, the application will send the Top X dumps at the defined interval.
+   - Together with pump information, if enabled.
+1. `noOfReportedCoins`: Top X amount of coins shown, adjust to show more or less within the timeframe.
+1. `telegramAlertChatId`: Insert the alert chat_id for top pump dump alert, if left at `0`, it'll send messages to the telegram `chat_Id`.
+   For params not indicated above, refer to comments besides parameter for its use.
 
-**Функции администратора места**
-- управление местом, событиями.
+#### Debug Params (Avoid modifying if possible!)
 
+1. `debug`: Default is `False`. Please, only enable for debugging purposes. Default logging set to info level.
+1. `resetInterval`: Default `12h`. It clears the array used to store data price points to prevent memory issues.
+1. `priceRetryInterval`: Default `5s`. In the case of get price fail, this is the time delay before re-attempt
+1. `checkNewListingEnabled`: Default `True`. Enables checking and adding of new listing pairs.
 
-**Функции администратора**
-- режим технических работ
-- проверка наличия обнолвения при запуске
-- активация/деактивация функций продажи и оплаты
-- добавление неограниченного количества глобальных администраторов
-- согласование запросов на роль администратора магазина, управляющего своими товарами в каталоге
-- добавление неограниченного количества администраторов магазинов
-- удобная и многофункциональная админ панель
-- определение и хранение города нахождения товара
-- поиск покупателей и просмотр профилей
-- поиск чеков покупок
-- рассылка сообщений всем пользователям бота
-- изменение и пополнение баланса пользователя
-- отчет о продажах продавцов
-- уведомления о событиях (новый пользователь, создании товаров продавцами, продажах пользователям)
-- просмотр и управление заказами площадки
+## Todo
 
+1. Integrate with Binance API to make trades on pumps.
+1. Integrate with Binance Websocket API to get volume information.
+1. Integrate with listing-predictor to monitor movements for potential listings.
 
-**Оплата товаров**
-- используется библиотеки QIWI и YooMoney
-- настраивается администратором бота через админку
-- проверка работоспособности из админки
-- вывод баланса кошелька QIWI
-- индивидуальные реквизиты у каждого продавца
+## Completed features
 
-
-**Каталог и товары**
-- User-friendly каталог
-- товары имеют одно изображение
-- гибкое управление товарами администраторами
-- выгрузка всех товаров
-
-
-**Защита**
-- админ-фильтры на все хендлеры, гарантирующие приватность админ функционала
-- защита от оплаты в тенге при пополнении баланса
-- защита от неправильного HTML синтаксиса
-- защита от повторной выдачи баланса
-- защита от спама в боте (Middlewares)
-
-
-**Настройки settings.ini**
-- установить токен Бота, полученный у @BotFather
-- установить Telegram ID администратора площадки(admin_id)
-
-
-**Перед развертыванием**
-1. Придумайте наименование Вашего бота и изображение-логотип.
-2. Подготовьте данные Ваших товаров в формате: Категория, Наименование, Описание, Цена, Количество в остатке, Фото.
-3. Распределите товары по категориям или группам по какому-либо признаку: Предметы интерьера | Китайский чай.
-
-**На Сервере Linux**
-1. apt install python3-pip
-2. 
-
-**Настройка и развертывание**
-1. Скопируйте папку бота. Перейдите в папку бота.
-2. Выполните в командной строке "pip install -r requirements.txt".
-3. Заполните файл settings.ini.
-4. Зарегистрируйте бота в Телеграм.
-5. Найдите в Телеграм бота: @Botfather.
-6. Зайдите и создайте нового бота.
-7. Придумайте наименование для Вашего бота: Имя. И «имя пользователя» ИмяBot.
-8. Заполните данные бота.
-9. Скопируйте в безопасное место токен.
-10. Стартовать бот. 
-11. Заполнить информационные поля. 
-12. Наполнить каталог товарами, реквизиты для получения оплаты за товары.
-13. Наполнить каталог афишы.
-14. Введите платежные реквизиты QIWI, YooMoney. Можете начать торговать.
-15. Привлекайте пользователей в каталог.
-
-**QIWI**
-Как создать секретный ключ киви?
-* Авторизуйтесь в личном кабинете https://p2p.qiwi.com/:
-* Перейдите на вкладку API и нажмите кнопку Создать пару ключей и настроить.
-* Укажите название для пары ключей и нажмите кнопку Создать.
-* Сохраните секретный ключ в безопасном месте — в дальнейшем он не будет отображаться в интерфейсе.
-* Нажмите кнопку Дальше.
-
-**YooMoney**
-1. Ознакомьтесь с условиями использования
-2. Зарегистрируйте свое приложение в API кошелька ЮMoney.
-3. Реализуйте взаимодействие по этому протоколу.
-4. Начните принимать платежи с банковских карт или из электронных кошельков.
-
-
-**Процесс администрирования площадки**
-1. Согласование продавцов
-2. Администрирование каталога
-3. Администрирование денежных средств
-4. Поддержка и ведение сделок, разрешение споров
-
-
-**Процесс покупки для покупателя**
-1. Выбор товара и покупка либо добавление товара в корзину. 
-2. Пополнение счета.
-3. Оформление заказа(переписка с продавцом, ввод данных достаки). 
-4. Получение товара. 
-5. Подтверждение получения.
-6. Отправка отзыва о покупателей.
-
-
-**Процесс продажи для продавца**
-1. Получение сообщения о заказе. 
-2. Сообщение или звонок покупателю. 
-3. Отправка товара покупателю.
-4. Получение отзыва о покупателей.
-
-
-**PRO версия:**
-- функция по запросу
-
-
-**TODO:**
-- вывод средств продавцами.
-- рекомендательная система каталогов.
-
-
-По вопросам пишите пожалуйста в Телеграм: @raclear.
-Скриншоты экранов и описание меню: 
-https://github.com/rashidovich2/TelegramGoodsInbot/wiki
-
-
-Группа: https://t.me/shoptelegramg
-Канал: https://t.me/godsinbot_releases
-
-
-Чтобы торговать своими товарами в текущем экземпляре,
-отправьте запрос на продавца из бота, нажав "Я продавец".
-Работающий экземпляр системы: https://t.me/Goodsinbot.
+1. Telegram integration
+1. Price update every 1s
+1. Adjustable alert % param (outliers)
+1. Watchlist feature
+1. Monitor future markets
+1. Optional alert on dumps
+1. Customizable minimum alert interval for spam prevention
+1. Option to disable print debugs on extraction
+1. [Test] Volume Change Updates (TEST_VOL version)
+1. Allows long period of running without memory issues
+1. Send periodic Top X Pump & Dump reports
+1. Docker integration (Thanks to [@patbaumgartner](https://github.com/patbaumgartner))
+1. Logging integration (Thanks to [@patbaumgartner](https://github.com/patbaumgartner))
+1. Major Refactoring and cleanup (Thanks to [@patbaumgartner](https://github.com/patbaumgartner))

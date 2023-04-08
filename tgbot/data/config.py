@@ -1,8 +1,11 @@
 # - *- coding: utf- 8 - *-
+import os
 import sqlite3
 import configparser
 import json
-
+#from pathlib import Path
+from babel import Locale
+from pathlib import Path
 
 read_config = configparser.ConfigParser()
 read_config.read('settings.ini')
@@ -11,15 +14,18 @@ BOT_TOKEN = read_config['settings']['token'].strip()  # Токен бота
 PATH_DATABASE = 'tgbot/data/database.db'  # Путь к БД
 PATH_LOGS = 'tgbot/data/logs.log'  # Путь к Логам
 BOT_VERSION = '1.0'
+I18N_DOMAIN = 'mybot'
+rd = Path(__file__).parents
+BASE_DIR = rd[1]
+LOCALES_DIR = str(f"{BASE_DIR}{os.sep}locales")
+print(LOCALES_DIR)
+locale = Locale('ru', 'RU')
+
+#_ = i18n.gettext
 
 # Преобразование полученного списка в словарь
 def dict_factory(cursor, row):
-    save_dict = {}
-
-    for idx, col in enumerate(cursor.description):
-        save_dict[col[0]] = row[idx]
-
-    return save_dict
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
 
 # Форматирование запроса без аргументов
 def update_format(sql, parameters: dict):
@@ -33,8 +39,7 @@ def update_format(sql, parameters: dict):
     return sql, list(parameters.values())
 
 def get_type_trade():
-    get_type_trade=get_settingsx()['type_trade']
-    return get_type_trade
+    return get_settingsx()['type_trade']
 
 # Получение администраторов бота
 def get_admins():
@@ -47,11 +52,7 @@ def get_admins():
     if ',' in admins:
         admins = admins.split(',')
     else:
-        if len(admins) >= 1:
-            admins = [admins]
-        else:
-            admins = []
-
+        admins = [admins] if len(admins) >= 1 else []
     while '' in admins: admins.remove('')
     while ' ' in admins: admins.remove(' ')
     while '\r' in admins: admins.remove('\r')
@@ -65,13 +66,9 @@ def get_admins():
 def get_shopadmins():
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        sql = f"SELECT user_id FROM storage_users WHERE user_role='ShopAdmin'"
+        sql = "SELECT user_id FROM storage_users WHERE user_role='ShopAdmin'"
         allshopadmins = con.execute(sql).fetchall()
-        shopadmins=[]
-        for admin in allshopadmins:
-            k = admin['user_id']
-            shopadmins.append(k)
-
+        shopadmins = [admin['user_id'] for admin in allshopadmins]
     return shopadmins
 
 
@@ -85,11 +82,7 @@ def get_shopadmins2():
     if ',' in shopadmins:
         shopadmins = shopadmins.split(',')
     else:
-        if len(shopadmins) >= 1:
-            shopadmins = [shopadmins]
-        else:
-            shopadmins = []
-
+        shopadmins = [shopadmins] if len(shopadmins) >= 1 else []
     while '' in shopadmins: shopadmins.remove('')
     while ' ' in shopadmins: shopadmins.remove(' ')
     while '\r' in shopadmins: shopadmins.remove('\r')
@@ -102,10 +95,10 @@ def get_shopadmins2():
 def is_shopadmin(user_id):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        sql = f"SELECT user_id FROM storage_users "
+        sql = "SELECT user_id FROM storage_users "
         #sql, parameters = update_format(sql, kwargs)
         #parameters.append(user_id)
-        shopadmin = con.execute(sql + "WHERE user_id = ?", [user_id]).fetchone()
+        shopadmin = con.execute(f"{sql}WHERE user_id = ?", [user_id]).fetchone()
 
     return shopadmin['user_id']
 

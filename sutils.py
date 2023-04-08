@@ -17,7 +17,7 @@ def check_phones(reset="no"):
     all_accs=get_all_tgaccounts()
     for acc in all_accs:
         print(str(acc[0])+str(acc[4])+str(acc[8])+str(acc[9]))
-        if acc[8] is None or str(acc[4]) != "banned" and str(acc[4]) != "wait2" and str(acc[4]) != "wait3": #acc[8] is None or
+        if acc[8] is None or str(acc[4]) not in ["banned", "wait2", "wait3"]: #acc[8] is None or
             update_tgaccounts(acc[0], pole='available')
         #if reset == "yes":
         #    update_tgaccounts(acc[0], pole="reset")
@@ -31,6 +31,6 @@ def check_phones(reset="no"):
             #Проверить если номеру пора уходить из режима ожидания
             if (utime >= udtwait and str(acc[4]) != "wait2" and str(acc[4]) != "banned" and str(acc[4]) != "wait3"):
                 update_tgaccounts(acc[0], pole='available')
-                print(str(dtwait.hour)+":"+str(dtwait.minute))
+                print(f"{str(dtwait.hour)}:{str(dtwait.minute)}")
 
     return acc[0]

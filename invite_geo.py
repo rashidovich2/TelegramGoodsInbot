@@ -45,14 +45,12 @@ by rashidovich
         rows = csv.reader(f,delimiter=",",lineterminator="\n")
         next(rows, None)
         for row in rows:
-            user = {}
-            #user['id'] = int(row[0])
-            user['id'] = row[0]
-            user['access_hash'] = row[1]
-            #user['access_hash'] = int(row[1])
-            user['name'] = row[2]
-            user['username'] = row[4]
-
+            user = {
+                'id': row[0],
+                'access_hash': row[1],
+                'name': row[2],
+                'username': row[4],
+            }
             #user['id'] = 5518497581
             if user['username'] is None: continue
 
@@ -77,54 +75,50 @@ by rashidovich
         try:
             if chat.megagroup== True:
                 groups.append(chat)
-        except:
+        except Exception:
             continue
 
-    #вывод списка мегагруп
-    i=0
-    for group in groups:
-        print(gr+'['+cy+str(i)+gr+']'+cy+' - '+group.title)
-        i+=1
-
-    print(gr+'[+] Choose a group to add members')
-    g_index = input(gr+"[+] Enter a Number : "+re)
+    for i, group in enumerate(groups):
+        print(f'{gr}[{cy}{str(i)}{gr}]{cy} - {group.title}')
+    print(f'{gr}[+] Choose a group to add members')
+    g_index = input(f"{gr}[+] Enter a Number : {re}")
     target_group=groups[int(g_index)]
     #target_group.id = -1001683374540
     target_group_entity = InputPeerChannel(target_group.id,target_group.access_hash)
 
     print(gr+"[1] add member by user ID\n[2] add member by username ")
-    mode = int(input(gr+"Input : "+re))
+    mode = int(input(f"{gr}Input : {re}"))
     n = 0
     l = 0
     print(users)
     print('before for')
     for user in users:
         n += 1
-        if 1 == 1:
-            time.sleep(1)
-            try:
-                print (n, "Adding {}".format(user['id']))
-                if mode == 1:
-                    if user['username'] == "" or user['username'] == "None":
-                        continue
-                    user_to_add = client.get_input_entity(user['username'])
-                    #user_to_add = client.get_input_entity(user['id'])
-                elif mode == 2:
-                    user_to_add = InputPeerUser(user['id'], user['access_hash'])
-                else:
-                    sys.exit(re+"[!] Invalid Mode Selected. Please Try Again.")
-                client(InviteToChannelRequest(target_group_entity,[user_to_add]))
-                print(gr+"[+] Waiting for 10-30 Seconds...")
-                #n += 1
-                #if n == 40:
-                #sys.exit(re+"[!] 40 пользователей приглашено.")
-                time.sleep(random.randrange(10, 30))
-            except PeerFloodError:
-                print(re+"[!] Getting Flood Error from telegram. \n[!] Script is stopping now. \n[!] Please try again after some time.")
-            except UserPrivacyRestrictedError:
-                print(re+"[!] The user's privacy settings do not allow you to do this. Skipping.")
-            except:
-                traceback.print_exc()
-                print(re+"[!] Unexpected Error")
-                continue
+        time.sleep(1)
+        try:
+            print(n, f"Adding {user['id']}")
+            if mode == 1:
+                if user['username'] in ["", "None"]:
+                    continue
+                user_to_add = client.get_input_entity(user['username'])
+            elif mode == 2:
+                user_to_add = InputPeerUser(user['id'], user['access_hash'])
+            else:
+                sys.exit(f"{re}[!] Invalid Mode Selected. Please Try Again.")
+            client(InviteToChannelRequest(target_group_entity,[user_to_add]))
+            print(f"{gr}[+] Waiting for 10-30 Seconds...")
+            #n += 1
+            #if n == 40:
+            #sys.exit(re+"[!] 40 пользователей приглашено.")
+            time.sleep(random.randrange(10, 30))
+        except PeerFloodError:
+            print(re+"[!] Getting Flood Error from telegram. \n[!] Script is stopping now. \n[!] Please try again after some time.")
+        except UserPrivacyRestrictedError:
+            print(
+                f"{re}[!] The user's privacy settings do not allow you to do this. Skipping."
+            )
+        except Exception:
+            traceback.print_exc()
+            print(f"{re}[!] Unexpected Error")
+            continue
 

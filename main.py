@@ -31,13 +31,13 @@ from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_
 async def scheduler_start():
     #scheduler.add_job(send_message_start, 'interval', seconds=600)
     #scheduler.add_job(post_every_hour, "cron", hour=21, minute=43)
-    scheduler.add_job(sellers_news, "cron", hour=15, minute=9)
-    scheduler.add_job(reinvite_sellers_by_city, "cron", hour=14, minute=47)
-    scheduler.add_job(posts3_every_hour, "interval", minutes=60)
-    scheduler.add_job(post_every_hour, "interval", minutes=30)
-    scheduler.add_job(post_half_eight, "cron", hour=18, minute=30)
+    #scheduler.add_job(sellers_news, "cron", hour=15, minute=9)
+    #scheduler.add_job(reinvite_sellers_by_city, "cron", hour=11, minute=20)
+    #scheduler.add_job(posts3_every_hour, "interval", minutes=60)
+    #scheduler.add_job(post_every_hour, "interval", minutes=30)
+    #scheduler.add_job(post_half_eight, "cron", hour=18, minute=30)
     #scheduler.add_job(post_evening_events, "cron", hour=22, minute=45)
-    scheduler.add_job(post_evening_events, "cron", hour=19, minute=50)
+    #scheduler.add_job(post_evening_events, "cron", hour=19, minute=50)
     #scheduler.add_job(post_half_eight, "interval", seconds=30)
     #scheduler.add_job(post_every_eighteen, "cron", hour=17)
     #scheduler.add_job(post_half_eight, "cron", hour=19, minute=35)
@@ -46,8 +46,6 @@ async def scheduler_start():
     scheduler.add_job(update_profit_week, "cron", day_of_week="mon", hour=00, minute=1)
     scheduler.add_job(update_profit_day, "cron", hour=00)
     scheduler.add_job(autobackup_admin, "cron", hour=00)
-    # scheduler.add_job(check_update, "cron", hour=00)
-    pass
 
 # Выполнение функции после запуска бота
 async def on_startup(dp: Dispatcher):
@@ -61,8 +59,8 @@ async def on_startup(dp: Dispatcher):
     await on_startup_notify(dp)
 
     bot_logger.exception("BOT WAS STARTED")
-    print(Fore.LIGHTYELLOW_EX + "~~~~~ Bot was started ~~~~~")
-    print(Fore.LIGHTBLUE_EX + "~~~~~ TG developer: @raclear ~~~~~")
+    print(f"{Fore.LIGHTYELLOW_EX}~~~~~ Bot was started ~~~~~")
+    print(f"{Fore.LIGHTBLUE_EX}~~~~~ TG developer: @raclear ~~~~~")
     print(Fore.RESET)
 
     if len(get_admins()) == 0: print("***** ENTER ADMIN ID IN settings.ini *****")

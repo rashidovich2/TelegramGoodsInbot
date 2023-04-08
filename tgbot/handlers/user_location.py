@@ -6,9 +6,8 @@ from tgbot.loader import dp
 from tgbot.services.location_stat import geo_choice
 from tgbot.keyboards.location_keyboards import *
 from tgbot.services.location_function import search_address, add_address, search_city, add_geocode, add_city, get_city, update_position_city
-
+from tgbot.services.api_sqlite import get_userx
 from tgbot.keyboards.reply_z_all import menu_frep
-
 
 @dp.callback_query_handler(lambda cb: cb.data == 'edit_locatoin', state='*')
 async def geo_1(cb: types.CallbackQuery, state: FSMContext):
@@ -22,7 +21,9 @@ async def geo_2(msg: types.Message, state: FSMContext):
     await msg.delete()
     lat = msg.location.latitude
     long = msg.location.longitude
+    city = 0
     city = search_city(lat, long)
+    #lang = get_userx(user_id=message.from_user.id)['user_lang']
     address = search_address(lat, long)
     add_geocode(lat, long, msg.from_user.id)
     add_address(address, msg.from_user.id)
@@ -33,7 +34,7 @@ async def geo_2(msg: types.Message, state: FSMContext):
         await msg.answer(f'Ваш город: {city[0]}?', reply_markup=geo_2_kb(city[1]))
 
 
-@dp.message_handler(lambda msg: msg.text == '📋 Выбрать из списка', state=geo_choice.location)
+@dp.message_handler(lambda msg: msg.text == '📋 Выбрать город из списка', state=geo_choice.location)
 async def geo_3(msg: types.Message, state: FSMContext):
     await msg.answer('Первая буква названия вашего города', reply_markup=geo_3_kb())
 
@@ -48,6 +49,7 @@ async def geo_4(cb: types.CallbackQuery):
 async def geo_5(cb: types.CallbackQuery, state: FSMContext):
     await state.finish()
     info = str(cb.data).split('#')[1]
+    city = 0
     city_info = get_city(info, cb.from_user.id)
     add_city(city_info[0], cb.from_user.id, city_info[3])
     await cb.message.answer("🔸 Бот готов к использованию.\n"
@@ -59,14 +61,16 @@ async def geo_5(cb: types.CallbackQuery, state: FSMContext):
 # ==============================================================================================================
 # ================================  Локация для позицци (для магазина в будующем)   =============================
 
-
 # приём локации
 @dp.message_handler(content_types=['location'], state='here_change_city')
 async def geo_position_1(msg: types.Message, state: FSMContext):
     await msg.delete()
     lat = msg.location.latitude
     long = msg.location.longitude
+    city = 0
     city = search_city(lat, long)
+    lang = get_userx(user_id=message.from_user.id)['user_lang']
+
     if city == False:
         await msg.answer('Город не определён. Выберите город из списка', reply_markup=geo_3_kb())
     else:
@@ -97,7 +101,9 @@ async def geo_position_1(msg: types.Message, state: FSMContext):
     await msg.delete()
     lat = msg.location.latitude
     long = msg.location.longitude
+    city = 0
     city = search_city(lat, long)
+    lang = get_userx(user_id=message.from_user.id)['user_lang']
     if city == False:
         await msg.answer('Город не определён. Выберите город из списка', reply_markup=geo_3_kb())
     else:
@@ -109,12 +115,10 @@ async def geo_position_1(msg: types.Message, state: FSMContext):
 async def geo_3(msg: types.Message, state: FSMContext):
     await msg.answer('Первая буква названия вашего города', reply_markup=geo_3_kb())
 
-
 # выбор буквы города при ошибке геокода
 @dp.callback_query_handler(text_startswith='choice_city_list', state='here_change_city_artist')
 async def geo_position_2(cb: types.CallbackQuery, state: FSMContext):
     await cb.message.answer('Первая буква названия вашего города', reply_markup=geo_3_kb())
-
 
 # выбор города по букве
 @dp.callback_query_handler(text_startswith='geo_first_letter', state='here_change_city_artist')

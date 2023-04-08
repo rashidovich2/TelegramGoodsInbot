@@ -18,7 +18,7 @@ def get_unix():
 
 # Получение текущей даты
 def get_date():
-    this_date = datetime.today().replace(microsecond=0)
+    this_date = datetime.now().replace(microsecond=0)
     this_date = this_date.strftime("%d.%m.%Y %H:%M:%S")
 
     return this_date

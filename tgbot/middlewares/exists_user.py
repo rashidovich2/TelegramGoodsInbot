@@ -11,9 +11,8 @@ from tgbot.utils.const_functions import clear_html
 from tgbot.utils.misc_functions import send_admins
 
 
-
 async def notify(dp: Dispatcher, msg):
-    print('Уведомление!')
+    print('Уведомление exists_user!')
     await send_admins(msg, markup="default")
 
 
@@ -35,26 +34,33 @@ class ExistsUserMiddleware(BaseMiddleware):
             get_settings = get_settingsx()
             get_prefix = self.prefix
 
-            if get_settings['status_work'] == "False" or this_user.id in get_admins():
-                if not this_user.is_bot:
-                    get_user = get_userx(user_id=this_user.id)
+            if (
+                get_settings['status_work'] == "False"
+                or this_user.id in get_admins()
+            ) and not this_user.is_bot:
+                get_user = get_userx(user_id=this_user.id)
 
-                    user_id = this_user.id
-                    user_login = this_user.username
-                    user_name = clear_html(this_user.first_name)
+                user_id = this_user.id
+                user_login = this_user.username
+                user_name = clear_html(this_user.first_name)
+                if user_login is None: user_login = ""
 
-                    if user_login is None: user_login = ""
+                if get_user is None:
+                    user_lang = 'ru'
 
-                    if get_user is None:
-                        add_userx(user_id, user_login.lower(), user_name)
+                    add_userx(user_id, user_login.lower(), user_name, user_lang)
+                    if user_login:
+                        await notify(dp, f"В боте новый пользователь:@{user_login}!")
+                    else:
                         await notify(dp, f"В боте новый пользователь:{user_id}!")
 
-                    else:
-                        if user_name != get_user['user_name']:
-                            update_userx(get_user['user_id'], user_name=user_name)
+                else:
+                    if user_name != get_user['user_name']:
+                        update_userx(get_user['user_id'], user_name=user_name)
+                        await notify(dp, f"В боте пользователь, username: @{user_name}!")
 
-                        if len(user_login) >= 1:
-                            if user_login.lower() != get_user['user_login']:
-                                update_userx(get_user['user_id'], user_login=user_login.lower())
-                        else:
-                            update_userx(get_user['user_id'], user_login="")
+                    if len(user_login) >= 1:
+                        if user_login.lower() != get_user['user_login']:
+                            update_userx(get_user['user_id'], user_login=user_login.lower())
+                    else:
+                        update_userx(get_user['user_id'], user_login="")

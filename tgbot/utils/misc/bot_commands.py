@@ -7,6 +7,7 @@ from tgbot.data.config import get_admins
 # Команды для юзеров
 user_commands = [
     BotCommand("start", "♻ Перезапустить бота"),
+    BotCommand("lang", "Изменить язык"),
     BotCommand("support", "☎ Поддержка"),
     BotCommand("user_seller_request", "Я продавец"),
     BotCommand("faq", "ℹ FAQ"),
@@ -15,6 +16,7 @@ user_commands = [
 # Команды для админов
 admin_commands = [
     BotCommand("start", "♻ Перезапустить бота"),
+    BotCommand("lang", "Изменить язык"),
     BotCommand("support", "☎ Поддержка"),
     BotCommand("faq", "ℹ FAQ"),
     BotCommand("check_seller_requests", "Заявки в продавцы"),
@@ -30,5 +32,5 @@ async def set_commands(dp: Dispatcher):
     for admin in get_admins():
         try:
             await dp.bot.set_my_commands(admin_commands, scope=BotCommandScopeChat(chat_id=admin))
-        except:
+        except Exception:
             pass

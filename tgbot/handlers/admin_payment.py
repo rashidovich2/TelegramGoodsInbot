@@ -9,21 +9,23 @@ from tgbot.keyboards.inline_admin import payment_choice_finl
 from tgbot.loader import dp
 from tgbot.services.api_qiwi import QiwiAPI
 from tgbot.services.api_yoo import YooAPI
-from tgbot.services.api_sqlite import update_paymentx, get_paymentx, get_upaycount, get_upaymentx, update_upaymentx
+from tgbot.services.api_cb import CoinbaseAPI
+from tgbot.services.api_sqlite import update_paymentx, get_paymentx, get_upaycount, get_upaymentx, update_upaymentx, get_userx
 from tgbot.utils.misc.bot_filters import IsAdmin, IsAdminorShopAdmin
 
 
 ###################################################################################
 ############################# ВЫБОР СПОСОБА ПОПОЛНЕНИЯ ############################
 # Открытие способов пополнения
-@dp.message_handler(IsAdminorShopAdmin(), text="🖲 Способы пополнения", state="*")
+@dp.message_handler(text=["🖲 Способы пополнения", "🖲 Payment methods"], state="*")
 async def payment_systems(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
-    print(user_id)
-
-    await message.answer("<b>🖲 Выберите способ пополнения</b>", reply_markup=payment_choice_finl(user_id))
-
+    lang = get_userx(user_id=user_id)['user_lang']
+    user_role = get_userx(user_id=user_id)['user_role']
+    print(user_role)
+    if user_role == "Admin" or user_role == "ShopAdmin":
+        await message.answer(_("<b>🖲 Выберите способ пополнения</b>", locale=lang), reply_markup=payment_choice_finl(user_id, lang))
 
 # Включение/выключение самих способов пополнения
 @dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="change_payment:")
@@ -68,12 +70,14 @@ async def payment_systems_edit(call: CallbackQuery):
                 await call.answer(response, True)
         elif way_pay == "FreeCredi":
             update_upaymentx(user_id, way_freecredi=way_status)
+        elif way_pay == "CoinBase":
+            update_upaymentx(user_id, way_coinbase=way_status)
     else:
         await call.answer("❗ Добавьте киви кошелёк перед включением Способов пополнений.", True)
 
     try:
-        await call.message.edit_text("<b>🖲 Выберите способ пополнения</b>", reply_markup=payment_choice_finl(user_id))
-    except:
+        await call.message.edit_text(_("<b>🖲 Выберите способ пополнения</b>", locale=lang), reply_markup=payment_choice_finl(user_id, lang))
+    except Exception:
         pass
 
 
@@ -140,13 +144,23 @@ async def payment_qiwi_edit_login(message: Message, state: FSMContext):
 @dp.message_handler(IsAdminorShopAdmin(), state="here_yoo_acc_number")
 async def payment_qiwi_edit_login(message: Message, state: FSMContext):
     #if message.text.startswith("+"):
-        await state.update_data(here_yoo_acc_number=message.text)
+    await state.update_data(here_yoo_acc_number=message.text)
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
 
-        await state.set_state("here_yoo_token")
+    await state.set_state("here_yoo_token")
+    if lang == "ru":
         await message.answer(
             "<b>🥝 Введите <code>токен API</code> Yoo кошелька 🖍</b>\n"
             "❕ Получить можно тут 👉 <a href='https://yoomoney.ru/docs/wallet'><b>Нажми на меня</b></a>\n"
             "❕ При получении токена, ставьте только первые 3 галочки.",
+            disable_web_page_preview=True
+        )
+    if lang == "en":
+        await message.answer(
+            "<b>🥝 Please, enter <code> API token </code> Yoo wallet 🖍</b>\n"
+            "❕ You can get it here 👉 <a href='https://yoomoney.ru/docs/wallet'><b>Click Me</b></a>\n"
+            "❕ When receiving a token, put only the first 3 ticks",
             disable_web_page_preview=True
         )
     #else:
@@ -158,6 +172,8 @@ async def payment_qiwi_edit_login(message: Message, state: FSMContext):
 @dp.message_handler(IsAdminorShopAdmin(), state="here_qiwi_token")
 async def payment_qiwi_edit_token(message: Message, state: FSMContext):
     await state.update_data(here_qiwi_token=message.text)
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
 
     await state.set_state("here_qiwi_secret")
     await message.answer(
@@ -171,27 +187,47 @@ async def payment_qiwi_edit_token(message: Message, state: FSMContext):
 @dp.message_handler(IsAdminorShopAdmin(), state="here_yoo_token")
 async def payment_qiwi_edit_token(message: Message, state: FSMContext):
     await state.update_data(here_yoo_token=message.text)
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
 
     await state.set_state("here_yoo_client_id")
-    await message.answer(
-        "<b>🥝 Введите <code>Клиентский ID 🖍</code></b>\n"
-        "❕ Получить можно тут 👉 <a href='https://yoomoney.ru/p2p-admin/transfers/api'><b>Нажми на меня</b></a>\n"
-        "❕ Вы можете пропустить добавление оплаты по Форме, отправив: <code>0</code>",
-        disable_web_page_preview=True
-    )
+    if lang == "ru":
+        await message.answer(
+            "<b>🥝 Введите <code>Клиентский ID 🖍</code></b>\n"
+            "❕ Получить можно тут 👉 <a href='https://yoomoney.ru/p2p-admin/transfers/api'><b>Нажми на меня</b></a>\n"
+            "❕ Вы можете пропустить добавление оплаты по Форме, отправив: <code>0</code>",
+            disable_web_page_preview=True
+        )
+    if lang == "ru":
+        await message.answer(
+            "<b>🥝 Plaese Enter <code>Client ID 🖍</code></b>\n"
+            "❕ You can enter this here 👉 <a href='https://yoomoney.ru/p2p-admin/transfers/api'><b>Нажми на меня</b></a>\n"
+            "❕ Вы можете пропустить добавление оплаты по Форме, отправив: <code>0</code>",
+            disable_web_page_preview=True
+        )
 
 # Принятие клиентского ID для Yoo
 @dp.message_handler(IsAdminorShopAdmin(), state="here_yoo_client_id")
 async def payment_qiwi_edit_token(message: Message, state: FSMContext):
     await state.update_data(here_yoo_client_id=message.text)
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
 
     await state.set_state("here_yoo_redirect_url")
-    await message.answer(
-        "<b>🥝 Введите <code>Redirect URL 🖍</code></b>\n"
-        "❕ Получить можно в разделе Настройки YooMoney после аутентификации 👉 <a href='https://yoomoney.ru'><b>Нажми на меня</b></a>\n"
-        "❕ Вы можете пропустить добавление оплаты по Форме, отправив: <code>0</code>",
-        disable_web_page_preview=True
-    )
+    if lang == "ru":
+        await message.answer(
+            "<b>🥝 Введите <code>Redirect URL 🖍</code></b>\n"
+            "❕ Получить можно в разделе Настройки YooMoney после аутентификации 👉 <a href='https://yoomoney.ru'><b>Нажми на меня</b></a>\n"
+            "❕ Вы можете пропустить добавление оплаты по Форме, отправив: <code>0</code>",
+            disable_web_page_preview=True
+        )
+    if lang == "en":
+        await message.answer(
+            "<b>🥝 Please enter <code>Redirect URL 🖍</code></b>\n"
+            "❕ You can get it in the Settings section of YooMoney after authentication 👉 <a href='https://yoomoney.ru'><b>Click Me</b></a>\n"
+            "❕ You can skip adding payment by Form by sending: <code>0</code>",
+            disable_web_page_preview=True
+        )
 
 
 # Принятие приватного ключа для QIWI
@@ -203,10 +239,14 @@ async def payment_qiwi_edit_secret(message: Message, state: FSMContext):
         if message.text == "0": qiwi_secret = "None"
         if message.text != "0": qiwi_secret = message.text
         user_id = message.from_user.id
+        lang = get_userx(user_id=user_id)['user_lang']
 
     await state.finish()
+    if lang == "ru":
+        cache_message = await message.answer("<b>🥝 Проверка введённых QIWI данных... 🔄</b>")
+    if lang == "en":
+        cache_message = await message.answer("<b>🥝 Checking the entered QIWI data... 🔄</b>")
 
-    cache_message = await message.answer("<b>🥝 Проверка введённых QIWI данных... 🔄</b>")
     await asyncio.sleep(0.5)
 
     await (await QiwiAPI(cache_message, qiwi_login, qiwi_token, qiwi_secret, add_pass=True, suser_id=user_id)).pre_checker()
@@ -220,6 +260,7 @@ async def payment_qiwi_edit_secret(message: Message, state: FSMContext):
         token = data['here_yoo_token']
         client_id = data['here_yoo_client_id']
         user_id = message.from_user.id
+        lang = get_userx(user_id=user_id)['user_lang']
 
         if message.text == "0": redirect_url = "None"
         if message.text != "0": redirect_url = message.text
@@ -228,7 +269,10 @@ async def payment_qiwi_edit_secret(message: Message, state: FSMContext):
 
     await state.finish()
 
-    cache_message = await message.answer("<b>🥝 Проверка введённых Yoo данных... 🔄</b>")
+    if lang == "ru":
+        cache_message = await message.answer("<b>🥝 Проверка введённых Yoo данных... 🔄</b>")
+    if lang == "en":
+        cache_message = await message.answer("<b>🥝 Checking the entered Yoo data... 🔄</b>")
     await asyncio.sleep(0.5)
     #await update_paymentx()
     await (await YooAPI(user_id, acc_number, token, client_id, redirect_url)).update_yoo()

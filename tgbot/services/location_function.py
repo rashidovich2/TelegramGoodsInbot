@@ -10,10 +10,7 @@ def is_location(user_id):
     cur = conn.cursor()
     query = '''select user_city from storage_users where user_id = ?'''
     result = cur.execute(query, (user_id,)).fetchone()
-    if result[0] == None:
-        return False
-    else:
-        return True
+    return result[0] is not None
 
 # Nominatim geo 2 address
 def search_address(lat, long):
@@ -39,15 +36,12 @@ def search_city(lat, long):
     lat_max = lat + 0.5
     long_min = long - 0.5
     long_max = long + 0.5
-    query = f'''select city, id FROM cities where co_1 > ? and co_1 < ? and  co_2 > ? and co_2 < ?'''
+    query = '''select city, id FROM cities where co_1 > ? and co_1 < ? and  co_2 > ? and co_2 < ?'''
     items = [lat_min, lat_max, long_min, long_max]
     cur.execute(query, items)
     result = cur.fetchone()
     conn.commit()
-    if result == None:
-        return False
-    else:
-        return result
+    return False if result is None else result
 
 # добавляет геокод в бд
 def add_geocode(lat, long, user_id):
@@ -111,8 +105,7 @@ def get_city_info(id):
     conn = sqlite3.connect('tgbot/data/data_cities.db')
     cur = conn.cursor()
     query = 'select city, co_1, co_2  from cities where id = ?'
-    result = cur.execute(query, (id,)).fetchone()
-    return result
+    return cur.execute(query, (id,)).fetchone()
 
 
 # город пользователя по айди

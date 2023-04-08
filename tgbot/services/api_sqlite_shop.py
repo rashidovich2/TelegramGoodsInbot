@@ -8,12 +8,7 @@ from tgbot.utils.const_functions import get_unix, get_date, clear_html
 
 # Преобразование полученного списка в словарь
 def dict_factory(cursor, row):
-    save_dict = {}
-
-    for idx, col in enumerate(cursor.description):
-        save_dict[col[0]] = row[idx]
-
-    return save_dict
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
 
 
 ####################################################################################################
@@ -74,17 +69,17 @@ def add_shopx(name, description, adreess, phone, admin, logo, city, geocode, cit
 def update_shopx(category_id, **kwargs):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        sql = f"UPDATE storage_shop SET"
+        sql = "UPDATE storage_shop SET"
         sql, parameters = update_format(sql, kwargs)
         parameters.append(category_id)
-        con.execute(sql + "WHERE shop_id = ?", parameters)
+        con.execute(f"{sql}WHERE shop_id = ?", parameters)
         con.commit()
 
 # Получение категории
 def get_shopx(**kwargs):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        sql = f"SELECT * FROM storage_shop"
+        sql = "SELECT * FROM storage_shop"
         sql, parameters = update_format_args(sql, kwargs)
         return con.execute(sql, parameters).fetchone()
 
@@ -92,6 +87,6 @@ def get_shopx(**kwargs):
 def get_positionsx(**kwargs):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        sql = f"SELECT * FROM storage_position"
+        sql = "SELECT * FROM storage_position"
         sql, parameters = update_format_args(sql, kwargs)
         return con.execute(sql, parameters).fetchall()

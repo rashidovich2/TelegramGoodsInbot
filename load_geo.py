@@ -155,15 +155,13 @@ by rashidovich
         #print(len(rows))
 
         for row in rows:
-            user = {}
-            #user['id'] = int(row[0])
-            user['id'] = row[0]
-            user['access_hash'] = row[1]
-            #user['access_hash'] = int(row[1])
-            user['name'] = row[2] + " " + row[3]
-            user['username'] = row[4]
-            user['source'] = 'geoparse'
-
+            user = {
+                'id': row[0],
+                'access_hash': row[1],
+                'name': f"{row[2]} {row[3]}",
+                'username': row[4],
+                'source': 'geoparse',
+            }
             try:
                 username = user['username']
                 usid = user['id']
@@ -171,14 +169,9 @@ by rashidovich
                 name = user['name']
                 source = "geoparse"
                 state = ""
-                #print(username)
-                #(row[2])
-                #if row[2] in woman_names: print(row[2])
-                #add_tgacc_todb(username,usid,usah,name,source,state)
-
-            except:
+            except Exception:
                 traceback.print_exc()
-                print(re+"[!] Unexpected Error")
+                print(f"{re}[!] Unexpected Error")
                 continue
 
             users.append(user)

@@ -41,15 +41,16 @@ def getLogger():
       print("Successfully created the logs directory")
 
   now = datetime.datetime.now()
-  log_name = "" + str(now.year) + "." + '{:02d}'.format(now.month) + "." + '{:02d}'.format(now.day) + "-telegramBotSendMessageToGroups.py.log"
+  log_name = (
+      f"{str(now.year)}." + '{:02d}'.format(now.month) + "." + '{:02d}'.format(
+          now.day) + "-telegramBotSendMessageToGroups.py.log")
   log_name = os.path.join(currentDir, "logs", log_name)
   logging.basicConfig(format='%(asctime)s  %(message)s', level=logging.NOTSET,
                       handlers=[
                       logging.FileHandler(log_name),
                       logging.StreamHandler()
                       ])
-  log = logging.getLogger()
-  return log
+  return logging.getLogger()
 
 # Function that sends a message to a chatId
 def sendTelegramMessage(log, chatId):
@@ -64,12 +65,12 @@ def sendTelegramMessage(log, chatId):
       bot.sendMessage(chatId, message)
     else:
       # Send photo with caption
-    
+
       bot.sendPhoto(chatId, caption=message, photo=picturePathToSend) #photo=open(picturePathToSend, "rb")
 
     return True
   except Exception as e:
-    log.info("Error when sending Telegram message: {}".format(e))
+    log.info(f"Error when sending Telegram message: {e}")
     tracebackError = traceback.format_exc()
     log.info(tracebackError)
     return False
@@ -85,18 +86,20 @@ def readGroupsMapping(log):
     # Get group name from
     for groupMapping in groupsMappings:
       groupMapping = groupMapping.strip()
-      if groupMapping == "" or groupMapping == os.linesep:
+      if groupMapping in ["", os.linesep]:
         continue
       try:
         groupName = groupMapping.split("<<<")[1].split(">>>")[0]
         alreadyKnownGroups.append(groupName)
       except Exception as e:
-        log.info("ERROR when reading from group mapping, when processing: " + groupMapping)
+        log.info(
+            f"ERROR when reading from group mapping, when processing: {groupMapping}"
+        )
         tracebackError = traceback.format_exc()
         log.info(tracebackError)
 
   except Exception as e:
-    log.info("Error when reading groups mapping for bot: {}".format(e))
+    log.info(f"Error when reading groups mapping for bot: {e}")
     tracebackError = traceback.format_exc()
     log.info(tracebackError)
 
@@ -130,16 +133,16 @@ def updateGroupsMapping(log):
       # Get the groupName and chatId
       groupName = update["my_chat_member"]["chat"]["title"]
       chatId = str(update["my_chat_member"]["chat"]["id"])
-      log.info("Bot was added to group: " + groupName + " with chat id: " + chatId)
+      log.info(f"Bot was added to group: {groupName} with chat id: {chatId}")
       if groupName in alreadyKnownGroups:
         log.info("We already have this group in mapping groups file")
       else:
         log.info("This is a new group, add it to the group mapping file")
         with open(os.path.join(currentDir, groupsMappingFile), 'a') as file:
-          file.write("Name: <<<" + groupName + ">>>, ChatId: <<<" + chatId + ">>>" + os.linesep)
+          file.write(f"Name: <<<{groupName}>>>, ChatId: <<<{chatId}>>>{os.linesep}")
 
   except Exception as e:
-    log.info("Error when getting Updates for bot: {}".format(e))
+    log.info(f"Error when getting Updates for bot: {e}")
     tracebackError = traceback.format_exc()
     log.info(tracebackError)
 
@@ -156,7 +159,7 @@ def readGroups(log, oldDict):
   # Get group name from
   for group in groups:
     group = group.strip()
-    if group == "" or group == os.linesep:
+    if group in ["", os.linesep]:
       continue
     if "," in group:
       chatId = group.split(",")[0].strip()
@@ -180,18 +183,16 @@ def mainFunction():
   try:
     # Break if config files not found
     if os.path.isfile(os.path.join(currentDir, messageFile)) is False:
-      log.info("Message file " + messageFile + " not found. Exiting.")
+      log.info(f"Message file {messageFile} not found. Exiting.")
     if os.path.isfile(os.path.join(currentDir, groupsFile)) is False:
-      log.info("Groups file " + groupsFile + " not found. Exiting.")
+      log.info(f"Groups file {groupsFile} not found. Exiting.")
     if os.path.isfile(os.path.join(currentDir, pictureFile)) is False:
-      log.info("Picture file " + pictureFile + " not found. Exiting.")
+      log.info(f"Picture file {pictureFile} not found. Exiting.")
 
     # Create mappings group if not present
     if os.path.isfile(os.path.join(currentDir, groupsMappingFile)) is False:
-      f = open(os.path.join(currentDir, groupsMappingFile), "a")
-      f.write("")
-      f.close()
-
+      with open(os.path.join(currentDir, groupsMappingFile), "a") as f:
+        f.write("")
     # At the start we assume that we should send messages to all groups
     oldGroupsDict = {}
 
@@ -204,12 +205,12 @@ def mainFunction():
       # Read the groups
       groups = readGroups(log, oldGroupsDict)
 
-      log.info("Groups: " + str(groups))
+      log.info(f"Groups: {str(groups)}")
 
       # Send the message
       for group in groups.keys():
 
-        log.info("### Processing group: " + group)
+        log.info(f"### Processing group: {group}")
         now = time.time()
 
         if now - groups[group]["lastMessageTimestamp"] < groups[group]["messageInterval"] * 60:
@@ -225,15 +226,14 @@ def mainFunction():
 
       oldGroupsDict = groups
       # Sleep between runs
-      log.info("Sleeping " + str(sleepSecondsBetweenRuns) + " seconds.")
+      log.info(f"Sleeping {str(sleepSecondsBetweenRuns)} seconds.")
       time.sleep(sleepSecondsBetweenRuns)
 
-  ##### END #####
   except KeyboardInterrupt:
     log.info("Quit")
     sys.exit(0)
   except Exception as e:
-    log.info("Fatal Error: {}".format(e))
+    log.info(f"Fatal Error: {e}")
     tracebackError = traceback.format_exc()
     log.info(tracebackError)
     sys.exit(98)

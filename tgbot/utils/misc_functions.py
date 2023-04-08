@@ -17,8 +17,12 @@ from aiogram import Bot, types
 #from aiogram.methods import SendMessage, SendPhoto, SendVideo, SendAnimation
 from aiogram.utils.deep_linking import get_start_link, decode_payload
 from bs4 import BeautifulSoup
-
-from tgbot.data.config import get_admins, BOT_VERSION, BOT_DESCRIPTION
+from babel import Locale
+from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
+#from tgbot.middlewares.i18n import I18nMiddleware
+#from aiogram.contrib.middlewares.i18n import I18nMiddleware
+from tgbot.middlewares.i18n import I18nMiddleware
+#from tgbot.data.config import get_admins, BOT_VERSION, BOT_DESCRIPTION
 from tgbot.keyboards.reply_z_all import menu_frep
 from tgbot.services.api_session import AsyncSession
 from tgbot.loader import bot
@@ -27,11 +31,16 @@ from tgbot.services.api_sqlite import get_settingsx, update_settingsx, get_userx
     get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, \
     get_orderx, get_purchasesx, get_purchasesxx, get_shopx, get_artistx, get_planed_postx, get_planed_eventsx, get_tohour_postx,\
     update_tohour_postx, get_users_by_cities, get_users_by_citiesx, get_delivery_seller_options, get_params_orderx, get_orderxo, \
-    get_userxxx, get_upaymentx
+    get_userxxx, get_upaymentx, get_userxx, get_userxn, get_user_lang
 
 from tgbot.utils.const_functions import get_unix, convert_day
 
 #bot = Bot(token=BOT_TOKEN, parse_mode=types.ParseMode.HTML)
+i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
+
+print(i18n)
+_ = i18n.gettext
+
 
 # Уведомление и проверка обновления при запуске бота
 async def on_startup_notify(dp: Dispatcher):
@@ -48,19 +57,22 @@ async def on_startup_notify(dp: Dispatcher):
 async def send_admins(message, markup=None, not_me=0):
     for admin in get_admins():
         if markup == "default":
-            markup = menu_frep(admin)
+            lang=get_userx(user_id=admin)['user_lang']
+            if lang is None:
+                lang = "ru"
+            print(lang)
+            markup = menu_frep(admin, lang)
 
         try:
             if str(admin) != str(not_me):
                 await bot.send_message(admin, message, reply_markup=markup, disable_web_page_preview=True)
-        except:
+        except Exception:
             pass
 
 # Автоматическая очистка ежедневной статистики после 00:00
 async def update_profit_day():
     await send_admins(get_statisctics())
     update_settingsx(misc_profit_day=get_unix())
-
 
 # Автоматическая очистка еженедельной статистики в понедельник 00:01
 async def update_profit_week():
@@ -90,7 +102,14 @@ async def post_half_eight():
 
 async def reinvite_sellers_by_city():
     print("*CITIES CITIZENS MESSAGING*")
-    cities = get_users_by_citiesx()
+    cities = get_users_by_cities()
+    posttype = "photo"
+    #get_users = get_userxx(user_city_id=34)
+    #print(get_users)
+    #posttype = "photo"
+    #message = "(((999)))"
+    test = "no"
+
     for city in cities:
         print(city)
         if city['user_city_id'] is None:
@@ -98,49 +117,63 @@ async def reinvite_sellers_by_city():
             message = f"Выберите пожалуйста Ваш город в боте.\n" \
                       f"Мы сможем предложить Вам товары \n" \
                       f"от продавцов в Вашем городе."
+            message = f"Выберите пожалуйста Ваш город в боте.\n" \
+                      f"Мы поздравляем Вас с праздником защиткика Отечества!\n" \
+                      f"Хорошего дня!."
+            get_users = get_userxn()
+            print(get_users)
             print(message)
         elif city['user_city_id'] != 0:
-            message = str(city['user_city']) + ", продавцы товаров, добро пожаловать!"
+            message = str(city['user_city']) + ", привет. Я Telegram Goods In Bot из Telegram."
+            #'Продавайте товары в своем городе или по всей России!'
             print(message)
+            cityr = city['user_city_id']
+            #get_users = get_all_usersx()
+            #if cityr is not None:
+            print(cityr)
+            get_users = get_userxx(user_city_id=cityr)
 
+        #test = "yes"
+        #get_users = get_userxx(user_city_id=int(cityr))
+        #get_users = get_all_usersxx()
         receive_users, block_users, how_users = 0, 0, 0
-
-        posttype = "text"
-        test = "yes"
-        #get_users = get_all_usersx()
-        get_users = get_usersx(user_city_id=city['user_city_id'])
-
-        #get_users = get_userxx(user_city_id=34)
-        print(get_users)
-
         for user in get_users:
-            if user['user_city_id']:
-                message = str(user['user_city']) + ", продавцы товаров, добро пожаловать!"
-            elif city['user_city_id']:
-                message = "Выберите пожалуйста свой город в профиле, наш бот Вам предложит товары в Вашем городе."
+            #print(user)
+            if user['user_city_id'] is None: photo = "img/gbmes.png"
+            else:
+                photo = f"img/msg0002{user['user_city_id']}.png"
+                print(photo)
+            #photo = "img/msg34.png"
+            #image = InputFile(f"img/msg{city['user_city_id']}.png")
+            image = open(photo, 'rb')
+            #message = str(user['user_city']) + ", продавцы товаров, добро пожаловать!"
+            #elif user['user_city_id']:
+            #    message = "Выберите пожалуйста свой город в профиле, наш бот Вам предложит товары в Вашем городе."
             try:
                 if test == "yes": user['user_id'] = 919148970
                 if posttype == "text":
                     await bot.send_message(user['user_id'], message, disable_web_page_preview=True)
-                elif post[1] == "photo":
+                elif posttype == "photo":
                     await bot.send_photo(
                         chat_id=user['user_id'],
-                        photo=post[4],
-                        caption=post[9] if post[9] else None)
+                        photo=image,
+                        caption=message) #post[9] if post[9] else None)
                 elif post[1] == "video":
                     await bot.send_video(
                         chat_id=user['user_id'],
                         video=post[5],
-                        caption=post[9] if post[9] else None)
+                        caption=post[9] or None,
+                    )
                 elif post[1] == "animation":
                     await bot.send_animation(
                         chat_id=user['user_id'],
                         animation=message,
-                        caption=post[9] if post[9] else None)
+                        caption=post[9] or None,
+                    )
 
                 receive_users += 1
 
-            except:
+            except Exception:
                 block_users += 1
 
             how_users += 1
@@ -216,23 +249,26 @@ async def functions_advertising_make_bg(post, markup=None):
             elif post[1] == "photo":
                 await bot.send_photo(
                     chat_id=user['user_id'],
-                    photo=post[4], #.send_photo.file_id,
-                    caption=post[9] if post[9] else None)
+                    photo=post[4],
+                    caption=post[13] or None,
+                )
             elif post[1] == "video":
                 #print("|_>>>>")
                 await bot.send_video(
                     chat_id=user['user_id'],
                     video=post[5],
-                    caption=post[9] if post[9] else None)
+                    caption=post[9] or None,
+                )
             elif post[1] == "animation":
                 #print("|_>>>>>")
                 await bot.send_animation(
                     chat_id=user['user_id'],
                     animation=message,
-                    caption=post[9] if post[9] else None)
+                    caption=post[9] or None,
+                )
 
             receive_users += 1
-        except:
+        except Exception:
             block_users += 1
 
         how_users += 1
@@ -281,26 +317,13 @@ async def functions_advertising_events_bg(event, markup=None):
             if event[0] == "":
                 await bot.send_message(user['user_id'], event[1], disable_web_page_preview=True)
                 #await bot.send_message(user['user_id'], post[2], reply_markup = markup, disable_web_page_preview=True)
-            elif event[0] != "":
+            else:
                 await bot.send_photo(
                     chat_id=user['user_id'],
                     photo=event[0],
                     caption=event[1])   #event[4] if event[4] else None) #.send_photo.file_id, if event[2] else None
-            elif event[1] == "video":
-                #print("|_>>>>")
-                await bot.send_video(
-                    chat_id=user['user_id'],
-                    video=event[5],
-                    caption=event[4] if event[4] else None)
-            elif event[1] == "animation":
-                #print("|_>>>>>") None
-                await bot.send_animation(
-                    chat_id=user['user_id'],
-                    animation=message,
-                    caption=event[9] if event[9] else None)
-
             receive_users += 1
-        except:
+        except Exception:
             block_users += 1
 
         how_users += 1
@@ -320,29 +343,6 @@ async def functions_advertising_events_bg(event, markup=None):
 # Автоматическая проверка обновления каждые 24 часа
 async def check_update():
     update_link = ""
-'''
-
-# Автоматическая проверка обновления каждые 24 часа
-async def check_update(aSession: AsyncSession):
-    session = await aSession.get_session()
-
-    try:
-        response = await session.get("https://sites.google.com/view/check-update-autoshop/main-page", ssl=False)
-        soup_parse = BeautifulSoup(await response.read(), "html.parser")
-        get_bot_update = soup_parse.select("p[class$='CDt4Ke zfr3Q']")[0].text.split("^^^^^")
-
-        if float(get_bot_update[0]) > float(BOT_VERSION):
-            if "*****" in get_bot_update[2]:
-                get_bot_update[2] = get_bot_update[2].replace("*****", "\n")
-
-            await send_admins(f"<b>❇ Вышло обновление: <a href='{get_bot_update[1]}'>Скачать</a></b>\n"
-                              f"➖➖➖➖➖➖➖➖➖➖\n"
-                              f"{get_bot_update[2]}\n"
-                              f"➖➖➖➖➖➖➖➖➖➖\n"
-                              f"<code>❗ Данное сообщение видят только администраторы бота.</code>")
-    except Exception as ex:
-        print(f"Error check update: {ex}")
-'''
 
 # Получение faq
 def get_faq(user_id, send_message):
@@ -375,7 +375,7 @@ async def upload_text(dp, get_text):
         get_link = response.url
         if "create" in str(get_link):
             spare_pass = True
-    except:
+    except Exception:
         spare_pass = True
 
     if spare_pass:
@@ -438,9 +438,7 @@ def get_position_of_day():
 # Получить информацию о позиции для админа
 def get_artist_admin(artist_id):
     print('Получить информацию об артисте для админа misc_functions.py 127')
-    #get_items = get_itemsx(position_id=position_id)
     get_artist = get_artistx(artist_id=artist_id)
-    #get_category = get_categoryx(category_id=get_position['category_id'])
 
     text_description = "<code>Отсутствует ❌</code>"
     photo_text = "<code>Отсутствует ❌</code>"
@@ -492,48 +490,45 @@ def get_position_admin(position_id):
     return get_message, get_photo
 
 
-def user_refill_my(user_id):
-    return f"<b>Нажмите пожалуйста кнопку:</b>\n"
-
-# Открытие своего профиля
+def user_refill_my(user_id, lang):
+    return _("<b>Нажмите пожалуйста кнопку:</b>", locale=lang)
 
 
 def open_profile_my(user_id):
     get_purchases = get_purchasesx(user_id=user_id)
     get_user = get_userx(user_id=user_id)
+    lang = get_user['user_lang']
+    print(lang)
     count_items = 0
     how_days = get_unix() - get_user['user_unix'] // 60 // 60 // 24
 
-    if get_user['user_role'] == "ShopAdmin" or get_user['user_role'] == "Admin":
+    if get_user['user_role'] in ["ShopAdmin", "Admin"]:
         free_delivery_point = get_user['free_delivery_point']
         delivery_rate = get_user['delivery_rate']
-        selleradd = f"📄 Бесплатная доставка от: <code>{get_user['free_delivery_point']}</code>\n" \
-                    f"📄 Ставка доставки: <code>{get_user['delivery_rate']}</code>"
-    else: selleradd = ""
+        selleradd = _("📄 Бесплатная доставка от: ", locale=lang) + str(get_user['free_delivery_point']) + "\n"
+        selleradd += _("📄 Ставка доставки: ", locale=lang) + str(get_user['delivery_rate'])
+    else: selleradd = "None"
+    print(selleradd)
 
     if len(get_purchases) >= 1:
         for items in get_purchases:
             count_items += int(items['purchase_count'])
 
-    prmtxt = get_user['promocode'] if get_user['promocode'] else None
-    get_settings = get_settingsx()
-    profile_my = f"<b>👤 Ваш профиль:</b>\n" \
-        f"➖➖➖➖➖➖➖➖➖➖\n" \
-        f"🆔 ID: <code>{get_user['user_id']}</code>\n" \
-        f"💰 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
-        f"📄 Скидка(промокод): <code>{prmtxt}</code>\n" \
-        f"🎁 Куплено товаров: <code>{count_items}шт</code>\n" \
-        f"🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>\n" \
-        f"🏙 Город: <code>{get_user['user_city']}</code>\n" \
-        f"📄 Роль: <code>{get_user['user_role']}</code>\n" \
-        + selleradd
+    prmtxt = get_user['promocode'] or "None"
+    user_role = get_user['user_role'] or "None"
+    #get_settings = get_settingsx()
+    profile_text = _("<b>👤 Ваш профиль:</b>", locale=lang) + "\n"
+    profile_text += "➖➖➖➖➖➖➖➖➖➖\n"
+    profile_text += _("🆔 ID: <code>", locale=lang) + str(get_user['user_id']) + "</code>\n"
+    profile_text += _("💰 Баланс: <code>", locale=lang) + str(get_user['user_balance']) + "₽</code>\n"
+    profile_text += _("📄 Скидка(промокод): <code>", locale=lang) + prmtxt + "</code>\n"
+    profile_text += _("🎁 Куплено товаров: <code>", locale=lang) + str(count_items) +"шт</code>\n"
+    profile_text += _("🕰 Регистрация: <code>", locale=lang) + str(get_user['user_date'].split(' ')[0]) + " " + str(convert_day(how_days)) + "</code>\n"
+    profile_text += _("🏙 Город: <code>", locale=lang) + get_user['user_city'] + "</code>\n"
+    profile_text += _("📄 Роль: <code>", locale=lang) + user_role + "</code>\n"
+    if selleradd != "None": profile_text += selleradd
 
-
-
-    # if get_settings['type_trade'] != "digital":
-    #  profile_my = f"{profile_my} 🏙 Город: <code>{get_user['user_city']}</code>"
-
-    return profile_my
+    return profile_text
 
 def open_partners_list2():
     get_partners = get_all_partnersx()
@@ -544,9 +539,6 @@ def open_partners_list2():
     keyboard.add(*buttons_to_add)
 
     return keyboard
-
-#f"📡 Координаты: <code>{get_user['user_geocode']}</code>"
-
 
 def calc_cart_summ(user_id):
     order = get_user_orderx(user_id=user_id)
@@ -559,7 +551,6 @@ def calc_cart_summ(user_id):
     return totalm
 
 def calc_order_summ(order_id):
-    #order = get_user_orderx(user_id=user_id)
     get_positions = []
     totalm = 0
     get_positions = get_cart_positionsx(order_id=order_id)
@@ -568,101 +559,88 @@ def calc_order_summ(order_id):
         totalm += poscost
     return totalm
 
-# Открытие своей корзины
-def open_cart_my(order_id):
-    #orders = get_user_orderx(user_id=user_id)
+# Открытие корзины
+def open_cart_orders(order_id):
     orderdata = []
-    #заказ
+    #заказы одного пользователя
     orderdata = get_orderxo(order_id=order_id)
-    user_id = orderdata['user_id']
-    get_user = get_userx(user_id=user_id)
+    print(orderdata)
+    #покупатель
+    ouser_id = orderdata['user_id']
+    #данные покупателя
+    oget_user = get_userx(user_id=ouser_id)
+    #роль покупателя
+    if oget_user['user_role'] != "None": user_role = oget_user['user_role']
+    else: user_role = "None"
+    #print(user_role)
     #получаем баланс пользователя
-    ub = get_user['user_balance']
+    if oget_user['user_balance'] != "None": ub = oget_user['user_balance']
+    else: ub = 0
+    #username
+    if oget_user['user_login']:
+        userid = f"Логин пользователя: <code>@{oget_user['user_login']}</code>"
+    else: userid = f"Телеграм ID: <code>{oget_user['user_id']}</code>"
     #позиции заказа
     get_positions = []
     get_positions = get_cart_positionsx(order_id=order_id)
-
-    this_items = []
     this_itemst = this_itemst2 = this_itemst3 = ''
-    #delivery = 200
     totalm = 0
-    print("|||")
-    this_items.append(f"| Наименование | Цена | Количество | Стоимость |")
+    #print("|||")
 
+    this_items = ["| Наименование | Цена | Количество | Стоимость |"]
     for position in get_positions:
         poscost = position['count'] * position['position_price']
         totalm += poscost  # собираем стоимость корзины
-        this_items.append(
-            f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽")
-
+        this_items.append(f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽")
         this_itemst += f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽ \n"
-
         print(f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт.| {poscost}₽")
+        #get_payment = get_upaymentx(user_id=position['owner_uid'])
 
-    this_itemst3 += "Всего по всем позициям: " + str(totalm) + "\n"
-    #this_itemst += this_itemst2
-    #cart_sum = calc_cart_summ(user_id=touser_id)
-    #cart_sum = calc_order_summ(order_id=order_id)
-    get_payment = get_upaymentx(user_id=position['owner_uid'])
-    if get_payment['way_freecredi']:
+    this_itemst3 += f"Всего по всем позициям: {str(totalm)}" + "\n"
+
+    '''if get_payment['way_freecredi']:
         freecredi_method = "Продавец поддерживает"
-    else: freecredi_method = "Не поддерживается"
+    else: freecredi_method = "Не поддерживается"'''
+
     dso = get_delivery_seller_options(order_id)['free_delivery_point']
-    print(dso)
-    #free_delivery_point = dso['free_delivery_point']
-    #print(free_delivery_point)
+    #print(dso)
+
     delivery_rate = get_delivery_seller_options(order_id)['delivery_rate']
-    print(delivery_rate)
-    #delivery = 200
-    if totalm > dso:
-        delivery = 0
-    else: delivery = delivery_rate
-    print("Доставка:" + str(delivery))
-    #amount = cart_sum + delivery
+    #print(delivery_rate)
+    delivery = 0 if totalm > dso else delivery_rate
+    #print(f"Доставка:{str(delivery)}")
     totalm2 = totalm + delivery
+    #print(totalm2)
 
-    if ub >= totalm2:
-        this_itemst2 = "Заказ возможно оплатить с баланса целиком."
-    elif ub < totalm2:
-        torefill = totalm2 - get_user['user_balance']
-        this_itemst2 = "Для оформления заказа потребуется пополнение в размере:" + \
-            str(torefill) + "₽"
-
-    this_address = get_user['user_address']
-    if this_address is None:
-        this_address = "Ваш адрес доставки не указан."
-    # else: this_itemst += this_address
-
-    this_phone = get_user['user_phone']
-    if this_phone is None:
-        this_phone = "Ваш контактный номер не указан."
-    # else: this_itemst += this_phone
+    if ub >= totalm2: this_itemst2 = "Заказ возможно оплатить с баланса целиком."
+    else:
+        torefill = totalm2 - ub
+        this_itemst2 = f"Для оформления заказа потребуется пополнение в размере:{str(torefill)}₽"
+    #print(this_itemst2)
 
     return f"<b>👤 Ваша Корзина:</b>\n" \
            f"➖➖➖➖➖➖➖➖➖➖\n" \
            f"🆔 Корзина ID: <code>{orderdata['order_id']}</code>\n" \
            f"🆔 Статус: <code>{orderdata['order_state']}</code>\n" \
-           f"🆔 Telegram ID: <code>{get_user['user_id']}</code>\n" \
-           f"💳 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
+           f"💳 Баланс: <code>{oget_user['user_balance']}₽</code>\n" \
            f"🗃 Всего товаров: <code>{totalm}</code>\n" \
            f"   <code>{this_itemst}</code>\n" \
            f"🏙 Итого корзина: <code>{totalm2}₽</code>\n" \
-           f"🏙 Постоплата: <code>{freecredi_method}</code>\n" \
-           f"🏙 Примечание: <code>{this_itemst2}</code>\n"
+           f"🏙 Примечание: <code>{this_itemst2}</code>"
+
+
+    # f"🆔 {userid}\n" \
+    # f"🏙 Постоплата: <code>{freecredi_method}</code>\n" \
     # f"🆔 Telegram ID: <code>{get_user['user_id']}</code>\n" \
     # f"ID: {orderdata['order_id']} Статус корзины: <code>{orderdata['order_state']}</code>\n" \
     # f"🏙 Доставка: <code>{delivery}₽</code>\n" \
-
     # f"🕰 Адрес: <code>{this_address}</code>\n" \
     # f"📞 Телефон: <code>{this_phone}</code>\n" \
+    # f"📡 Координаты: <code>{get_user['user_geocode']}</code>\n" \
+    # Открытие профиля при поиске
 
 
-# f"📡 Координаты: <code>{get_user['user_geocode']}</code>\n" \
-
-# Открытие профиля при поиске
-
-
-def open_profile_search(user_id):
+def open_profile_search(user_id, lang):
     get_purchases = get_purchasesx(user_id=user_id)
     get_user = get_userx(user_id=user_id)
     count_items = 0
@@ -673,21 +651,36 @@ def open_profile_search(user_id):
         for items in get_purchases:
             count_items += items['purchase_count']
 
-    return f"<b>👤 Профиль пользователя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖\n" \
-           f"🆔 ID: <code>{get_user['user_id']}</code>\n" \
-           f"👤 Логин: <b>@{get_user['user_login']}</b>\n" \
-           f"👤 Роль: <b>{get_user['user_role']}</b>\n" \
-           f"Ⓜ Имя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a>\n" \
-           f"🕰 Регистрация: <code>{get_user['user_date']} ({convert_day(how_days)})</code>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-           f"💰 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
-           f"💰 Всего пополнено: <code>{get_user['user_refill']}₽</code>\n" \
-           f"🎁 Куплено товаров: <code>{count_items}шт</code>"
+    if lang == "ru":
+        message =  f"<b>👤 Профиль пользователя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
+                   f"➖➖➖➖➖➖➖➖➖➖\n" \
+                   f"🆔 ID: <code>{get_user['user_id']}</code>\n" \
+                   f"👤 Логин: <b>@{get_user['user_login']}</b>\n" \
+                   f"👤 Роль: <b>{get_user['user_role']}</b>\n" \
+                   f"Ⓜ Имя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a>\n" \
+                   f"🕰 Регистрация: <code>{get_user['user_date']} ({convert_day(how_days)})</code>\n" \
+                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                   f"💰 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
+                   f"💰 Всего пополнено: <code>{get_user['user_refill']}₽</code>\n" \
+                   f"🎁 Куплено товаров: <code>{count_items}шт</code>"
 
+    if lang == "en":
+        message = f"<b>👤 Request from User: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
+                  f"➖➖➖➖➖➖➖➖➖➖\n" \
+                  f"🆔 userID: <code>{get_user['user_id']}</code>\n" \
+                  f"👤 Login: <b>@{get_user['user_login']}</b>\n" \
+                  f"👤 Role: <b>{get_user['user_role']}</b>\n" \
+                  f"Ⓜ Name: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a>\n" \
+                  f"🕰 Registration: <code>{get_user['user_date']} ({convert_day(how_days)})</code>\n" \
+                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                  f"💰 Balance: <code>{get_user['user_balance']}₽</code>\n" \
+                  f"💰 Total Charged: <code>{get_user['user_refill']}₽</code>\n" \
+                  f"🎁 Products Purchased: <code>{count_items}шт</code>"
+
+    return message
 
 # Открытие профиля при поиске
-def open_profile_search_req(user_id):
+def open_profile_search_req(user_id, lang):
     get_requests = get_requestx(requester=user_id)
     get_purchases = get_purchasesx(user_id=user_id)
     get_user = get_userx(user_id=user_id)
@@ -704,26 +697,44 @@ def open_profile_search_req(user_id):
         for items in get_requests:
             total_items += "|" + str(items['requesttxt'])
 
-    return f"<b>👤 Запрос от пользователя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖\n" \
-           f"Группа товаров: <b>{total_items}</b>\n" \
-           f"  requestID: <code>{items['increment']}</code>\n" \
-           f"🆔 userID: <code>{get_user['user_id']}</code>\n" \
-           f"👤 Логин: <b>@{get_user['user_login']}</b>\n" \
-           f"👤 Роль: <b>{get_user['user_role']}</b>\n" \
-           f"Ⓜ Имя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a>\n" \
-           f"🕰 Регистрация: <code>{get_user['user_date']} ({convert_day(how_days)})</code>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-           f"💰 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
-           f"💰 Всего пополнено: <code>{get_user['user_refill']}₽</code>\n" \
-           f"🎁 Куплено товаров: <code>{count_items}шт</code>"
+#            total_ids += " " + str(items['increment']) + " "
 
+    if lang == "ru":
+        message = f"<b>👤 Запрос от пользователя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖\n" \
+               f"Группа товаров: <b>{total_items}</b>\n" \
+               f"🆔 userID: <code>{get_user['user_id']}</code>\n" \
+               f"👤 Логин: <b>@{get_user['user_login']}</b>\n" \
+               f"👤 Роль: <b>{get_user['user_role']}</b>\n" \
+               f"Ⓜ Имя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a>\n" \
+               f"🕰 Регистрация: <code>{get_user['user_date']} ({convert_day(how_days)})</code>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"💰 Баланс: <code>{get_user['user_balance']}₽</code>\n" \
+               f"💰 Всего пополнено: <code>{get_user['user_refill']}₽</code>\n" \
+               f"🎁 Куплено товаров: <code>{count_items}шт</code>"
 
-# Статистика бота
-def get_statisctics():
+    if lang == "en":
+        message = f"<b>👤 Request from User: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖\n" \
+               f"Product Group: <b>{total_items}</b>\n" \
+               f"🆔 userID: <code>{get_user['user_id']}</code>\n" \
+               f"👤 Login: <b>@{get_user['user_login']}</b>\n" \
+               f"👤 Role: <b>{get_user['user_role']}</b>\n" \
+               f"Ⓜ Name: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a>\n" \
+               f"🕰 Registration: <code>{get_user['user_date']} ({convert_day(how_days)})</code>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"💰 Balance: <code>{get_user['user_balance']}₽</code>\n" \
+               f"💰 Total Charged: <code>{get_user['user_refill']}₽</code>\n" \
+               f"🎁 Products Purchased: <code>{count_items}шт</code>"
+
+    return message
+
+#f"  requestID: <code>{items['increment']}</code>\n" \
+    # Статистика бота
+def get_statisctics(lang):
     show_profit_all, show_profit_day, show_profit_week = 0, 0, 0
     show_refill_all, show_refill_day, show_refill_week = 0, 0, 0
-    show_money_users, show_buy_items, show_city_users = 0, 0, 0
+    show_money_users, show_money_sellers, show_buy_items, show_city_users = 0, 0, 0, 0
 
     get_categories = get_all_categoriesx()
     get_positions = get_all_positionsx()
@@ -732,8 +743,10 @@ def get_statisctics():
     get_settings = get_settingsx()
     get_items = get_all_itemsx()
     get_users = get_all_usersx()
-    get_all_users_by_cities = get_users_by_cities()
-    print(get_all_users_by_cities)
+    #get_all_users_by_cities = get_users_by_cities()
+    top_sellers = []
+    top_sellersp = []
+    #keyboard = InlineKeyboardMarkup()
 
     for purchase in get_purchases:
         show_profit_all += purchase['purchase_price']
@@ -751,34 +764,84 @@ def get_statisctics():
             show_refill_week += refill['refill_amount']
 
     for user in get_users:
-        show_money_users += user['user_balance']
+        print(user)
+        if user['user_role'] == "ShopAdmin":
+            show_money_sellers += user['user_balance']
+        elif user['user_role'] is None:
+            show_money_users += user['user_balance']
+        if user['user_role'] == "ShopAdmin" and user['user_balance'] >= 0:
+            top_sellers += user['user_name'] + str(user['user_balance']) + "\n"
 
-    for city in get_all_users_by_cities:
-        show_city_users += "| " + city['city'] + " : " + str(city['countu']) + " |"
+    #for city in get_all_users_by_cities:
+    #    show_city_users += "| " + city['city'] + " : " + str(city['countu']) + " |"
 
-    message = "<b>📊 Статистика бота</b>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Пользователи: 🔶</b>\n" \
-              f"👤 Пользователей: <code>{len(get_users)}</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Средства 🔶</b>\n" \
-              f"💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n" \
-              f"💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n" \
-              f"💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n" \
-              f"💳 Средств в системе: <code>{show_money_users}₽</code>\n" \
-              f"💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n" \
-              f"💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n" \
-              f"💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Прочее 🔶</b>\n" \
-              f"🎁 Товаров: <code>{len(get_items)}шт</code>\n" \
-              f"📁 Позиций: <code>{len(get_positions)}шт</code>\n" \
-              f"🗃 Категорий: <code>{len(get_categories)}шт</code>\n" \
-              f"🎁 Продано товаров: <code>{show_buy_items}шт</code>\n"
-              #f" Города: <code>{show_city_users}</code>\n"
+    if lang == "ru":
+        return f"<b>📊 Статистика бота</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\n🎁 Продано товаров: <code>{show_buy_items}шт</code>\n"
+    if lang == "en":
+        return f"<b>📊 Bot statistics</b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"<b>🔶 Users: 🔶</b>\n" \
+               f"👤 Users Total: <code>{len(get_users)}</code>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"<b>🔶 Finance 🔶</b>\n" \
+               f"💸 Sales for 24 hours: <code>{show_profit_day}R</code>\n" \
+               f"💸 Sales for a week: <code>{show_profit_week}R</code>\n" \
+               f"💸 Sales for a time: <code>{show_profit_all}R</code>\n" \
+               f"💳 Money in System: <code>{show_money_users}R</code>\n" \
+               f"💰 Charged for a 24 hours: <code>{show_refill_day}R</code>\n" \
+               f"💰 Charged for a week: <code>{show_refill_week}R</code>\n" \
+               f"💰 Charged All: <code>{show_refill_all}R</code>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"<b>🔶 Other 🔶</b>\n" \
+               f"🎁 Digital Items: <code>{len(get_items)}pcs</code>\n" \
+               f"📁 Positions: <code>{len(get_positions)}pcs</code>\n" \
+               f"🗃 Categories: <code>{len(get_categories)}pcs</code>\n" \
+               f"🎁 Products Sold: <code>{show_buy_items}pcs</code>\n"
+
+    '''return f"<b>📊 Статистика бота</b>\n" \
+           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+           f"<b>🔶 Пользователи: 🔶</b>\n" \
+           f"👤 Пользователей: <code>{len(get_users)}</code>\n" \
+           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+           f"<b>🔶 Средства 🔶</b>\n" \
+           f"💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n" \
+           f"💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n" \
+           f"💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n" \
+           f"💳 Средств в системе: <code>{show_money_users}₽</code>\n" \
+           f"💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n" \
+           f"💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n" \
+           f"💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n" \
+           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+           f"<b>🔶 Прочее 🔶</b>\n" \
+           f"🎁 Товаров: <code>{len(get_items)}шт</code>\n" \
+           f"📁 Позиций: <code>{len(get_positions)}шт</code>\n" \
+           f"🗃 Категорий: <code>{len(get_categories)}шт</code>\n" \
+           f"🎁 Продано товаров: <code>{show_buy_items}шт</code>\n" \
+           f"Пользователи по городам:{show_city_users}"
 
 
-    return message
+    if lang == "en":
+        return f"<b>📊 Bot statistics</b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"<b>🔶 Users: 🔶</b>\n" \
+               f"👤 Users Total: <code>{len(get_users)}</code>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"<b>🔶 Finance 🔶</b>\n" \
+               f"💸 Sales for 24 hours: <code>{show_profit_day}R</code>\n" \
+               f"💸 Sales for a week: <code>{show_profit_week}R</code>\n" \
+               f"💸 Sales for a time: <code>{show_profit_all}R</code>\n" \
+               f"💳 Money in System: <code>{show_money_users}R</code>\n" \
+               f"💰 Charged for a 24 hours: <code>{show_refill_day}R</code>\n" \
+               f"💰 Charged for a week: <code>{show_refill_week}R</code>\n" \
+               f"💰 Charged All: <code>{show_refill_all}R</code>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"<b>🔶 Other 🔶</b>\n" \
+               f"🎁 Digital Items: <code>{len(get_items)}pcs</code>\n" \
+               f"📁 Positions: <code>{len(get_positions)}pcs</code>\n" \
+               f"🗃 Categories: <code>{len(get_categories)}pcs</code>\n" \
+               f"🎁 Products Sold: <code>{show_buy_items}pcs</code>\n" \
+               f"Users in Cities:{show_city_users}"'''
+
 
 # Открытие профиля при поиске
 def open_profile_search_seller(user_id, price):
@@ -791,7 +854,6 @@ def open_profile_search_seller(user_id, price):
     if len(get_purchases) >= 1:
         for items in get_purchases:
             count_items += items['purchase_count']
-
 
     return f"<b>👤 Профиль пользователя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
            f"➖➖➖➖➖➖➖➖➖➖\n" \
@@ -883,33 +945,12 @@ def generate_dales_report():
     for user in get_users:
         show_money_users += user['user_balance']
 
-    message = "<b>📊 Статистика бота</b>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Пользователи: 🔶</b>\n" \
-              f"👤 Пользователей: <code>{len(get_users)}</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Средства 🔶</b>\n" \
-              f"💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n" \
-              f"💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n" \
-              f"💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n" \
-              f"💳 Средств в системе: <code>{show_money_users}₽</code>\n" \
-              f"💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n" \
-              f"💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n" \
-              f"💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Прочее 🔶</b>\n" \
-              f"🎁 Товаров: <code>{len(get_items)}шт</code>\n" \
-              f"📁 Позиций: <code>{len(get_positions)}шт</code>\n" \
-              f"🗃 Категорий: <code>{len(get_categories)}шт</code>\n" \
-              f"🎁 Продано товаров: <code>{show_buy_items}шт</code>\n" \
-              f" Города: <code>{show_city_users}</code>\n"
-
-    return message
+    return f"<b>📊 Статистика бота</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств в системе: <code>{show_money_users}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\n🎁 Продано товаров: <code>{show_buy_items}шт</code>\n Города: <code>{show_city_users}</code>\n"
 
 
 
 # Статистика бота
-def get_statisctics():
+def get_statisctics2():
     show_profit_all, show_profit_day, show_profit_week = 0, 0, 0
     show_refill_all, show_refill_day, show_refill_week = 0, 0, 0
     show_money_users, show_buy_items, show_money_users, show_city_users = 0, 0, 0, 0
@@ -941,35 +982,11 @@ def get_statisctics():
     for user in get_users:
         show_money_users += user['user_balance']
 
-    show_city_users = ""
-
-    for city in get_all_users_by_cities:
-        show_city_users += "| " + city['user_city'] + ":" + str(city['countu']) + " |"
-
-    message = "<b>📊 Статистика бота</b>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Пользователи: 🔶</b>\n" \
-              f"👤 Пользователей: <code>{len(get_users)}</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Средства 🔶</b>\n" \
-              f"💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n" \
-              f"💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n" \
-              f"💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n" \
-              f"💳 Средств в системе: <code>{show_money_users}₽</code>\n" \
-              f"💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n" \
-              f"💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n" \
-              f"💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Прочее 🔶</b>\n" \
-              f"🎁 Товаров: <code>{len(get_items)}шт</code>\n" \
-              f"📁 Позиций: <code>{len(get_positions)}шт</code>\n" \
-              f"🗃 Категорий: <code>{len(get_categories)}шт</code>\n" \
-              f"🎁 Продано товаров: <code>{show_buy_items}шт</code>\n" \
-              f" <b>Количество пользователей по городам:</b> \n" \
-              f" {show_city_users} \n"
-
-
-    return message
+    show_city_users = "".join(
+        "| " + city['user_city'] + ":" + str(city['countu']) + " |"
+        for city in get_all_users_by_cities
+    )
+    return f"<b>📊 Статистика бота</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств в системе: <code>{show_money_users}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\n🎁 Продано товаров: <code>{show_buy_items}шт</code>\n <b>Количество пользователей по городам:</b> \n {show_city_users} \n"
 
 # Автобэкапы БД для админов
 async def autobackup_admin():
@@ -980,7 +997,7 @@ async def autobackup_admin():
                                         document,
                                         caption=f"<b>📦 AUTOBACKUP</b>\n"
                                                 f"🕰 <code>{get_date()}</code>")
-            except:
+            except Exception:
                 pass
 
 # Статистика бота
@@ -1018,48 +1035,14 @@ def generate_sales_report():
             show_refill_week += refill['refill_amount']
 
     for user in get_users:
-        print(user)
         if user['user_role'] == "ShopAdmin":
             show_money_sellers += user['user_balance']
-        elif user['user_role'] is None:
+        elif user['user_role'] is None or user['user_role'] == "User":
             show_money_users += user['user_balance']
         if user['user_role'] == "ShopAdmin" and user['user_balance'] >= 0:
             top_sellers += user['user_name'] + str(user['user_balance']) + "\n"
-            
-    #for seller in get_purchasesbysellers:
-    #    top_sellersp += user['user_login'] + str(user['price']) + "\n"
 
-        #keyboard.add(ikb(
-        #        f"{user['user_login']} | {user['user_balance']}₽", # | {len(get_items)} шт",
-        #        callback_data=f"open_profile_search({user['increment']})"))
-
-    #for position in get_positions[(remover): len(get_positions)]:
-            #print(f'position {position}')
-            #get_items = get_itemsx(position_id=position[1])
-
-
-    message = "<b>📊 Отчет о продажах</b>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Пользователи: 🔶</b>\n" \
-              f"👤 Пользователей: <code>{len(get_users)}</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Средства 🔶</b>\n" \
-              f"💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n" \
-              f"💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n" \
-              f"💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n" \
-              f"💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n" \
-              f"💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n" \
-              f"💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n" \
-              f"💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n" \
-              f"💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n" \
-              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-              f"<b>🔶 Прочее 🔶</b>\n" \
-              f"🎁 Товаров: <code>{len(get_items)}шт</code>\n" \
-              f"📁 Позиций: <code>{len(get_positions)}шт</code>\n" \
-              f"🗃 Категорий: <code>{len(get_categories)}шт</code>\n" \
-              f"🎁 Продано товаров: <code>{show_buy_items}шт</code>\n"
-
-    return message
+    return f"<b>📊 Отчет о продажах</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\n🎁 Продано товаров: <code>{show_buy_items}шт</code>\n"
 
 # Получить информацию о магазине для админа
 def get_shop_admin(shop_id):
@@ -1096,5 +1079,3 @@ def get_shop_admin(shop_id):
 
     return get_message, get_photo
 
-#f"🏷 Ссылка: <code>{link}</code>\n" \
-#f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \

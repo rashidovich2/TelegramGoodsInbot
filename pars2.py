@@ -55,15 +55,15 @@ if not client.is_user_authorized():
     client.send_code_request(phone)
     os.system('clear')
     banner()
-    client.sign_in(phone, input(gr+'[+] Enter the code: '+re))
- 
+    client.sign_in(phone, input(f'{gr}[+] Enter the code: {re}'))
+
 os.system('clear')
 banner()
 chats = []
 last_date = None
 chunk_size = 200
 groups=[]
- 
+
 result = client(GetDialogsRequest(
              offset_date=last_date,
              offset_id=0,
@@ -72,25 +72,22 @@ result = client(GetDialogsRequest(
              hash = 0
          ))
 chats.extend(result.chats)
- 
+
 for chat in chats:
     try:
         if chat.megagroup== True:
             groups.append(chat)
-    except:
+    except Exception:
         continue
- 
-print(gr+'[+] Choose a group to scrape members :'+re)
-i=0
-for g in groups:
-    print(gr+'['+cy+str(i)+gr+']'+cy+' - '+ g.title)
-    i+=1
- 
+
+print(f'{gr}[+] Choose a group to scrape members :{re}')
+for i, g in enumerate(groups):
+    print(f'{gr}[{cy}{str(i)}{gr}]{cy} - {g.title}')
 print('')
-g_index = input(gr+"[+] Enter a Number : "+re)
+g_index = input(f"{gr}[+] Enter a Number : {re}")
 target_group=groups[int(g_index)]
- 
-print(gr+'[+] Fetching Members...')
+
+print(f'{gr}[+] Fetching Members...')
 time.sleep(1)
 
 #all_participants = self.client.get_participants(target_Group)
@@ -123,32 +120,23 @@ while True:
     offset += len(participants.users)
     print(offset)
 
- 
-print(gr+'[+] Saving In file...')
+
+print(f'{gr}[+] Saving In file...')
 time.sleep(1)
 with open("members.csv","w",encoding='UTF-8') as f:
     writer = csv.writer(f,delimiter=",",lineterminator="\n")
     writer.writerow(['username','user id', 'access hash','name','group', 'group id'])
+    state = ""
+    source = 'groups'
     for user in all_participants:
-        if user.username:
-            username= user.username
-        else:
-            username= ""
-        if user.first_name:
-            first_name= user.first_name
-        else:
-            first_name= ""
-        if user.last_name:
-            last_name= user.last_name
-        else:
-            last_name= ""
-        name= (first_name + ' ' + last_name).strip()
-        state = ""
+        username = user.username or ""
+        first_name = user.first_name or ""
+        last_name = user.last_name or ""
+        name = f'{first_name} {last_name}'.strip()
         groupname = target_group.title
         usah = user.access_hash
         usid = user.id
-        source = 'groups'
         writer.writerow([username,user.id,user.access_hash,name,target_group.title, target_group.id])
         add_tgacc_todb(username,usid,usah,name,source,state)
 
-print(gr+'[+] Members scraped successfully.')
+print(f'{gr}[+] Members scraped successfully.')

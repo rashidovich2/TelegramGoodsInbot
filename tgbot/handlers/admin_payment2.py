@@ -71,7 +71,7 @@ async def payment_systems_edit(call: CallbackQuery):
 
     try:
         await call.message.edit_text("<b>🖲 Выберите способ пополнения</b>", reply_markup=payment_choice_finl(user_id))
-    except:
+    except Exception:
         pass
 
 

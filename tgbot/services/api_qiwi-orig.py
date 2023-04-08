@@ -57,11 +57,7 @@ class QiwiAPI(AsyncClass):
                     return False
             elif self.check_pass:
                 if status:
-                    if self.secret == "None":
-                        text_secret = "Отсутствует"
-                    else:
-                        text_secret = self.secret
-
+                    text_secret = "Отсутствует" if self.secret == "None" else self.secret
                     await self.dp.answer(f"<b>🥝 Qiwi кошелёк полностью функционирует ✅</b>\n"
                                          f"◾ Номер: <code>{self.login}</code>\n"
                                          f"◾ Токен: <code>{self.token}</code>\n"
@@ -84,9 +80,8 @@ class QiwiAPI(AsyncClass):
                     await self.error_wallet()
                     return False
             elif not status:
-                if not self.add_pass:
-                    await self.error_wallet()
-                    return False
+                await self.error_wallet()
+                return False
 
             return True
         else:
@@ -109,16 +104,16 @@ class QiwiAPI(AsyncClass):
 
             save_balance = []
             for balance in response['accounts']:
-                if "qw_wallet_usd" == balance['alias']:
+                if balance['alias'] == "qw_wallet_usd":
                     save_balance.append(f"🇺🇸 Долларов: <code>{balance['balance']['amount']}$</code>")
 
-                if "qw_wallet_rub" == balance['alias']:
+                if balance['alias'] == "qw_wallet_rub":
                     save_balance.append(f"🇷🇺 Рублей: <code>{balance['balance']['amount']}₽</code>")
 
-                if "qw_wallet_eur" == balance['alias']:
+                if balance['alias'] == "qw_wallet_eur":
                     save_balance.append(f"🇪🇺 Евро: <code>{balance['balance']['amount']}€</code>")
 
-                if "qw_wallet_kzt" == balance['alias']:
+                if balance['alias'] == "qw_wallet_kzt":
                     save_balance.append(f"🇰🇿 Тенге: <code>{balance['balance']['amount']}₸</code>")
 
             save_balance = "\n".join(save_balance)
@@ -152,33 +147,31 @@ class QiwiAPI(AsyncClass):
         )
 
         if status_history and status_balance:
-            if self.secret != "None":
-                status_secret = await self.check_secret()
-                if status_secret:
-                    return True, "<b>🥝 QIWI кошелёк был успешно изменён ✅</b>"
-                else:
-                    return_message = "<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
+            if self.secret == "None":
+                return True, "<b>🥝 QIWI кошелёк был успешно изменён ✅</b>"
+            status_secret = await self.check_secret()
+            if status_secret:
+                return True, "<b>🥝 QIWI кошелёк был успешно изменён ✅</b>"
+            else:
+                return_message = "<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
                                      "<code>▶ Код ошибки: Неверный приватный ключ</code>\n" \
                                      "❕ Указывайте ПРИВАТНЫЙ КЛЮЧ, а не публичный. " \
                                      "Приватный ключ заканчивается на ="
-            else:
-                return True, "<b>🥝 QIWI кошелёк был успешно изменён ✅</b>"
-        else:
-            if 400 in [code_history, code_balance]:
-                return_message = f"<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
+        elif 400 in [code_history, code_balance]:
+            return_message = f"<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
                                  f"<code>▶ Код ошибки: Номер телефона указан в неверном формате</code>"
-            elif 401 in [code_history, code_balance]:
-                return_message = f"<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
+        elif 401 in [code_history, code_balance]:
+            return_message = f"<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
                                  f"<code>▶ Код ошибки: Неверный токен или истек срок действия токена API</code>"
-            elif 403 in [code_history, code_balance]:
-                return_message = f"<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
+        elif 403 in [code_history, code_balance]:
+            return_message = f"<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
                                  f"<code>▶ Ошибка: Нет прав на данный запрос (недостаточно разрешений у токена API)</code>"
-            elif "CERTIFICATE_VERIFY_FAILED" == code_history:
-                return_message = "<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
+        elif code_history == "CERTIFICATE_VERIFY_FAILED":
+            return_message = "<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
                                  f"<code>▶ Код ошибки: CERTIFICATE_VERIFY_FAILED certificate verify failed: self signed certificate in certificate chain</code>\n" \
                                  f"❗ Ваш сервер/дедик/устройство блокирует запросы к QIWI. Отключите антивирус или другие блокирующие ПО."
-            else:
-                return_message = "<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
+        else:
+            return_message = "<b>🥝 Введённые QIWI данные не прошли проверку ❌</b>\n" \
                                  f"<code>▶ Код ошибки: {code_history}/{code_balance}</code>"
 
         return False, return_message
@@ -192,11 +185,8 @@ class QiwiAPI(AsyncClass):
             {"rows": 1, "operation": "IN"},
         )
 
-        if status:
-            if "data" in response:
-                return True, response, code
-            else:
-                return False, None, code
+        if status and "data" in response:
+            return True, response, code
         else:
             return False, None, code
 
@@ -207,7 +197,7 @@ class QiwiAPI(AsyncClass):
             bill = qiwi_p2p.bill(amount=1, lifetime=1)
             qiwi_p2p.reject(bill_id=bill.bill_id)
             return True
-        except:
+        except Exception:
             return False
 
     # Создание платежа
@@ -288,18 +278,14 @@ class QiwiAPI(AsyncClass):
 
             for check_pay in response['data']:
                 if str(receipt) == str(check_pay['comment']):
-                    if "643" == str(check_pay['sum']['currency']):
+                    if str(check_pay['sum']['currency']) == "643":
                         pay_status = True
                         pay_amount = int(float(check_pay['sum']['amount']))
                     else:
                         return_message = 1
                     break
 
-            if pay_status:
-                return_message = 3
-            else:
-                return_message = 2
-
+            return_message = 3 if pay_status else 2
             return return_message, pay_amount
 
         return 4, False
@@ -316,5 +302,5 @@ class QiwiAPI(AsyncClass):
             return True, json.loads((await response.read()).decode()), response.status
         except ClientConnectorCertificateError:
             return False, None, "CERTIFICATE_VERIFY_FAILED"
-        except:
+        except Exception:
             return False, None, response.status

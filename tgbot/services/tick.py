@@ -6,7 +6,7 @@ from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 def tick():
-    print('Tick! The time is: %s' % datetime.now())
+    print(f'Tick! The time is: {datetime.now()}')
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()

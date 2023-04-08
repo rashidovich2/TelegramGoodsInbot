@@ -52,14 +52,11 @@ def function_sendphoto(message, caption='test', ct='photo'):
             bot.send_message(user['user_id'], message, disable_web_page_preview=True)
         elif ct == "photo":
             with open(message, 'rb') as photo:
-                bot.send_photo(
-                    chat_id=CHANNEL_ID,
-                    photo=photo, #.send_photo.file_id,
-                    caption=caption if caption else None)
+                bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=caption or None)
                 print("|||")
                 file_id = message.photo[0].file_id
                 print(file_id)
-    except:
+    except Exception:
         pass
 
 
@@ -69,19 +66,20 @@ with open("uploadproductdata/data4.csv", encoding='UTF-8') as f:
     rows = csv.reader(f,delimiter=",",lineterminator="\n")
     next(rows, None)
     for row in rows:
-        position = {}
-        position['Cat1'] = row[0]
-        position['Cat2'] = row[1]
-        position['Code'] = row[2]
-        position['Art'] = row[3]
-        position['Name'] = row[4]
-        position['Price'] = row[5]
-        position['Weight'] = row[6]
-        position['WeightType'] = row[7]
-        position['Description'] = row[8]
-        position['Photo'] = row[9]
+        position = {
+            'Cat1': row[0],
+            'Cat2': row[1],
+            'Code': row[2],
+            'Art': row[3],
+            'Name': row[4],
+            'Price': row[5],
+            'Weight': row[6],
+            'WeightType': row[7],
+            'Description': row[8],
+            'Photo': row[9],
+        }
         #photo = open("uploadproductdata/" + str(row[9]), 'rb')
-        photo = "uploadproductdata/" + str(row[9])
+        photo = f"uploadproductdata/{str(row[9])}"
         #photo=open(photof, 'rb')
         function_sendphoto(photo, "test", "photo")
 

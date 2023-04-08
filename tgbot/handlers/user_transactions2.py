@@ -103,9 +103,7 @@ async def refill_check_send(call: CallbackQuery):
     elif pay_status == 2:
         await call.answer("❗ Платёж не был найден.\n"
                           "⌛ Попробуйте чуть позже.", True, cache_time=5)
-    elif pay_status == 4:
-        pass
-    else:
+    elif pay_status != 4:
         get_refill = get_refillx(refill_receipt=receipt)
         if get_refill is None:
             await refill_success(call, receipt, pay_amount, way_pay)

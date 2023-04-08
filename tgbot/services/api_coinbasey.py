@@ -6,7 +6,7 @@ import time
 from aiohttp import ClientConnectorCertificateError
 from async_class import AsyncClass
 #from yoomoney import Client
-from coinbase.wallet.client import Client
+from cb.wallet.client import Client
 #from yoomoney import Quickpay
 
 
@@ -22,23 +22,20 @@ class CoinbaseAPI(AsyncClass):
         #check_pass=False, user_bill_pass=False, user_check_pass=False
         if suser_id is not None:
             self.suser_id = suser_id
-            self.api_toke = get_upaymentx(self.suser_id)['coinbase_token']
-            self.api_key = get_upaymentx(self.suser_id)['coinbase_key']
-            self.pay_method = get_upaymentx(self.suser_id)['way_coinbase']
-            #self.token = token
-            #self.client_id = client_id
-            #self.acc_number = acc_number
-            #self.redirect_url = redirect_url
+            self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
+                #self.token = token
+                #self.client_id = client_id
+                #self.acc_number = acc_number
+                #self.redirect_url = redirect_url
         else:
             #self.login = get_upaymentx(self.user_id)['qiwi_login']
             #self.token = get_upaymentx(self.user_id)['qiwi_token']
             #self.secret = get_upaymentx(self.user_id)['qiwi_secret']
             #self.login = get_paymentx()['qiwi_login']
             self.suser_id = 919148970
-            self.api_toke = get_upaymentx(self.suser_id)['coinbase_token']
-            self.api_key = get_upaymentx(self.suser_id)['coinbase_key']
-            self.pay_method = get_upaymentx(self.suser_id)['way_coinbase']
-
+            self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
+        self.api_key = get_upaymentx(self.suser_id)['coinbase_key']
+        self.pay_method = get_upaymentx(self.suser_id)['way_coinbase']
         #self.base_url = "https://yoomoney.ru/api/"
         #self.headers = {"authorization": f"Bearer {self.token}"}
         #self.client_id = get_paymentx()['yoo_client_id']
@@ -86,11 +83,7 @@ class CoinbaseAPI(AsyncClass):
                     return False
             elif self.check_pass:
                 if status:
-                    if self.secret == "None":
-                        text_secret = "Отсутствует"
-                    else:
-                        text_secret = self.secret
-
+                    text_secret = "Отсутствует" if self.secret == "None" else self.secret
                     await self.dp.answer(f"<b> Coinbase кошелёк полностью функционирует ✅</b>\n"
                                          f"◾ Кошелек: <code>{self.login}</code>\n"
                                          f"◾ Токен: <code>{self.token}</code>")
@@ -112,9 +105,8 @@ class CoinbaseAPI(AsyncClass):
                     await self.error_wallet()
                     return False
             elif not status:
-                if not self.add_pass:
-                    await self.error_wallet()
-                    return False
+                await self.error_wallet()
+                return False
 
             return True
         else:
@@ -137,16 +129,16 @@ class CoinbaseAPI(AsyncClass):
 
             save_balance = []
             for balance in response['accounts']:
-                if "qw_wallet_usd" == balance['alias']:
+                if balance['alias'] == "qw_wallet_usd":
                     save_balance.append(f"🇺🇸 Долларов: <code>{balance['balance']['amount']}$</code>")
 
-                if "qw_wallet_rub" == balance['alias']:
+                if balance['alias'] == "qw_wallet_rub":
                     save_balance.append(f"🇷🇺 Рублей: <code>{balance['balance']['amount']}₽</code>")
 
-                if "qw_wallet_eur" == balance['alias']:
+                if balance['alias'] == "qw_wallet_eur":
                     save_balance.append(f"🇪🇺 Евро: <code>{balance['balance']['amount']}€</code>")
 
-                if "qw_wallet_kzt" == balance['alias']:
+                if balance['alias'] == "qw_wallet_kzt":
                     save_balance.append(f"🇰🇿 Тенге: <code>{balance['balance']['amount']}₸</code>")
 
             save_balance = "\n".join(save_balance)
@@ -160,34 +152,46 @@ class CoinbaseAPI(AsyncClass):
             bill = qiwi_p2p.bill(amount=1, lifetime=1)
             qiwi_p2p.reject(bill_id=bill.bill_id)
             return True
-        except:
+        except Exception:
             return False
 
 
-    def creat_bill_btc(chat_id, callback_id, message_id, sum, name_good, amount):
-        #if dop.amount_of_goods(name_good) <= int(amount): bot.answer_callback_query(callback_query_id=callback_id, show_alert=True, text='Выберите меньшее число товаров к покупке')
-        #el
-        if dop.get_coinbasedata() == None: bot.answer_callback_query(callback_query_id=callback_id, show_alert=True, text='Принять деньги на btc кошелёк в данный момент невозможно!')
+    def creat_bill_btc(self, callback_id, message_id, sum, name_good, amount):
+
+        if self.get_coinbasedata() is None: bot.answer_callback_query(callback_query_id=callback_id, show_alert=True, text='Принять деньги на btc кошелёк в данный момент невозможно!')
         else:
             api_key, api_secret = get_settings()
             client = Client(api_key, api_secret)
             account_id = client.get_primary_account()['id']
             sum = int(sum) + 10 #прибавляется комиссия в btc
-            btc_price = round(float((client.get_buy_price(currency_pair='BTC-RUB')["amount"])))
+            btc_price = round(float((client.get_buy_price(currency_pair='USDT-RUB')["amount"])))
             print(btc_price)
             sum = float(str(sum / btc_price)[:10]) #сколько сатох нужно юзеру оплатить
             address_for_tranz = client.create_address(account_id)['address'] #получение кошелька для оплты
 
-            with open('data/Temp/' + str(chat_id) + '.txt', 'w', encoding='utf-8') as f:
+            with open(f'data/Temp/{str(self)}.txt', 'w', encoding='utf-8') as f:
                 f.write(str(amount)+ '\n')
                 f.write(str(sum)+ '\n')
                 f.write(address_for_tranz)
             key = telebot.types.InlineKeyboardMarkup()
-            key.add(telebot.types.InlineKeyboardButton(text='Проверить оплату', callback_data='Проверить оплату btc'))
+            key.add(telebot.types.InlineKeyboardButton(text='Проверить оплату', callback_data='Проверить оплату USDT'))
             key.add(telebot.types.InlineKeyboardButton(text = 'Вернуться в начало', callback_data = 'Вернуться в начало'))
-            try: bot.edit_message_text(chat_id=chat_id, message_id=message_id, text='Чтобы купить ' + name_good + ' количеством ' + str(amount) + '\nПереведите `' + str(sum) + '` btc на адрес `' + str(address_for_tranz) + '`', parse_mode='Markdown', reply_markup=key)
-            except: pass
-            he_client.append(chat_id)
+            try:
+                bot.edit_message_text(
+                    self=self,
+                    message_id=message_id,
+                    text=f'Чтобы купить {name_good} количеством {str(amount)}'
+                    + '\nПереведите `'
+                    + str(sum)
+                    + '` usdt на адрес `'
+                    + str(address_for_tranz)
+                    + '`',
+                    parse_mode='Markdown',
+                    reply_markup=key,
+                )
+            except Exception:
+                pass
+            he_client.append(self)
     # Создание платежа
     async def bill_pay(self, get_amount, get_way):
         #print(self, get_amount, get_way)
@@ -211,7 +215,7 @@ class CoinbaseAPI(AsyncClass):
 
             print(quickpay.redirected_url)
 
-            return_message = f"<b>🆙 Пополнение баланса Yoomoney</b>\n" \
+            return_message = f"<b>🆙 Пополнение баланса USDT</b>\n" \
                              f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                              f"🥝 Для пополнения баланса, нажмите на кнопку ниже \n" \
                              f"<code>Перейти к оплате</code> и оплатите выставленный вам счёт\n" \
@@ -254,18 +258,14 @@ class CoinbaseAPI(AsyncClass):
 
             for check_pay in response['data']:
                 if str(receipt) == str(check_pay['comment']):
-                    if "643" == str(check_pay['sum']['currency']):
+                    if str(check_pay['sum']['currency']) == "643":
                         pay_status = True
                         pay_amount = int(float(check_pay['sum']['amount']))
                     else:
                         return_message = 1
                     break
 
-            if pay_status:
-                return_message = 3
-            else:
-                return_message = 2
-
+            return_message = 3 if pay_status else 2
             return return_message, pay_amount
 
         return 4, False

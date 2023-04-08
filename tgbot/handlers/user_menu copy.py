@@ -57,7 +57,7 @@ async def product_category_create(message: Message, state: FSMContext):
 # Начальные категории для изменения позиции
 @dp.message_handler(IsShopAdmin(), text="📁 Изменить позицию 🖍", state="*")  # !!!!!!!   Изменить позицию
 async def product_position_edit(message: Message, state: FSMContext):
-    print(f'📁 Изменить позицию 🖍  user_menu.py 56')
+    print('📁 Изменить позицию 🖍  user_menu.py 56')
     await state.finish()
 
     await message.answer("<b>📁 Выберите категорию с нужной позицией 🖍</b>",
@@ -71,7 +71,7 @@ async def product_position_edit(message: Message, state: FSMContext):
 # Открытие товаров
 @dp.message_handler(text="🎁 Купить", state="*")
 async def user_shop(message: Message, state: FSMContext):
-    print(f'Открытие категорий товаров  user_menu.py 65')
+    print('Открытие категорий товаров  user_menu.py 65')
     await state.finish()
 
     get_settings = get_settingsx()
@@ -91,7 +91,7 @@ async def user_shop(message: Message, state: FSMContext):
 # Открытие товаров
 @dp.message_handler(text="🎁 Магазины", state="*")
 async def user_shop(message: Message, state: FSMContext):
-    print(f'Открытие магазинов товаров  user_menu.py 65')
+    print('Открытие магазинов товаров  user_menu.py 65')
     await state.finish()
 
     get_settings = get_settingsx()
@@ -205,7 +205,7 @@ async def user_seller(message: Message, state: FSMContext):
 async def user_seller(call: CallbackQuery, state: FSMContext):
     seller_request = create_seller_request(call.from_user.id)
     await call.answer("🎁 Запрос успешно создан")
-    await notify(dp, f"Поступил новый запрос продавца!")
+    await notify(dp, "Поступил новый запрос продавца!")
     # await bot.send_message(get_admins(), "ntcnnnnnn")
 
 # Подтверждение удаления всех позиций
@@ -338,7 +338,7 @@ async def payment_systems_edit7(call: CallbackQuery):
 
     try:
         await call.message.edit_text("<b>🖲 Выберите способ пополнения</b>", reply_markup=payment_as_choice_finl())
-    except:
+    except Exception:
         pass
 
 
@@ -458,9 +458,9 @@ async def product_item_remove(message: Message, state: FSMContext):
 @dp.callback_query_handler(IsShopAdmin(), text_startswith="confirm_remove_item:", state="*")
 async def product_item_remove(call: CallbackQuery, state: FSMContext):
     get_action = call.data.split(":")[1]
-    user_id = call.from_user.id
-
     if get_action == "yes":
+        user_id = call.from_user.id
+
         get_items = len(get_all_my_itemsnx(creator_id=user_id))
         remove_itemx(creator_id=user_id)
 
@@ -498,17 +498,14 @@ async def product_item_delete_get(message: Message, state: FSMContext):
     else:
         get_item_ids_one = clear_list([message.text])
 
-    for item in get_item_ids_one:
-        if " " in item:
-            get_item_ids_two.append(item.split(" "))
-
+    get_item_ids_two.extend(
+        item.split(" ") for item in get_item_ids_one if " " in item
+    )
     if len(get_item_ids_two) == 1:
         get_item_ids_two.append(get_item_ids_one)
 
     for check_item in get_item_ids_two:
-        for item in clear_list(check_item):
-            save_ids.append(item)
-
+        save_ids.extend(iter(clear_list(check_item)))
     save_ids = clear_list(save_ids)
 
     for item_id in save_ids:
@@ -534,7 +531,7 @@ async def product_item_delete_get(message: Message, state: FSMContext):
 # Следующая страница выбора категорий для создания позиций
 @dp.callback_query_handler(IsShopAdmin(), text_startswith="position_create_nextp:", state="*")
 async def product_position_create_next(call: CallbackQuery, state: FSMContext):
-    print(f'выбора категорий для создания позиций  user_menu.py 126')
+    print('выбора категорий для создания позиций  user_menu.py 126')
     remover = int(call.data.split(":")[1])
     print(remover)
 
@@ -587,7 +584,7 @@ async def product_position_create_select_category(call: CallbackQuery, state: FS
 
 @dp.message_handler(IsShopAdmin(), state="here_position_name")
 async def product_position_create_name(message: Message, state: FSMContext):
-    print(f'Принятие имени для создания позиции  user_menu.py 355')
+    print('Принятие имени для создания позиции  user_menu.py 355')
     if len(message.text) <= 100:
         await state.update_data(here_position_name=clear_html(message.text),
                                 here_position_city=get_citytext_user(message.from_user.id)[0]
@@ -603,7 +600,7 @@ async def product_position_create_name(message: Message, state: FSMContext):
 # Принятие цены позиции для её создания
 @dp.message_handler(IsShopAdmin(), state="here_position_price")
 async def product_position_create_price(message: Message, state: FSMContext):
-    print(f'Принятие цены позиции  admin_products.py 366')
+    print('Принятие цены позиции  admin_products.py 366')
     if message.text.isdigit():
         if 0 <= int(message.text) <= 10000000:
             await state.update_data(here_position_price=message.text)
@@ -623,7 +620,7 @@ async def product_position_create_price(message: Message, state: FSMContext):
 # Принятие описания позиции для её создания
 @dp.message_handler(IsShopAdmin(), state="here_position_description")
 async def product_position_create_description(message: Message, state: FSMContext):
-    print(f'Принятие описания позиции  admin_products.py 386')
+    print('Принятие описания позиции  admin_products.py 386')
 
     try:
         if len(message.text) <= 600:
@@ -652,7 +649,7 @@ async def product_position_create_description(message: Message, state: FSMContex
 @dp.message_handler(IsShopAdmin(), content_types="photo", state="here_position_photo")
 @dp.message_handler(IsShopAdmin(), text="0", state="here_position_photo")
 async def product_position_create_photo(message: Message, state: FSMContext):
-    print(f'Принятие изображения позиции  admin_products.py 418')
+    print('Принятие изображения позиции  admin_products.py 418')
     async with state.proxy() as data:
         position_user_id = message.from_user.id
         position_city = data['here_position_city']
@@ -663,13 +660,7 @@ async def product_position_create_photo(message: Message, state: FSMContext):
         position_description = data['here_position_description']
     await state.finish()
 
-    if "text" in message:
-        position_photo = ""
-    else:
-        position_photo = message.photo[-1].file_id
-
-
-
+    position_photo = "" if "text" in message else message.photo[-1].file_id
     add_positionx(position_city, position_city_id, position_name, position_price, position_description, position_photo,
                   catategory_id, position_user_id)
 
@@ -742,7 +733,7 @@ async def product_position_edit_back(call: CallbackQuery, state: FSMContext):
 # Выбор позиции для редактирования
 @dp.callback_query_handler(IsShopAdmin(), text_startswith="position_edit:", state="*")
 async def product_position_edit_open(call: CallbackQuery, state: FSMContext):
-    print(f'Выбор позиции для редактирования api_sqlite.py 496')
+    print('Выбор позиции для редактирования api_sqlite.py 496')
     position_id = int(call.data.split(":")[1])
     remover = int(call.data.split(":")[2])
     category_id = int(call.data.split(":")[3])
@@ -783,7 +774,7 @@ async def product_position_edit_return(call: CallbackQuery, state: FSMContext):
 # Изменение имени позиции
 @dp.callback_query_handler(IsShopAdmin(), text_startswith="position_edit_name", state="*")
 async def product_position_edit_name(call: CallbackQuery, state: FSMContext):
-    print(f'Изменение имени позиции api_sqlite.py 529')
+    print('Изменение имени позиции api_sqlite.py 529')
     category_id = int(call.data.split(":")[1])
     position_id = int(call.data.split(":")[2])
     remover = int(call.data.split(":")[3])
@@ -949,12 +940,7 @@ async def product_position_edit_photo_get(message: Message, state: FSMContext):
     position = get_positionx(position_id=position_id)
     print(position['position_name'])
 
-    if "text" in message:
-        position_photo = ""
-    else:
-        position_photo = message.photo[-1].file_id
-
-
+    position_photo = "" if "text" in message else message.photo[-1].file_id
     update_positionx(position_id, position_photo=position_photo)
     get_message, get_photo = get_position_admin(position_id)
     await notify(dp, f"Была отредактирована позиция: {position['position_name']}")
@@ -971,7 +957,7 @@ async def product_position_edit_photo_get(message: Message, state: FSMContext):
 # Изменение города продукта
 @dp.callback_query_handler(IsShopAdmin(), text_startswith="position_edit_city", state="*")
 async def product_position_edit_description(call: CallbackQuery, state: FSMContext):
-    print(f'Изменение города продукта  admin_products.py 715')
+    print('Изменение города продукта  admin_products.py 715')
     print(call.data)
     category_id = int(call.data.split(":")[2])
     position_id = int(call.data.split(":")[1])
@@ -1076,7 +1062,7 @@ async def user_cart_return(call: CallbackQuery, state: FSMContext):
 # Открытие категорий для покупки
 @dp.callback_query_handler(text_startswith="buy_category_open", state="*")
 async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
-    print(f'Открытие категорий для покупки user_menu.py 133')
+    print('Открытие категорий для покупки user_menu.py 133')
     category_id = int(call.data.split(":")[1])
 
     get_category = get_categoryx(category_id=category_id)
@@ -1130,7 +1116,7 @@ async def user_purchase_category_prev_page(call: CallbackQuery, state: FSMContex
 # Открытие магазина для покупки
 @dp.callback_query_handler(text_startswith="buy_shop_open", state="*")
 async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
-    print(f'Открытие магазина для покупки user_menu.py 133')
+    print('Открытие магазина для покупки user_menu.py 133')
     shop_id = int(call.data.split(":")[1])
 
     get_shop = get_shopsxx(shop_id=shop_id)
@@ -1184,7 +1170,7 @@ async def user_purchase_category_prev_page(call: CallbackQuery, state: FSMContex
 # Открытие позиции для покупки
 @dp.callback_query_handler(text_startswith="buy_parposition_open", state="*")
 async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
-    print(f'Карточка товара: user_menu.py  1194')
+    print('Карточка товара: user_menu.py  1194')
     position_id = int(call.data.split(":")[1])
     remover = int(call.data.split(":")[2])
     category_id = int(call.data.split(":")[3])
@@ -1218,17 +1204,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     print(get_settings['type_trade'])
     tt = get_settings['type_trade']
 
-    if tt != "digital":
-        #    product_markup = products_open_finl(position_id, remover, category_id)
-        # product_markup = products_open_cart_finl(position_id, remover, category_id)
-        if len(get_position['position_photo']) >= 5:
-            await call.message.delete()
-            await call.message.answer_photo(get_position['position_photo'],
-                                            send_msg, reply_markup=products_open_cart_finl(position_id, remover, category_id))
-        else:
-            await call.message.edit_text(send_msg,
-                                         reply_markup=products_open_cart_finl(position_id, remover, category_id))
-    elif tt == "digital":
+    if tt == "digital":
         if len(get_position['position_photo']) >= 5:
             await call.message.delete()
             await call.message.answer_photo(get_position['position_photo'],
@@ -1236,6 +1212,14 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
         else:
             await call.message.edit_text(send_msg,
                                          reply_markup=products_open_finl(position_id, remover, category_id))
+
+    elif len(get_position['position_photo']) >= 5:
+        await call.message.delete()
+        await call.message.answer_photo(get_position['position_photo'],
+                                        send_msg, reply_markup=products_open_cart_finl(position_id, remover, category_id))
+    else:
+        await call.message.edit_text(send_msg,
+                                     reply_markup=products_open_cart_finl(position_id, remover, category_id))
 
 
 # Вернуться к позициям для покупки
@@ -1291,7 +1275,7 @@ async def user_purchase_position_prev_page(call: CallbackQuery, state: FSMContex
 # Открытие позиции для покупки
 @dp.callback_query_handler(text_startswith="buy_position_open", state="*")
 async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
-    print(f'Карточка товара: user_menu.py  152')
+    print('Карточка товара: user_menu.py  152')
     position_id = int(call.data.split(":")[1])
     remover = int(call.data.split(":")[2])
     category_id = int(call.data.split(":")[3])
@@ -1319,17 +1303,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     print(get_settings['type_trade'])
     tt = get_settings['type_trade']
 
-    if tt != "digital":
-    #    product_markup = products_open_finl(position_id, remover, category_id)
-    # product_markup = products_open_cart_finl(position_id, remover, category_id)
-        if len(get_position['position_photo']) >= 5:
-            await call.message.delete()
-            await call.message.answer_photo(get_position['position_photo'],
-                                            send_msg, reply_markup=products_open_cart_finl(position_id, remover, category_id))
-        else:
-            await call.message.edit_text(send_msg,
-                                         reply_markup=products_open_cart_finl(position_id, remover, category_id))
-    elif tt == "digital":
+    if tt == "digital":
         if len(get_position['position_photo']) >= 5:
             await call.message.delete()
             await call.message.answer_photo(get_position['position_photo'],
@@ -1337,6 +1311,14 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
         else:
             await call.message.edit_text(send_msg,
                                          reply_markup=products_open_finl(position_id, remover, category_id))
+
+    elif len(get_position['position_photo']) >= 5:
+        await call.message.delete()
+        await call.message.answer_photo(get_position['position_photo'],
+                                        send_msg, reply_markup=products_open_cart_finl(position_id, remover, category_id))
+    else:
+        await call.message.edit_text(send_msg,
+                                     reply_markup=products_open_cart_finl(position_id, remover, category_id))
 
 
 
@@ -1435,7 +1417,7 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
 
     if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-        if get_count > len(get_items): get_count = len(get_items)
+        get_count = min(get_count, len(get_items))
     else:
         get_count = len(get_items)
 
@@ -1472,12 +1454,12 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
                                      reply_markup=products_addcart_confirm_finl(position_id, get_count))
 
             else:
-                await message.answer(f"<b>❌ Неверное количество товаров.</b>\n" + send_message)
+                await message.answer(f"<b>❌ Неверное количество товаров.</b>\n{send_message}")
         else:
             await state.finish()
             await message.answer("<b>🎁 Товар который вы хотели купить, закончился</b>")
     else:
-        await message.answer(f"<b>❌ Данные были введены неверно.</b>\n" + send_message)
+        await message.answer(f"<b>❌ Данные были введены неверно.</b>\n{send_message}")
 
 
 # Подтверждение добавления товара в корзину
@@ -1496,7 +1478,7 @@ async def user_addcart_confirm(call: CallbackQuery, state: FSMContext):
 
         amount_pay = int(get_position['position_price'] * get_count)
 
-        if 1 <= int(get_count) <= len(get_items):
+        if 1 <= get_count <= len(get_items):
             save_items, send_count, split_len = buy_itemx(get_items, get_count)
 
             # уточнение цены за количество в наличии
@@ -1517,12 +1499,11 @@ async def user_addcart_confirm(call: CallbackQuery, state: FSMContext):
             #        await call.message.answer("\n\n".join(item), parse_mode="None")
             #        await asyncio.sleep(0.3)
             await asyncio.sleep(0.3)
-            # update_userx(get_user['user_id'], user_balance=get_user['user_balance'] - amount_pay)
-            i = 0
             #users_order = get_user_orderx(get_user['user_id'])
             users_order = get_params_orderx(user_id=get_user['user_id'], order_state='created')
             print(users_order)
             alength = len(users_order)
+            i = 0
             for i in range(alength):
                 print(users_order[i]['order_id'])
 
@@ -1551,12 +1532,11 @@ async def user_addcart_confirm(call: CallbackQuery, state: FSMContext):
         else:
             await call.message.answer("<b>🎁 Товар который вы хотели купить закончился или изменился.</b>",
                                       reply_markup=menu_frep(call.from_user.id))
+    elif len(get_all_categoriesx()) >= 1:
+        await call.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
+                                     reply_markup=products_item_category_open_fp(0,0))
     else:
-        if len(get_all_categoriesx()) >= 1:
-            await call.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
-                                         reply_markup=products_item_category_open_fp(0,0))
-        else:
-            await call.message.edit_text("<b>✅ Вы отменили покупку товаров.</b>")
+        await call.message.edit_text("<b>✅ Вы отменили покупку товаров.</b>")
 
 
 # Удаление корзины
@@ -1649,12 +1629,12 @@ async def checkout_finish(call: CallbackQuery, state: FSMContext):
     touser_id = call.from_user.id
     cm = get_user_messagesx(to_uid=touser_id, state='created')
     if len(cm) > 0:
-        print("Messages present:" + str(touser_id))
+        print(f"Messages present:{str(touser_id)}")
 #статус заказа - delivery
     order_data = get_orderx(user_id=touser_id)
     order_id = order_data['order_id']
     os = update_orderx(order_id=order_id, order_state='delivery')
-    await call.message.answer(f"<b>Начинаем доставку товара Вашей корзины.</b>")
+    await call.message.answer("<b>Начинаем доставку товара Вашей корзины.</b>")
     print('Сумма заказа на холде')
 #холд суммы заказа
     validity = 5
@@ -1672,7 +1652,14 @@ async def checkout_finish(call: CallbackQuery, state: FSMContext):
     order_sellers = order_sellers.strip('[[')
     order_sellers = order_sellers.strip(']]')
     #seller=list(order_sellers)
-    h = create_holdx(int(order_id), int(buyer), int(str(order_sellers)), int(amount), int(validity), state)
+    h = create_holdx(
+        int(order_id),
+        int(buyer),
+        int(str(order_sellers)),
+        int(amount),
+        validity,
+        state,
+    )
     i = update_userx(user_id = buyer, user_hold = amount)
     await call.message.answer(f"<b>Денежные средства в размере {amount}р. успешно заблокированы до \n"
                               f"подтверждения получения покупателем товара.</b>")
@@ -1754,7 +1741,7 @@ async def reply_toorder_message_fin(message: Message, state: FSMContext):
 
     if message.text:
         messagetxt = str(message.text)
-        print(str(user_id) + str(messagetxt))
+        print(str(user_id) + messagetxt)
         touser_id = get_cart_sellersx(order_id)
         print(touser_id)
 
@@ -1766,9 +1753,13 @@ async def reply_toorder_message_fin(message: Message, state: FSMContext):
 
     cm = get_user_messagesx(to_uid=touser_id, state='responded')
     if len(cm) > 0:
-        print("Messages present:" + str(touser_id))
+        print(f"Messages present:{str(touser_id)}")
 
-    await dp.bot.send_message(chat_id=touser_id, text=f"Сообщение/вопрос по заказу от продавца:"+messagetxt, reply_markup=reply_order_message_finl(order_id))
+    await dp.bot.send_message(
+        chat_id=touser_id,
+        text=f"Сообщение/вопрос по заказу от продавца:{messagetxt}",
+        reply_markup=reply_order_message_finl(order_id),
+    )
 
 
 
@@ -1804,7 +1795,7 @@ async def enter_message_manualy_fin(message: Message, state: FSMContext):
 
     if message.text:
         messagetxt = str(message.text)
-        print(str(user_id) + str(messagetxt))
+        print(str(user_id) + messagetxt)
         touser_id = get_cart_sellersx(order_id)
         print(touser_id)
 
@@ -1816,9 +1807,13 @@ async def enter_message_manualy_fin(message: Message, state: FSMContext):
 
     cm = get_user_messagesx(to_uid=touser_id, state='created')
     if len(cm) > 0:
-        print("Messages present:" + str(touser_id))
+        print(f"Messages present:{str(touser_id)}")
 
-    await dp.bot.send_message(chat_id=touser_id, text=f"Сообщение/вопрос по заказу от покупателя:"+messagetxt, reply_markup=reply_order_message_finl(order_id))
+    await dp.bot.send_message(
+        chat_id=touser_id,
+        text=f"Сообщение/вопрос по заказу от покупателя:{messagetxt}",
+        reply_markup=reply_order_message_finl(order_id),
+    )
 
 
 @dp.callback_query_handler(text_startswith="enter_phone_auto", state="*")
@@ -1833,7 +1828,10 @@ async def enter_phone_man(call: CallbackQuery, state: FSMContext):
     button_phone = KeyboardButton(text="Делись!", request_contact=True)
     keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True, one_time_keyboard=True)
     keyboard.add(button_phone)
-    await call.message.answer(f"<b>✅ Вы можете поделиться своим номером телефона.</b>", reply_markup=menu_frep(message.from_user.id))
+    await call.message.answer(
+        "<b>✅ Вы можете поделиться своим номером телефона.</b>",
+        reply_markup=menu_frep(message.from_user.id),
+    )
 
     # get_user = get_userx(user_id=call.from_user.id)
 
@@ -1972,7 +1970,7 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
 
     if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-        if get_count > len(get_items): get_count = len(get_items)
+        get_count = min(get_count, len(get_items))
     else:
         get_count = len(get_items)
 
@@ -2003,7 +2001,10 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
     else:
         #await call.answer("❗ У вас недостаточно средств. Пополните баланс", True)
         #await call.message.delete()
-        await call.message.answer(f"<b>❗ У вас недостаточно средств. Пополните баланс</b>", reply_markup=charge_button_add(0))
+        await call.message.answer(
+            "<b>❗ У вас недостаточно средств. Пополните баланс</b>",
+            reply_markup=charge_button_add(0),
+        )
 
 
 # -------------------------------------------------------------------------------------
@@ -2018,7 +2019,7 @@ async def user_purchase_select(call: CallbackQuery, state: FSMContext):
 
     if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-        if get_count > len(get_items): get_count = len(get_items)
+        get_count = min(get_count, len(get_items))
     else:
         get_count = len(get_items)
 
@@ -2049,7 +2050,10 @@ async def user_purchase_select(call: CallbackQuery, state: FSMContext):
     else:
         #await call.answer("❗ У вас недостаточно средств. Пополните баланс", True)
         #await call.message.delete()
-        await call.message.answer(f"<b>❗ У вас недостаточно средств. Пополните баланс</b>", reply_markup=charge_button_add(0))
+        await call.message.answer(
+            "<b>❗ У вас недостаточно средств. Пополните баланс</b>",
+            reply_markup=charge_button_add(0),
+        )
 
 
 # Принятие количества товаров для покупки
@@ -2063,7 +2067,7 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
 
     if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-        if get_count > len(get_items): get_count = len(get_items)
+        get_count = min(get_count, len(get_items))
     else:
         get_count = len(get_items)
 
@@ -2089,14 +2093,16 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
                                          f"💰 Сумма к покупке: <code>{amount_pay}₽</code>",
                                          reply_markup=products_confirm_finl(position_id, get_count))
                 else:
-                    await message.answer(f"<b>❌ Недостаточно средств на счете.</b>\n" + send_message)
+                    await message.answer(
+                        f"<b>❌ Недостаточно средств на счете.</b>\n{send_message}"
+                    )
             else:
-                await message.answer(f"<b>❌ Неверное количество товаров.</b>\n" + send_message)
+                await message.answer(f"<b>❌ Неверное количество товаров.</b>\n{send_message}")
         else:
             await state.finish()
             await message.answer("<b>🎁 Товар который вы хотели купить, закончился</b>")
     else:
-        await message.answer(f"<b>❌ Данные были введены неверно.</b>\n" + send_message)
+        await message.answer(f"<b>❌ Данные были введены неверно.</b>\n{send_message}")
 
 
 # Подтверждение покупки товара
@@ -2115,7 +2121,7 @@ async def user_purchase_confirm(call: CallbackQuery, state: FSMContext):
 
         amount_pay = int(get_position['position_price'] * get_count)
 
-        if 1 <= int(get_count) <= len(get_items):
+        if 1 <= get_count <= len(get_items):
             if int(get_user['user_balance']) >= amount_pay:
                 save_items, send_count, split_len = buy_itemx(get_items, get_count)
 
@@ -2152,10 +2158,9 @@ async def user_purchase_confirm(call: CallbackQuery, state: FSMContext):
         else:
             await call.message.answer("<b>🎁 Товар который вы хотели купить закончился или изменился.</b>",
                                       reply_markup=menu_frep(call.from_user.id))
+    elif len(get_all_categoriesx()) >= 1:
+        await call.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
+                                     reply_markup=products_item_category_open_fp(0,0))
     else:
-        if len(get_all_categoriesx()) >= 1:
-            await call.message.edit_text("<b>🎁 Выберите нужный вам товар:</b>",
-                                         reply_markup=products_item_category_open_fp(0,0))
-        else:
-            await call.message.edit_text("<b>✅ Вы отменили покупку товаров.</b>")
+        await call.message.edit_text("<b>✅ Вы отменили покупку товаров.</b>")
 

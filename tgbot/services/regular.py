@@ -23,7 +23,7 @@ CHANNEL_ID = -1001683374540
 bot = Bot(token=API_TOKEN, parse_mode=types.ParseMode.HTML)
 
 def tick():
-    print('Tick! The time is: %s' % datetime.now())
+    print(f'Tick! The time is: {datetime.now()}')
 #get_message, get_image = get_position_of_day()
 
 
@@ -31,7 +31,10 @@ def send_photo_telegram(file_id):
     files = {'photo': open({file_id}, 'rb')}
     token = "5337905343:AAFnZEexDdOAhn16AEw1zofEzVrPPEag89Q"
     chat_id = "-1001683374540" # если у вас группа то будет так chat_id = "-1009999999"
-    r = requests.post("https://api.telegram.org/bot"+token+"/sendPhoto?chat_id=" + chat_id, files=files)
+    r = requests.post(
+        f"https://api.telegram.org/bot{token}/sendPhoto?chat_id={chat_id}",
+        files=files,
+    )
     if r.status_code != 200:
         raise Exception("post_text error")
 

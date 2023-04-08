@@ -88,15 +88,15 @@ for cp in cpass:
             client = TelegramClient(phone, api_id, api_hash, proxy=s.set_proxy(socks.HTTP, rnd_proxy[0], rnd_proxy[1]) )
             #client.start(self.phone)
         else:
-            print(f"Подключение к Телеграмм без прокси!")
+            print("Подключение к Телеграмм без прокси!")
             client = TelegramClient(phone, api_id, api_hash)
-            #client.start(self.phone)
+                    #client.start(self.phone)
         client.connect()
         if not client.is_user_authorized():
             client.send_code_request(phone)
             #os.system('clear')
             banner()
-            client.sign_in(phone, input(gr+f"[+] Enter the code for {phone}: "+re))
+            client.sign_in(phone, input(f"{gr}[+] Enter the code for {phone}: {re}"))
 
     except PhoneNumberBannedError:
         print(f" | Ошибка: аккаунт {account_id} был удалён!")
@@ -122,17 +122,18 @@ for cp in cpass:
         try:
             if chat.megagroup== True:
                 groups.append(chat)
-        except:
+        except Exception:
             continue
 
-    print(gr+f'[+] Выберите группу для сбора участников из группу на аккаунте {phone}:'+re)
-    i=0
-    for g in groups:
-        print(gr+'['+cy+str(i)+gr+']'+cy+' - '+ g.title)
-        i+=1
-
+    print(
+        f'{gr}[+] Выберите группу для сбора участников из группу на аккаунте {phone}:{re}'
+    )
+    for i, g in enumerate(groups):
+        print(f'{gr}[{cy}{str(i)}{gr}]{cy} - {g.title}')
     print('')
-    g_index = input(gr+"[+] Введите номер группы для сбора пользователей или N : "+re)
+    g_index = input(
+        f"{gr}[+] Введите номер группы для сбора пользователей или N : {re}"
+    )
 
 #    return g_index
 
@@ -140,20 +141,21 @@ for cp in cpass:
     target_group = ''
 
     if g_index == 'N':
-        g_url = input(gr+"[+] Введите url или username группы для сбора пользователей : "+re)
+        g_url = input(
+            f"{gr}[+] Введите url или username группы для сбора пользователей : {re}"
+        )
         try:
-            group = 't.me/' + str(g_url)
+            group = f't.me/{str(g_url)}'
             username = client.get_entity(group)
             client(JoinChannelRequest(username))
             print(f'{lg} Зашли в группу на {phone}')
             target_group = username
 
-        except:
+        except Exception:
             print(f'{r} Ошибка входа в группу {phone}')
             continue
 
 
-    #g_index = select_scr_group(client)
     else:
         target_group=groups[int(g_index)]
 
@@ -163,7 +165,7 @@ for cp in cpass:
 
     channel = target_group
 
-    print(gr+'[+] Собираем пользователей...')
+    print(f'{gr}[+] Собираем пользователей...')
     time.sleep(1)
 
 #all_participants = self.client.get_participants(target_Group)
@@ -195,7 +197,7 @@ for cp in cpass:
         offset += len(participants.users)
         print(offset)
 
-    print(gr+'[+] Сохраняем в БД...')
+    print(f'{gr}[+] Сохраняем в БД...')
     time.sleep(1)
     with open("members.csv","w",encoding='UTF-8') as f:
         writer = csv.writer(f,delimiter=",",lineterminator="\n")
@@ -205,19 +207,10 @@ for cp in cpass:
             if user.username is None: continue
             if user.username == "": continue
             if check_dbfor_username(user.username): continue
-            if user.username:
-                username= user.username
-            else:
-                username= ""
-            if user.first_name:
-                first_name= user.first_name
-            else:
-                first_name= ""
-            if user.last_name:
-                last_name= user.last_name
-            else:
-                last_name= ""
-            name= (first_name + ' ' + last_name).strip()
+            username = user.username or ""
+            first_name = user.first_name or ""
+            last_name = user.last_name or ""
+            name = f'{first_name} {last_name}'.strip()
             state = "created"
             groupname = target_group.title
             groupid = target_group.id
@@ -229,4 +222,4 @@ for cp in cpass:
             #writer.writerow([username,user.id,user.access_hash,name,target_group.title, target_group.id])
             add_tgacc_todb(username,usid,usah,name,source,groupname,groupid,tag,state)
 
-    print(gr+'[+] Пользователи успешно собраны.')
+    print(f'{gr}[+] Пользователи успешно собраны.')

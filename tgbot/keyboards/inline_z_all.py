@@ -1,6 +1,8 @@
 # - *- coding: utf- 8 - *-
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from tgbot.services.api_sqlite import get_settingsx
+#from babel import Locale
+from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
 
 settings = get_settingsx()
 type_trade = settings['type_trade']
@@ -58,7 +60,6 @@ profile_seller_open_inl = InlineKeyboardMarkup(row_width=2).add(
 give_number_inl = InlineKeyboardMarkup(
     ).add(
         InlineKeyboardButton("Поделиться номером", callback_data="enter_phone_auto_fin")
-        #InlineKeyboardButton("Поделиться номером", request_contact=True)
     )
 
 # Удаление сообщения
@@ -69,26 +70,23 @@ close_inl = InlineKeyboardMarkup(
 
 # Открытие корзины
 cart_open_created_inl = InlineKeyboardMarkup(
+    ).add(InlineKeyboardButton("🏢 Ввести адрес", callback_data="enter_address_manualy"),
+        InlineKeyboardButton("📱 Ввести телефон", callback_data="enter_phone_manualy"),
+        InlineKeyboardButton(" ! Оформить заказ", callback_data="checkout_start"),
     ).add(
-        InlineKeyboardButton("🏢 Ввести адрес", callback_data=f"enter_address_manualy"),
-        InlineKeyboardButton("📱 Ввести телефон", callback_data=f"enter_phone_manualy"),
-        InlineKeyboardButton(" ! Оформить заказ", callback_data=f"checkout_start"),
+        InlineKeyboardButton("📱 Поделиться номером", callback_data="enter_phone_auto" ),
+        InlineKeyboardButton("💰 Пополнить счет", callback_data="user_refill"),
+        InlineKeyboardButton("❓ Спросить продавца", callback_data="enter_message_manualy"),
     ).add(
-        InlineKeyboardButton("📱 Поделиться номером", callback_data=f"enter_phone_auto"),
-        InlineKeyboardButton("💰 Пополнить счет", callback_data=f"user_refill"),
-        InlineKeyboardButton("❓ Спросить продавца", callback_data=f"enter_message_manualy"),
-    ).add(
-        InlineKeyboardButton(" Удалить корзину", callback_data=f"del_user_cart"),
-)
+        InlineKeyboardButton(" Удалить корзину", callback_data="del_user_cart")
+    )
 
 
 cart_open_delivery_inl = InlineKeyboardMarkup(
-).add(
-    InlineKeyboardButton("📱 Подтвердить получение", callback_data=f"submit_order"),
-).add(
-#    InlineKeyboardButton("📱 Открыть спор", callback_data=f"open_debate"),
-    InlineKeyboardButton("❓ Задать вопрос продавцу", callback_data=f"enter_message_manualy"),
-)
+    ).add(
+        InlineKeyboardButton("📱 Подтвердить получение", callback_data="submit_order"),
+        InlineKeyboardButton("❓ Задать вопрос продавцу",callback_data="enter_message_manualy")
+    )
 
 # Удаление корзина
 confirm_delete_user_cart_inl = InlineKeyboardMarkup(
@@ -105,7 +103,7 @@ category_remove_confirm_inl = InlineKeyboardMarkup(
     InlineKeyboardButton("✅ Нет, отменить", callback_data="confirm_remove_category:not")
 )
 
-# Подтверждение полполнения счета
+# Подтверждение оформления заказа
 checkout_step2_accept = InlineKeyboardMarkup(
 ).add(
     InlineKeyboardButton("✅ Да, оформить", callback_data="checkout_finish"),

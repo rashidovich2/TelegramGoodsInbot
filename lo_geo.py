@@ -161,15 +161,13 @@ for file in glob.glob(path):
                 print(row[4]+" есть в БД.\n")
                 continue
             #print(row)
-            user = {}
-            #user['id'] = int(row[0])
-            user['id'] = row[0]
-            user['access_hash'] = row[1]
-            #user['access_hash'] = int(row[1])
-            user['name'] = row[2] + " " + row[3]
-            user['username'] = row[4]
-            user['source'] = 'geoparse'
-
+            user = {
+                'id': row[0],
+                'access_hash': row[1],
+                'name': f"{row[2]} {row[3]}",
+                'username': row[4],
+                'source': 'geoparse',
+            }
             try:
                 username = user['username']
                 if check_dbfor_username(row[4]): continue
@@ -185,9 +183,9 @@ for file in glob.glob(path):
                 if row[2] in woman_names: print(row[2])
                 add_tgacc_todb(username,usid,usah,name,source,groupname,groupid,tag,state)
 
-            except:
+            except Exception:
                 traceback.print_exc()
-                print(re+"[!] Неизвестная ошибка")
+                print(f"{re}[!] Неизвестная ошибка")
                 continue
 
             users.append(user)

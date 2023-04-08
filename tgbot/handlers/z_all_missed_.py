@@ -23,15 +23,15 @@ async def missed_callback_answer(call: CallbackQuery, state: FSMContext):
 async def missed_callback(call: CallbackQuery, state: FSMContext):
     try:
         await call.message.delete()
-    except:
+    except Exception:
         pass
 
-    await call.message.answer("<b>❌ Данные не были найдены из-за перезапуска скрипта.\n"
-                              "♻ Выполните действие заново.</b>",
+    await call.message.answer(_("<b>❌ Данные не были найдены из-за перезапуска скрипта.\n"
+                              "♻ Выполните действие заново.</b>", locale=lang),
                               reply_markup=menu_frep(call.from_user.id))
 
 # Обработка всех неизвестных команд
 @dp.message_handler()
 async def missed_message(message: Message):
-    await message.answer("♦ Неизвестная команда.\n"
-                         "▶ Введите /start")
+    await message.answer(_("♦ Неизвестная команда.\n"
+                         "▶ Введите /start", locale=lang))

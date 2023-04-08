@@ -31,7 +31,7 @@ class ThrottlingMiddleware(BaseMiddleware):
                 await dispatcher.throttle(key, rate=limit)
             except Throttled as t:
                 await self.message_throttled(message, t)
-                raise CancelHandler()
+                raise CancelHandler() from t
 
     @staticmethod
     async def message_throttled(message: types.Message, throttled: Throttled):
