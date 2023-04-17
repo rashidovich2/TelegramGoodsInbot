@@ -1,84 +1,111 @@
-# Binance Pump Alerts
+##Telegram GoodsinBot
 
-BPA is a simple application which gets the price data from Binance Spot or Futures API and sends Telegram messages based on parameters set used to detect pumps and dumps on the Binance Exchange.
+A store with the functionality of multi-cities. Бот - магазин в Телеграм с функциональностями мульти-города и местонахождением покупателя. PRO версия поддерживает мульти-правдцов.
 
-[Demo Telegram Channel](https://t.me/binance_pump_alerts) hosted on AWS ec2 running the 'Base Stable Version' release 24/7.
+##Модули
+- управление локацией пользователя, хранение города пользователя
+- управление языками интерфейса
+- управление товарами и категориями товаров
+- управление магазинами
+- управление местами отдыха, артистами, событиями
+- управление кружками, местами обучения
+- управление частными объявлениями
+- управление балансами пользователей
+- управление заказами и доставкой товаров
+- управление рассылками сообщений
+- 
 
-![image](https://user-images.githubusercontent.com/63389110/128601355-4be90b36-5e54-4be6-bf85-00fc395645de.png)
+##Функции для пользователя
+- каталог двух уровней, категория - товар
+корзина
+- поддержка (контакты) - ссылка в диалог с администратором
+- FAQ - сообщение для пользователей с HTML разметкой
+- подробная Статистика бота: кол-во пополнений, покупок, пользователей, позиций, категорий, чистой прибыли
+- определение местонахождения пользователя
 
-## Manual Setup
+##Функции администратора
+режим технических работ
+проверка наличия обнолвения при запуске
+активация/деактивация функций продажи и оплаты
+добавление неограниченного количества глобальных администраторов
+роль администратора магазина, управляющего своими товарами в каталоге
+добавление неограниченного количества администраторов магазинов
+удобная и многофункциональная админ панель
+определение и хранение города нахождения товара
+поиск покупателей и просмотр профилей
+поиск чеков покупок
+рассылка сообщений всем пользователям бота
+изменение и пополнение баланса пользователя
+отчет о продажах продавцов
 
-1. On the command-line, run the command `pip install -r requirements.txt` while located at folder with code.
-1. Create a new telegram bot token from [@botfather](https://t.me/BotFather).
-1. Get telegram `chat_id` from [@get_id_bot](https://telegram.me/get_id_bot).
-   - Alternatively, a `channel_id` can be used as well.
-1. Add pairs to watch into the watchlist or leave it empty to monitor all tickers on Binance.
-1. Run the script with the command `python pumpAlerts.py`.
 
-## Docker Setup
+Оплата товаров
+используется библиотеки QIWI и YooMoney
+настраивается администратором бота через админку
+проверка работоспособности из админки
+вывод баланса кошелька QIWI
 
-1. Use environment variables in the `docker-compse.yml` file to provide your config.
-   - See `entrypoint.sh` for environment variable names and the config possibilities.
-   - You can also use a `.env` file during development.
-   - If changing the config parameters, you have to make sure that search and replace will place the right parameter in the `config.yml`
-   - Emojis are more tricky therefore defining it with some tricks e.g. `PUMP_EMOJI="! \"\\\\U0001F4B9\""`
-1. On the command line run `docker-compose up -d --build` to create and run the docker image/container.
+Каталог и товары
+User-friendly каталог
+товары имеют одно изображение
+гибкое управление товарами администраторами
+выгрузка всех товаров
 
-## Configuration
+Защита
+админ-фильтры на все хендлеры, гарантирующие приватность админ функционала
+защита от оплаты в тенге при пополнении баланса
+защита от неправильного HTML синтаксиса
+защита от повторной выдачи баланса
+защита от спама в боте (Middlewares)
 
-### Mandatory Params
+настройки settings.ini
+установить токен Бота, полученный у @BotFather
+установить Telegram ID администратора
 
-1. `telegramToken`: The token obtained from[@botfather](https://t.me/BotFather).
-2. `telegramChatId`: The bot will send the messages to this `chat_id`. It can be a group or channel as well.
+Настройка
+Скопируйте папку бота. Перейдите в папку бота.
+Выполните в командной строке "pip install -r requirements.txt".
+Заполните файл settings.ini.
+Стартовать бот в командной строке: python3 main.py.
+Заполнить информационные поля.
+Наполнить каталог товарами.
+Привлекать пользователей в каталог.
 
-## Main Customizable Params
+Процесс администрирования площадки
 
-1. `chartIntervals`: Can be modified to consider other timeframes, follow the format of 's' for seconds, 'm' for minutes, 'h' for hours.
-1. `outlierIntervals`: (0.01 -> 1% , 0.1 -> 10%), modify accordingly based on needs. Avoid setting it too low to avoid noise.
-1. `extractInterval`: Default is `1s`, Interval at which we retrieve the price information from Binance.
-1. `pairsOfInterest`: Default is _USDT_. Other options include BUSD, BTC, ETH etc.
-1. `topReportIntervals`: Default is `1h`,`3h`and `6h` Intervals for top pump and dump reports to be sent, ensure it is in chartIntervals + outlierIntervals as well.
+Согласование продавцов.
+Администрирование каталога.
+Администрирование денежных средств.
+Поддержка и ведение сделок, разрешение споров.
 
-### Optional features to enable
 
-1. `watchlist`: Default if left empty it'll look at ALL symbols after filtering by pairs of interest. If pairs are added to the watchlist, the application will _only track the pairs specified_.
-1. `dumpEnabled`: If `True`, the application will alert on dumps as well.
 
-#### Top Pump & Dump Params
+Процесс покупки для покупателя
+Выбор товара.
+Пополнение счета.
+Ожидание звонка продавца и уточнение параметров домтааки.
+Получение товара.
+Подтверждение получения.
+Отправка отзыва о покупателей.
 
-1. `topPumpEnabled`: If `True`, the application will send the Top X pumps at the defined interval.
-1. `topDumpEnabled`: If `True`, the application will send the Top X dumps at the defined interval.
-   - Together with pump information, if enabled.
-1. `noOfReportedCoins`: Top X amount of coins shown, adjust to show more or less within the timeframe.
-1. `telegramAlertChatId`: Insert the alert chat_id for top pump dump alert, if left at `0`, it'll send messages to the telegram `chat_Id`.
-   For params not indicated above, refer to comments besides parameter for its use.
 
-#### Debug Params (Avoid modifying if possible!)
+Процесс продажи для продавца
+Получение сообщения о заказе.
+Звонок покупателю.
+Отправка товара покупателю.
+Получение отзыва о покупателей.
 
-1. `debug`: Default is `False`. Please, only enable for debugging purposes. Default logging set to info level.
-1. `resetInterval`: Default `12h`. It clears the array used to store data price points to prevent memory issues.
-1. `priceRetryInterval`: Default `5s`. In the case of get price fail, this is the time delay before re-attempt
-1. `checkNewListingEnabled`: Default `True`. Enables checking and adding of new listing pairs.
 
-## Todo
+PRO версия:
+поддержка мультипродавцов;
+192 города России в справочнике.
 
-1. Integrate with Binance API to make trades on pumps.
-1. Integrate with Binance Websocket API to get volume information.
-1. Integrate with listing-predictor to monitor movements for potential listings.
+TODO:
+карточка магазина
+безопасная сделка
+оплата криптовалютами
+расчет доставки сборного заказа
 
-## Completed features
-
-1. Telegram integration
-1. Price update every 1s
-1. Adjustable alert % param (outliers)
-1. Watchlist feature
-1. Monitor future markets
-1. Optional alert on dumps
-1. Customizable minimum alert interval for spam prevention
-1. Option to disable print debugs on extraction
-1. [Test] Volume Change Updates (TEST_VOL version)
-1. Allows long period of running without memory issues
-1. Send periodic Top X Pump & Dump reports
-1. Docker integration (Thanks to [@patbaumgartner](https://github.com/patbaumgartner))
-1. Logging integration (Thanks to [@patbaumgartner](https://github.com/patbaumgartner))
-1. Major Refactoring and cleanup (Thanks to [@patbaumgartner](https://github.com/patbaumgartner))
+Работающий экземпляр пока только по России в 192 городах: https://t.me/Goodsinbot
+Чтобы торговать своими товарами в текущем экземпляре, отправьте запрос на продавца из бота, нажав "Я продавец".
+По вопросам пишите пожалуйста в телеграм: @raclear
