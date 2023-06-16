@@ -46,6 +46,25 @@ def clear_list(get_list: list):
     return get_list
 
 
+# Удаление отступов у текста
+def ded(get_text: str):
+    if get_text is not None:
+        split_text = get_text.split("\n")
+        if split_text[0] == "": split_text.pop(0)
+        if split_text[-1] == "": split_text.pop(-1)
+        save_text = []
+
+        for text in split_text:
+            while text.startswith(" "):
+                text = text[1:]
+
+            save_text.append(text)
+        get_text = "\n".join(save_text)
+
+    return get_text
+
+
+
 # Конвертация дней
 def convert_day(day):
     day = int(day)

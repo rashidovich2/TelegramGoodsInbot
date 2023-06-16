@@ -4,8 +4,8 @@ from async_class import AsyncClass
 from coinbase.wallet.client import Client
 
 
-api_key = 'QUmnMHJ7OrOJnIM4'
-api_secret = 'gQr0L7ypPQXTpYRDzXJFILcAARRjBynH'
+api_key = 'XXXXXX'
+api_secret = 'XXXXXX'
 client = Client(api_key, api_secret)
 account_id = client.get_primary_account()['id']
         #sum = int(sum) + 10 #прибавляется комиссия в btc

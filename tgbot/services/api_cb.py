@@ -15,7 +15,7 @@ from tgbot.utils.misc_functions import send_admins
 
 # Апи работы с YooMoney
 class CoinbaseAPI(AsyncClass):
-    async def __ainit__(self, suser_id=None, api_key=None, api_token=None):
+    async def __ainit__(self, suser_id=919148970, api_key=None, api_token=None):
         self.suser_id = 919148970
         self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
         self.api_key = get_upaymentx(self.suser_id)['coinbase_key']
@@ -23,7 +23,8 @@ class CoinbaseAPI(AsyncClass):
         print(self.api_token, self.api_key, self.pay_method)
         client = Client(api_key, api_secret)
         account_id = client.get_primary_account()['id']
-        print(usdt_price)
+        print("111")
+        print(account_id)
         sum = float(str(get_amount / usdt_price)[:10]) #сколько сатох нужно юзеру оплатить
         address_for_tranz = client.create_address(account_id)['address'] #получение кошелька для оплаты
         print(address_for_tranz)
@@ -135,7 +136,7 @@ class CoinbaseAPI(AsyncClass):
     async def bill_pay(self, get_amount, get_way):
         client = Client(api_key, api_secret)
         account_id = client.get_primary_account()['id']
-        print(usdt_price)
+        print(get_amount)
         sum = float(str(get_amount / usdt_price)[:10]) #сколько сатох нужно юзеру оплатить
         address_for_tranz = client.create_address(account_id)['address'] #получение кошелька для оплаты
         print(address_for_tranz)

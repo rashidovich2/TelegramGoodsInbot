@@ -1,20 +1,26 @@
 # - *- coding: utf- 8 - *-
 import asyncio
+import aiohttp
 import json
 import random
-import datetime
+from datetime import datetime, timedelta
 import time
+
+import sys
+import hashlib
+import base58
 
 import requests
 import subprocess
 
 import aiogram
 from aiogram import Dispatcher
-from aiogram import executor
+from aiogram import executor, exceptions
 from aiogram import Bot, types
 #from aiogram.types import Message
 #from aiogram.utils import exceptions, executor
 #from aiogram.methods import SendMessage, SendPhoto, SendVideo, SendAnimation
+import tronpy
 from aiogram.utils.deep_linking import get_start_link, decode_payload
 from bs4 import BeautifulSoup
 from babel import Locale
@@ -31,15 +37,27 @@ from tgbot.services.api_sqlite import get_settingsx, update_settingsx, get_userx
     get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, \
     get_orderx, get_purchasesx, get_purchasesxx, get_shopx, get_artistx, get_planed_postx, get_planed_eventsx, get_tohour_postx,\
     update_tohour_postx, get_users_by_cities, get_users_by_citiesx, get_delivery_seller_options, get_params_orderx, get_orderxo, \
-    get_userxxx, get_upaymentx, get_userxx, get_userxn, get_user_lang
+    get_userxxx, get_upaymentx, get_userxx, get_userxn, get_user_lang, add_refillx
 
-from tgbot.utils.const_functions import get_unix, convert_day
+from tgbot.utils.const_functions import get_unix, convert_day, get_date, ded
 
 #bot = Bot(token=BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 
 print(i18n)
 _ = i18n.gettext
+
+
+
+async def fetch_token(user_login, password):
+    async with aiohttp.ClientSession() as session:
+        url = f"http://46.23.98.123:8081/login?login={user_login}&password={password}"
+
+        async with session.get(url) as resp:
+            token = await resp.text()
+
+            #return token
+    #await send_user(919148970, msg, markup="default")
 
 
 # Уведомление и проверка обновления при запуске бота
@@ -52,6 +70,19 @@ async def on_startup_notify(dp: Dispatcher):
                           f"<code>❗ Данное сообщение видят только администраторы бота.</code>",
                           markup="default")
         await check_update()
+
+#уведомление пользователю
+async def user_notify(dp: Dispatcher, user_id, msg):
+    print(f'Уведомление для пользователя!' + msg)
+    await send_user(user_id, msg, markup="default")
+
+# Рассылка сообщения пользователю
+async def send_user(user_id, message, markup=None):
+    try:
+        await bot.send_message(user_id, message, reply_markup=markup, disable_web_page_preview=True)
+    except Exception:
+        pass
+
 
 # Рассылка сообщения всем администраторам
 async def send_admins(message, markup=None, not_me=0):
@@ -78,6 +109,131 @@ async def update_profit_day():
 async def update_profit_week():
     update_settingsx(misc_profit_week=get_unix())
 
+
+def catch_transactions(address):
+    print("start to catch transactions")
+    address = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
+    start_time = datetime.now()
+    end_time = start_time + timedelta(minutes=20)
+    while datetime.now() < end_time:
+        x=+1
+        print("minutes in catching" + x)
+        transactions = tron.get_account_transactions(address)
+        confirmed_transactions = [tx for tx in transactions if tx.get('ret', [{}])[0].get('contractRet') == 'SUCCESS']
+        # Your code here
+        print(confirmed_transactions)
+        asyncio.sleep(60)
+
+
+async def catch_transactions20m(address_from, address_to):
+    print("start to catch transactions")
+    start_time = datetime.now()
+    end_time = start_time + timedelta(minutes=20)
+    print(start_time, end_time)
+    st = get_unix()
+    am = ""
+    #while datetime.now() < end_time:
+    while True:
+        #print(end_time)
+        #send_user(dp, user_id, "Ожидаем транзакцию")
+        await check_trx_now(address_from, st, address_to)
+        await asyncio.sleep(60)
+        #return am
+        #print(am)
+        #if trx_amount:
+        #    return trx_amount
+
+async def check_btc_now(address_from, st, address_to):
+    print("BTC_NOW!!!")
+    #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
+    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions/trc20"
+    url = f'https://api.bscscan.com/api?module=account&action=tokentx&address={address_to}&page=1&offset=5&startblock=0&endblock=999999999&sort=asc&apikey=MRGP3KDXP7K9BP8Q4E3I2Y1FYVMAE961VV'
+    #url = f'https://blockchain.info/rawaddr/{address_to}'
+    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions" #?only_confirmed=true&only_to=true"
+    response = requests.get(url) #, headers={"TRON-PRO-API-KEY": "5c4c149e-83d1-4926-8d73-78dac1ab2d38"})
+    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions"
+    #headers = {"accept": "application/json"}
+    #transactions = requests.get(url, headers=headers)
+    #get_user = get_userx(user_id)
+    #transactions2 = json.loads(transactions)
+    json_data = json.loads(response.text)
+    try:
+        txs = json_data['result']
+        for transaction in txs:
+            st = st
+            bts = int(transaction['timeStamp'])
+            dts = bts - st
+            print(f"Transaction Hash: {transaction['blockHash']}")
+            print(f"Transaction Value: {transaction['value']}")
+            #amount = float(transaction['value'])*0.000000000000000001
+            amount = float(transaction['value'])
+            if transaction["from"] == address_from and transaction["to"] == address_to: # and dts < 0:
+                #print(st, bts, dts)
+                return float(amount), bts
+            else:
+                print(st, bts, dts, transaction['timeStamp'], transaction['value'])
+                return float(amount), bts
+
+    except json.JSONDecodeError:
+        print("Empty response")
+
+
+async def check_trx_address(address):
+    print("CHECK_TRX_NOW!!!")
+    #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
+    url = f"https://api.trongrid.io/wallet/validateaddress"
+    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions" #?only_confirmed=true&only_to=true"
+    req = requests.get(url, headers={"TRON-PRO-API-KEY": "5c4c149e-83d1-4926-8d73-78dac1ab2d38"})
+    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions"
+    #headers = {"accept": "application/json"}
+    #transactions = requests.get(url, headers=headers)
+    #get_user = get_userx(user_id)
+    result = json.loads(req.text)
+
+
+async def check_trx_now(address_from, st, address_to):
+    print("TRX_NOW!!!")
+    #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
+    url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions/trc20"
+    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions" #?only_confirmed=true&only_to=true"
+    transactions = requests.get(url, headers={"TRON-PRO-API-KEY": "5c4c149e-83d1-4926-8d73-78dac1ab2d38"})
+    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions"
+    #headers = {"accept": "application/json"}
+    #transactions = requests.get(url, headers=headers)
+    #get_user = get_userx(user_id)
+    transactions2 = json.loads(transactions.text)
+    amount = 0
+    total = 0
+    for transaction in transactions2['data']:
+        #print(transaction)
+        amount = transaction['value']
+        #total += int(amount)
+        st = st
+        #bts = int(str(transaction['block_timestamp'])[:10])
+        bts = int(transaction['block_timestamp']/1000)
+        dts = bts - st
+        if transaction["from"] == address_from and transaction["to"] == address_to: # and dts < 0:
+            #print(st, bts, dts)
+            return int(amount), bts
+        else:
+            print(st, bts, dts, transaction['transaction_id'], transaction['value']) #st, bts, dts,
+
+        '''blockTS = transaction['block_timestamp']
+        td = st - blockTS
+        state = transaction['ret'][0]['contractRet']
+        if "amount" in transaction['raw_data']['contract'][0]['parameter']['value']:
+            amount = transaction['raw_data']['contract'][0]['parameter']['value']['amount']
+            total += amount
+            #if transaction["raw_data"]["contract"][0]["parameter"]["value"]["to_address"] == address_to: print("Адресат наш")
+            #if transaction["raw_data"]["contract"][0]["parameter"]["value"]["owner_address"] == address_from: print("Отправитель наш")
+            #add_refillx(get_user['user_id'], get_user['user_login'], get_user['user_name'], receipt,
+            #            amount, receipt, get_way, get_date(), get_unix())
+            if transaction["raw_data"]["contract"][0]["parameter"]["value"]["to_address"] == address_to and transaction["raw_data"]["contract"][0]["parameter"]["value"]["owner_address"] == address_from: # and td > 0
+                print("ПОПОЛНЯЕМ АККАУНТ НА:" + str(amount))
+                return amount #, state, blockTS
+            print(blockTS, td, amount, state, total)'''
+    return 0, bts
+
 async def post_every_eighteen():
     print("||||")
     posts = get_planed_postx(mode="evening")
@@ -98,7 +254,6 @@ async def post_half_eight():
     for post in posts:
          asyncio.create_task(functions_advertising_make_bg(post))
          #time.sleep(60)
-
 
 async def reinvite_sellers_by_city():
     print("*CITIES CITIZENS MESSAGING*")
@@ -222,6 +377,16 @@ async def post_every_hour():
     for post in posts:
          asyncio.create_task(functions_advertising_make_bg(post))
 
+async def get_or_create_tron_account(wallet_user, wallet_net):
+# Получение платежных реквизитов продавца
+    tron_profile =  get_tron_profile(wallet_user, wallet_net)
+    #print(get_tron_profile['tron_wallet'], get_tron_profile['private_key'], get_tron_profile['type_net'])
+    if len(tron_profile['tron_wallet']) > 1:
+        check = True
+        return tron_profile, check
+    else:
+        check = False
+        return tron_profile, check
 
 async def functions_advertising_make_bg(post, markup=None):
     receive_users, block_users, how_users = 0, 0, 0
@@ -295,6 +460,7 @@ async def functions_advertising_events_bg(event, markup=None):
     test = "no"
     #print(get_usersx)
     print(event)
+
     if markup == "default":
         markup = menu_frep(admin)
         #get_users = "919148970"
@@ -400,6 +566,21 @@ async def check_bot_data():
 
     update_settingsx(misc_bot=get_bot.username)
 
+#Конвертация адреса из HEX в 58
+def hex_to_address(hexaddr):
+    checksum = hashlib.sha256(hashlib.sha256(bytes.fromhex(hexaddr)).digest()).digest()[0:4].hex()
+    addrchecksum = hexaddr + checksum
+    base58addr = base58.b58encode(bytes.fromhex(addrchecksum)).decode('utf-8')
+    return base58addr
+
+#Конвертация адреса из 58 в HEX
+def address_to_hex(base58addr):
+    addrchecksum = base58.b58decode(base58addr).hex()
+    address = addrchecksum[0:42]
+    checksum = hashlib.sha256(hashlib.sha256(bytes.fromhex(address)).digest()).digest()[0:4].hex()
+    if checksum != addrchecksum[42:]:
+        raise ValueError("Invalid checksum")
+    return address
 
 # Получить информацию о позиции для админа
 def get_position_of_day():
@@ -462,7 +643,7 @@ def get_artist_admin(artist_id):
 
 # Получить информацию о позиции для админа
 def get_position_admin(position_id):
-    print('Получить информацию о позиции для админа misc_functions.py 127')
+    print('Получить информацию о позиции для админа misc_functions.py 465')
     get_items = get_itemsx(position_id=position_id)
     get_position = get_positionx(position_id=position_id)
     get_category = get_categoryx(category_id=get_position['category_id'])
@@ -471,52 +652,74 @@ def get_position_admin(position_id):
     photo_text = "<code>Отсутствует ❌</code>"
     get_photo = None
 
-    if len(get_position['position_photo']) >= 5:
+    if len(get_position['position_photo']) > 5:
         photo_text = "<code>Присутствует ✅</code>"
         get_photo = get_position['position_photo']
 
     if get_position['position_description'] != "0":
         text_description = f"\n{get_position['position_description']}"
 
+    if get_position['position_type'] == 1:
+        position_rest = get_position['position_rest']
+    elif get_position['position_type'] == 2:
+        position_rest = len(get_items)
+
     get_message = f"<b>📁 Позиция: <code>{get_position['position_name']}</code></b>\n" \
                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                   f"🏙 Город: <code>{get_position['position_city']}</code>\n" \
                   f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
                   f"💰 Стоимость: <code>{get_position['position_price']}₽</code>\n" \
-                  f"📦 Остаток: <code>{len(get_items)}шт</code>\n" \
+                  f"📦 Остаток: <code>{position_rest}шт</code>\n" \
                   f"📸 Изображение: {photo_text}\n" \
                   f"📜 Описание: {text_description}"
 
     return get_message, get_photo
-
+# f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
 
 def user_refill_my(user_id, lang):
     return _("<b>Нажмите пожалуйста кнопку:</b>", locale=lang)
 
-
-def open_profile_my(user_id):
-    get_purchases = get_purchasesx(user_id=user_id)
+def open_profile_my2(user_id):
+    print("||||A+===")
     get_user = get_userx(user_id=user_id)
-    lang = get_user['user_lang']
+    #get_purchases = get_purchasesx(user_id=user_id)
+    lang = get_userx(user_id=user_id)['user_lang']
+    user_role = get_userx(user_id=user_id)['user_role']
+    #user_promocode = get_userx(user_id=user_id)['user_promocode'] or "None"
+    #user_unix = get_user['user_unix'] // 60 // 60 // 24
     print(lang)
     count_items = 0
-    how_days = get_unix() - get_user['user_unix'] // 60 // 60 // 24
-
-    if get_user['user_role'] in ["ShopAdmin", "Admin"]:
+    #how_days = get_unix() - user_unix
+    print("||||B+===")
+    '''if get_user['user_role'] in ["ShopAdmin", "Admin"]:
         free_delivery_point = get_user['free_delivery_point']
         delivery_rate = get_user['delivery_rate']
         selleradd = _("📄 Бесплатная доставка от: ", locale=lang) + str(get_user['free_delivery_point']) + "\n"
         selleradd += _("📄 Ставка доставки: ", locale=lang) + str(get_user['delivery_rate'])
     else: selleradd = "None"
-    print(selleradd)
+    print(selleradd)'''
 
-    if len(get_purchases) >= 1:
+    '''if len(get_purchases) >= 1:
         for items in get_purchases:
-            count_items += int(items['purchase_count'])
+            count_items += int(items['purchase_count'])'''
 
-    prmtxt = get_user['promocode'] or "None"
-    user_role = get_user['user_role'] or "None"
+
+    get_message = ded(f"""
+                  <b>📁 Позиция: <code>{get_position['position_name']}</code></b>
+                  ➖➖➖➖➖➖➖➖➖➖
+                  🗃 Категория: <code>{get_category['category_name']}</code>
+                  💰 Стоимость: <code>{get_position['position_price']}₽</code>
+                  📦 Количество: <code>{len(get_items)}шт</code>
+                  📸 Изображение: {photo_text}
+                  📜 Описание: {text_description}
+
+                  💸 Продаж за День: <code>{show_profit_count_day}шт</code> - <code>{show_profit_amount_day}₽</code>
+                  💸 Продаж за Неделю: <code>{show_profit_count_week}шт</code> - <code>{show_profit_amount_week}₽</code>
+                  💸 Продаж за Всё время: <code>{show_profit_count_all}шт</code> - <code>{show_profit_amount_all}₽</code>
+                  """)
+
     #get_settings = get_settingsx()
+    #profile_text = f"<b>👤 Ваш профиль:</b>"
     profile_text = _("<b>👤 Ваш профиль:</b>", locale=lang) + "\n"
     profile_text += "➖➖➖➖➖➖➖➖➖➖\n"
     profile_text += _("🆔 ID: <code>", locale=lang) + str(get_user['user_id']) + "</code>\n"
@@ -526,9 +729,46 @@ def open_profile_my(user_id):
     profile_text += _("🕰 Регистрация: <code>", locale=lang) + str(get_user['user_date'].split(' ')[0]) + " " + str(convert_day(how_days)) + "</code>\n"
     profile_text += _("🏙 Город: <code>", locale=lang) + get_user['user_city'] + "</code>\n"
     profile_text += _("📄 Роль: <code>", locale=lang) + user_role + "</code>\n"
-    if selleradd != "None": profile_text += selleradd
 
     return profile_text
+
+
+def open_profile_my(user_id):
+    get_purchases = get_purchasesx(user_id=user_id)
+    get_user = get_userx(user_id=user_id)
+
+    how_days = int(get_unix() - get_user['user_unix']) // 60 // 60 // 24
+    count_items = sum([items['purchase_count'] for items in get_purchases])
+
+    return ded(f"""
+           <b>👤 Ваш профиль:</b>
+           ➖➖➖➖➖➖➖➖➖➖
+           🆔 ID: <code>{get_user['user_id']}</code>
+              Роль: <code>{get_user['user_role']}</code>
+           💰 Баланс: <code>{get_user['user_balance']}₽</code>
+           🎁 Куплено товаров: <code>{count_items}шт</code>
+           🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>
+           """)
+
+           #🎁 Куплено товаров: <code>{count_items}шт</code>
+          # 🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>
+# Открытие своего профиля
+def open_profile_my2(user_id):
+    #get_purchases = get_purchasesx(user_id=user_id)
+    get_user = get_userx(user_id=user_id)
+
+    #how_days = int(get_unix() - get_user['user_unix']) // 60 // 60 // 24
+    #count_items = sum([items['purchase_count'] for items in get_purchases])
+    profile_text = f"""<b>👤 Ваш профиль:</b>
+           ➖➖➖➖➖➖➖➖➖➖
+           🆔 ID: <code>{get_user['user_id']}</code>
+           💰 Баланс: <code>{get_user['user_balance']}₽</code>
+           """
+
+    return profile_text
+
+#🎁 Куплено товаров: <code>{count_items}шт</code>
+#🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>
 
 def open_partners_list2():
     get_partners = get_all_partnersx()
@@ -559,33 +799,32 @@ def calc_order_summ(order_id):
         totalm += poscost
     return totalm
 
+
+
 # Открытие корзины
-def open_cart_orders(order_id):
+def open_cart_orders(order_id, lang):
     orderdata = []
-    #заказы одного пользователя
+    #данные заказа
     orderdata = get_orderxo(order_id=order_id)
     print(orderdata)
     #покупатель
-    ouser_id = orderdata['user_id']
+    order_user_id = orderdata['user_id']
     #данные покупателя
-    oget_user = get_userx(user_id=ouser_id)
-    #роль покупателя
-    if oget_user['user_role'] != "None": user_role = oget_user['user_role']
-    else: user_role = "None"
-    #print(user_role)
-    #получаем баланс пользователя
-    if oget_user['user_balance'] != "None": ub = oget_user['user_balance']
+    order_user = get_userx(user_id=order_user_id)
+    #роль покупателя user_role
+    if order_user['user_role'] != "None": user_role = order_user['user_role']
+    else: user_role = "User"
+    if order_user['user_balance'] != "None": ub = order_user['user_balance']
     else: ub = 0
-    #username
-    if oget_user['user_login']:
-        userid = f"Логин пользователя: <code>@{oget_user['user_login']}</code>"
-    else: userid = f"Телеграм ID: <code>{oget_user['user_id']}</code>"
+    #юзер userid
+    if order_user['user_login']: userid = f"Имя пользователя: <code>@{order_user['user_login']}</code>"
+    else: userid = f"Телеграм ID: <code>{order_user['user_id']}</code>"
+
     #позиции заказа
     get_positions = []
     get_positions = get_cart_positionsx(order_id=order_id)
     this_itemst = this_itemst2 = this_itemst3 = ''
     totalm = 0
-    #print("|||")
 
     this_items = ["| Наименование | Цена | Количество | Стоимость |"]
     for position in get_positions:
@@ -594,13 +833,8 @@ def open_cart_orders(order_id):
         this_items.append(f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽")
         this_itemst += f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт. | {poscost}₽ \n"
         print(f"{position['position_name']} | {position['position_price']}₽ | {position['count']}шт.| {poscost}₽")
-        #get_payment = get_upaymentx(user_id=position['owner_uid'])
 
     this_itemst3 += f"Всего по всем позициям: {str(totalm)}" + "\n"
-
-    '''if get_payment['way_freecredi']:
-        freecredi_method = "Продавец поддерживает"
-    else: freecredi_method = "Не поддерживается"'''
 
     dso = get_delivery_seller_options(order_id)['free_delivery_point']
     #print(dso)
@@ -617,28 +851,28 @@ def open_cart_orders(order_id):
         torefill = totalm2 - ub
         this_itemst2 = f"Для оформления заказа потребуется пополнение в размере:{str(torefill)}₽"
     #print(this_itemst2)
+    print(lang)
+    if lang == "ru":
+        return f"<b>👤 Ваша Корзина:</b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖\n" \
+               f"🆔 Корзина ID: <code>{orderdata['order_id']}</code>\n" \
+               f"🆔 Статус: <code>{orderdata['order_state']}</code>\n" \
+               f"💳 Баланс: <code>{ub}₽</code>\n" \
+               f"🗃 Всего товаров: <code>{totalm}</code>\n" \
+               f"   <code>{this_itemst}</code>\n" \
+               f"🏙 Итого корзина: <code>{totalm2}₽</code>\n" \
+               f"🏙 Примечание: <code>{this_itemst2}</code>"
 
-    return f"<b>👤 Ваша Корзина:</b>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖\n" \
-           f"🆔 Корзина ID: <code>{orderdata['order_id']}</code>\n" \
-           f"🆔 Статус: <code>{orderdata['order_state']}</code>\n" \
-           f"💳 Баланс: <code>{oget_user['user_balance']}₽</code>\n" \
-           f"🗃 Всего товаров: <code>{totalm}</code>\n" \
-           f"   <code>{this_itemst}</code>\n" \
-           f"🏙 Итого корзина: <code>{totalm2}₽</code>\n" \
-           f"🏙 Примечание: <code>{this_itemst2}</code>"
-
-
-    # f"🆔 {userid}\n" \
-    # f"🏙 Постоплата: <code>{freecredi_method}</code>\n" \
-    # f"🆔 Telegram ID: <code>{get_user['user_id']}</code>\n" \
-    # f"ID: {orderdata['order_id']} Статус корзины: <code>{orderdata['order_state']}</code>\n" \
-    # f"🏙 Доставка: <code>{delivery}₽</code>\n" \
-    # f"🕰 Адрес: <code>{this_address}</code>\n" \
-    # f"📞 Телефон: <code>{this_phone}</code>\n" \
-    # f"📡 Координаты: <code>{get_user['user_geocode']}</code>\n" \
-    # Открытие профиля при поиске
-
+    if lang == "en":
+        return f"<b>👤 Your Cart:</b>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖\n" \
+               f"🆔 Cart ID: <code>{orderdata['order_id']}</code>\n" \
+               f"🆔 State: <code>{orderdata['order_state']}</code>\n" \
+               f"💳 Balance: <code>{ub}₽</code>\n" \
+               f"🗃 Total Goods: <code>{totalm}</code>\n" \
+               f"   <code>{this_itemst}</code>\n" \
+               f"🏙 Total Cart: <code>{totalm2}₽</code>\n" \
+               f"🏙 Aditional Text: <code>{this_itemst2}</code>"
 
 def open_profile_search(user_id, lang):
     get_purchases = get_purchasesx(user_id=user_id)
@@ -665,7 +899,7 @@ def open_profile_search(user_id, lang):
                    f"🎁 Куплено товаров: <code>{count_items}шт</code>"
 
     if lang == "en":
-        message = f"<b>👤 Request from User: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
+        message = f"<b>👤 User Profile: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
                   f"➖➖➖➖➖➖➖➖➖➖\n" \
                   f"🆔 userID: <code>{get_user['user_id']}</code>\n" \
                   f"👤 Login: <b>@{get_user['user_login']}</b>\n" \
@@ -734,7 +968,7 @@ def open_profile_search_req(user_id, lang):
 def get_statisctics(lang):
     show_profit_all, show_profit_day, show_profit_week = 0, 0, 0
     show_refill_all, show_refill_day, show_refill_week = 0, 0, 0
-    show_money_users, show_money_sellers, show_buy_items, show_city_users = 0, 0, 0, 0
+    show_money_users, show_money_sellers, show_buy_items, show_city_users, top_sellers = 0, 0, 0, "", 0
 
     get_categories = get_all_categoriesx()
     get_positions = get_all_positionsx()
@@ -743,7 +977,7 @@ def get_statisctics(lang):
     get_settings = get_settingsx()
     get_items = get_all_itemsx()
     get_users = get_all_usersx()
-    #get_all_users_by_cities = get_users_by_cities()
+    get_all_users_by_cities = get_users_by_cities()
     top_sellers = []
     top_sellersp = []
     #keyboard = InlineKeyboardMarkup()
@@ -764,62 +998,29 @@ def get_statisctics(lang):
             show_refill_week += refill['refill_amount']
 
     for user in get_users:
-        print(user)
+        #print(user)
         if user['user_role'] == "ShopAdmin":
             show_money_sellers += user['user_balance']
         elif user['user_role'] is None:
             show_money_users += user['user_balance']
         if user['user_role'] == "ShopAdmin" and user['user_balance'] >= 0:
-            top_sellers += user['user_name'] + str(user['user_balance']) + "\n"
+            top_sellers += user['user_name'] + str(user['user_balance']) + "|"
 
-    #for city in get_all_users_by_cities:
-    #    show_city_users += "| " + city['city'] + " : " + str(city['countu']) + " |"
+    #cities = json.loads(get_all_users_by_cities)
+    for city in get_all_users_by_cities:
+        print(city)
+        #show_city_users += city['user_city']
+        #show_city_users += " ".join(city['user_city'])
+        #print(students = json.load(f))
+        #cityj = json.load(city)
+        #show_city_users += city['user_city']
+        #show_city_users += " | " + city['user_city'] + " : " + str(city['countu']) + " |"
+        show_city_users += f" <b> {city['user_city']} </b>:  {str(city['countu'])} \n"
+        #show_city_users .join(f"| {city['city']} : {str(city['countu'])} |")
+        #show_city_users += "|" + city['user_city'] + "|"
 
     if lang == "ru":
-        return f"<b>📊 Статистика бота</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\n🎁 Продано товаров: <code>{show_buy_items}шт</code>\n"
-    if lang == "en":
-        return f"<b>📊 Bot statistics</b>\n" \
-               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-               f"<b>🔶 Users: 🔶</b>\n" \
-               f"👤 Users Total: <code>{len(get_users)}</code>\n" \
-               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-               f"<b>🔶 Finance 🔶</b>\n" \
-               f"💸 Sales for 24 hours: <code>{show_profit_day}R</code>\n" \
-               f"💸 Sales for a week: <code>{show_profit_week}R</code>\n" \
-               f"💸 Sales for a time: <code>{show_profit_all}R</code>\n" \
-               f"💳 Money in System: <code>{show_money_users}R</code>\n" \
-               f"💰 Charged for a 24 hours: <code>{show_refill_day}R</code>\n" \
-               f"💰 Charged for a week: <code>{show_refill_week}R</code>\n" \
-               f"💰 Charged All: <code>{show_refill_all}R</code>\n" \
-               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-               f"<b>🔶 Other 🔶</b>\n" \
-               f"🎁 Digital Items: <code>{len(get_items)}pcs</code>\n" \
-               f"📁 Positions: <code>{len(get_positions)}pcs</code>\n" \
-               f"🗃 Categories: <code>{len(get_categories)}pcs</code>\n" \
-               f"🎁 Products Sold: <code>{show_buy_items}pcs</code>\n"
-
-    '''return f"<b>📊 Статистика бота</b>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-           f"<b>🔶 Пользователи: 🔶</b>\n" \
-           f"👤 Пользователей: <code>{len(get_users)}</code>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-           f"<b>🔶 Средства 🔶</b>\n" \
-           f"💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n" \
-           f"💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n" \
-           f"💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n" \
-           f"💳 Средств в системе: <code>{show_money_users}₽</code>\n" \
-           f"💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n" \
-           f"💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n" \
-           f"💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n" \
-           f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-           f"<b>🔶 Прочее 🔶</b>\n" \
-           f"🎁 Товаров: <code>{len(get_items)}шт</code>\n" \
-           f"📁 Позиций: <code>{len(get_positions)}шт</code>\n" \
-           f"🗃 Категорий: <code>{len(get_categories)}шт</code>\n" \
-           f"🎁 Продано товаров: <code>{show_buy_items}шт</code>\n" \
-           f"Пользователи по городам:{show_city_users}"
-
-
+        return f"<b>📊 Статистика бота</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\nПродано товаров: <code>{show_buy_items}шт</code>\n🎁 По городам: <code>{show_city_users}</code>\n"
     if lang == "en":
         return f"<b>📊 Bot statistics</b>\n" \
                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
@@ -840,7 +1041,8 @@ def get_statisctics(lang):
                f"📁 Positions: <code>{len(get_positions)}pcs</code>\n" \
                f"🗃 Categories: <code>{len(get_categories)}pcs</code>\n" \
                f"🎁 Products Sold: <code>{show_buy_items}pcs</code>\n" \
-               f"Users in Cities:{show_city_users}"'''
+               f" Users in Cities: {show_city_users}"
+
 
 
 # Открытие профиля при поиске

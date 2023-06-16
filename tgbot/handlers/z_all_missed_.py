@@ -28,7 +28,7 @@ async def missed_callback(call: CallbackQuery, state: FSMContext):
 
     await call.message.answer(_("<b>❌ Данные не были найдены из-за перезапуска скрипта.\n"
                               "♻ Выполните действие заново.</b>", locale=lang),
-                              reply_markup=menu_frep(call.from_user.id))
+                              reply_markup=menu_frep(call.from_user.id, lang))
 
 # Обработка всех неизвестных команд
 @dp.message_handler()

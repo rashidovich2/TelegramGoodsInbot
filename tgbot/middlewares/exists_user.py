@@ -48,7 +48,7 @@ class ExistsUserMiddleware(BaseMiddleware):
                 if get_user is None:
                     user_lang = 'ru'
 
-                    add_userx(user_id, user_login.lower(), user_name, user_lang)
+                    add_userx(user_id, user_login.lower(), user_name, user_lang, "User")
                     if user_login:
                         await notify(dp, f"В боте новый пользователь:@{user_login}!")
                     else:

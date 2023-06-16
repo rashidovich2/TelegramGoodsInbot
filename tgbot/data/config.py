@@ -15,6 +15,7 @@ PATH_DATABASE = 'tgbot/data/database.db'  # Путь к БД
 PATH_LOGS = 'tgbot/data/logs.log'  # Путь к Логам
 BOT_VERSION = '1.0'
 I18N_DOMAIN = 'mybot'
+DEFAULT_LANGUAGE = read_config['settings']['default_language'].strip()
 rd = Path(__file__).parents
 BASE_DIR = rd[1]
 LOCALES_DIR = str(f"{BASE_DIR}{os.sep}locales")

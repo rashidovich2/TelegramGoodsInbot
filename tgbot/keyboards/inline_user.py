@@ -19,7 +19,6 @@ _ = i18n.gettext
 # Кнопки при поиске профиля через админ-меню
 def refill_open_finl(lang):
     keyboard = InlineKeyboardMarkup()
-    #print(lang)
 
     k1 = InlineKeyboardButton(_("💰 Пополнить", locale=lang), callback_data="user_refill")
     keyboard.insert(k1)
@@ -28,22 +27,25 @@ def refill_open_finl(lang):
 
 def profile_open_finl(lang):
     print(lang)
+    print("buyerway")
     keyboard = InlineKeyboardMarkup()
     if lang == "ru":
+        print("rumenu")
         topupbtn = "💰 Пополнить"
         mybuyes = "🎁 Мои покупки"
         pcbtn = "➰ Ввести промокод"
         chcbtn = "📡 Изменить город"
     if lang == "en":
+        print("engmenu")
         topupbtn = "💰 Top Up"
-        mybuyes = "🎁 My buyes"
-        pcbtn = "➰ Enter promocode"
-        chcbtn = "📡 Change city"
+        mybuyes = "🎁 My Purchases"
+        pcbtn = "➰ Enter Promocode"
+        chcbtn = "📡 Change City"
 
     k1 = InlineKeyboardButton(topupbtn, callback_data="user_refill"),
     k2 = InlineKeyboardButton(mybuyes, callback_data="user_history"),
     k3 = InlineKeyboardButton(pcbtn, callback_data="enter_promocode"),
-    k4 = InlineKeyboardButton(chcbtn, callback_data="edit_locatoin")
+    k4 = InlineKeyboardButton(chcbtn, callback_data="edit_location")
     keyboard.insert(k1)
     keyboard.insert(k2)
     keyboard.insert(k3)
@@ -53,20 +55,25 @@ def profile_open_finl(lang):
 
 def profile_seller_open_finl(lang):
     print(lang)
+    print("sellway")
     keyboard = InlineKeyboardMarkup()
-    if lang == "ru":
+    if lang == 'ru':
+        print("rumenu")
         topupbtn = "💰 Пополнить"
         mybuyes = "🎁 Мои покупки"
         pcbtn = "➰ Ввести промокод"
         chcbtn = "📡 Изменить город"
         chsdbtn = "🚛 Изменить настройки доставки"
-    if lang == "en":
+        print("rumenu2")
+    if lang == 'en':
+        print("engmenu")
         topupbtn = "💰 Top Up"
-        mybuyes = "🎁 My buyes"
-        pcbtn = "➰ Enter promocode"
-        chcbtn = "📡 Change city"
-        chsdbtn = "🚛 Change delivery settings"
+        mybuyes = "🎁 My Purchases"
+        pcbtn = "➰ Enter Promocode"
+        chcbtn = "📡 Change City"
+        chsdbtn = "🚛 Change Delivery Settings"
 
+    print("rumenu3")
     k1 = InlineKeyboardButton(topupbtn, callback_data="user_refill"),
     k2 = InlineKeyboardButton(mybuyes, callback_data="user_history"),
     k3 = InlineKeyboardButton(pcbtn, callback_data="enter_promocode"),
@@ -77,6 +84,7 @@ def profile_seller_open_finl(lang):
     keyboard.insert(k3)
     keyboard.insert(k4)
     keyboard.insert(k5)
+    print("rumenu4")
 
     return keyboard
 
@@ -138,6 +146,8 @@ def refill_choice_finl(lang): #lang
     get_payments = get_paymentx()
     print(get_payments)
 
+    #currencies = ['USDT', 'BUSD', 'USDC', 'BTC', 'ETH', 'TON', 'BNB']
+    currencies = ["USDT", "BUSD", "USDC", "BTC", "ETH", "TON", "BNB"]
     active_kb = []
 
     if get_payments['way_form'] == "True":
@@ -149,8 +159,30 @@ def refill_choice_finl(lang): #lang
     if get_payments['way_formy'] == "True":
         active_kb.append(InlineKeyboardButton(_("📋 Yoo форма", locale=lang), callback_data="refill_choice:ForYm"))
     if get_payments['way_coinbase'] == "True":
-        active_kb.append(InlineKeyboardButton("📋 USDT", callback_data="refill_choice:CoinBase"))
+        active_kb.append(InlineKeyboardButton("USDT", callback_data="refill_choice:Tron:USDT"))
+        active_kb.append(InlineKeyboardButton("TRX", callback_data="refill_choice:Tron:TRX"))
+        active_kb.append(InlineKeyboardButton("BTC BEP20", callback_data="refill_choice:BTCB"))
 
+    if len(active_kb) == 9:
+        keyboard.add(active_kb[0], active_kb[1])
+        keyboard.add(active_kb[2], active_kb[3])
+        keyboard.add(active_kb[4], active_kb[5])
+        keyboard.add(active_kb[6], active_kb[7])
+        keyboard.add(active_kb[8])
+    if len(active_kb) == 8:
+        keyboard.add(active_kb[0], active_kb[1])
+        keyboard.add(active_kb[2], active_kb[3])
+        keyboard.add(active_kb[4], active_kb[5])
+        keyboard.add(active_kb[6], active_kb[7])
+    if len(active_kb) == 7:
+        keyboard.add(active_kb[0], active_kb[1])
+        keyboard.add(active_kb[2], active_kb[3])
+        keyboard.add(active_kb[4], active_kb[5])
+        keyboard.add(active_kb[6])
+    if len(active_kb) == 6:
+        keyboard.add(active_kb[0], active_kb[1])
+        keyboard.add(active_kb[2], active_kb[3])
+        keyboard.add(active_kb[4], active_kb[5])
     if len(active_kb) == 5:
         keyboard.add(active_kb[0], active_kb[1])
         keyboard.add(active_kb[2], active_kb[3])
@@ -209,7 +241,7 @@ def open_deep_link_object_finl(object_id, category_id, remover, city_id):
             InlineKeyboardButton(
                 _("✅ Открыть", locale=lang),
                 callback_data=f"buy_position_open:{object_id}:{category_id}:{remover}:{city_id}",
-            )  # f"Open:{object}:id:{object_id}")
+            )
         )
         .add(
             InlineKeyboardButton(
@@ -217,6 +249,18 @@ def open_deep_link_object_finl(object_id, category_id, remover, city_id):
             )
         )
     )
+
+# Проверка киви платежа
+def refill_bill_crypto_finl(get_way, type_net, receipt, lang):
+    print(get_way, type_net, receipt, lang)
+    return (InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                _("🔄 Проверить оплату", locale=lang), callback_data=f"Pay:{get_way}:{type_net}:{receipt}",
+            )
+        )
+    )
+
+
 
 # Проверка киви платежа
 def refill_bill_finl(send_requests, get_receipt, get_way, lang):
@@ -420,6 +464,19 @@ def switch_category_shop_finl():
             InlineKeyboardButton(
                 _("⬅ Вернуться ↩", locale=lang),
                 callback_data=f"buy_position_return:{remover}:{category_id}",
+            )
+        )
+    )
+
+
+# Возврат в профиль
+def back_to_profile_finl(lang):
+    return (
+        InlineKeyboardMarkup()
+            .add(
+            InlineKeyboardButton(
+                _("🌀 Вернуться в профиль", locale=lang),
+                callback_data="user_profile",
             )
         )
     )

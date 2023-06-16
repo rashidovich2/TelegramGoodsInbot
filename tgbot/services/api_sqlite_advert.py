@@ -138,6 +138,13 @@ def get_tgaccount_statecounts(account_id):
         return con.execute(f"{sql}WHERE account_id = ?", [account_id]).fetchone()
 
 # Получение всех запросов продавцов
+def get_all_tgaccounts_phones_to_invite():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = "SELECT phone, tg_api_id, tg_api_hash FROM storage_tgaccounts WHERE state='available' LIMIT 3"
+        return con.execute(sql).fetchall()
+
+# Получение всех запросов продавцов
 def get_all_tgaccounts_to_invite():
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
@@ -178,6 +185,13 @@ def get_all_tgaccounts_time():
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
         sql = "SELECT * FROM storage_tgaccounts ORDER BY date(waitfor24) ASC"
+        return con.execute(sql).fetchall()
+
+# Получение номеров по статусам
+def get_all_tgaccounts_phones_to_invite():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = "SELECT * FROM storage_tgaccounts"
         return con.execute(sql).fetchall()
 
 # Получение номеров по статусам
@@ -321,6 +335,20 @@ def firstgeo_tosend(state, start, count):
         sql = f"SELECT * FROM storage_tgparse WHERE sendstate = ? AND source = 'geoparse' ORDER BY acc_id ASC LIMIT {start},{count}"
         return con.execute(sql, [state]).fetchall()
         #return con.execute(sql).fetchall()
+
+# Пользователи группы для инвайта
+def first_groupsavtoinvite():
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = f"SELECT group_id, groupname, COUNT(acc_id) as counta FROM storage_tgparse WHERE state = 'created' AND source = 'groups' ORDER BY counta DESC"
+        return con.execute(sql).fetchall()
+
+# Пользователи группы для инвайта
+def first_idsgrouptoinvitebyid(groupid, start, count):
+    with sqlite3.connect(PATH_DATABASE) as con:
+        #con.row_factory = dict_factory
+        sql = f"SELECT acc_id FROM storage_tgparse WHERE state = 'created' AND source = 'groups' AND group_id=? ORDER BY acc_id ASC LIMIT {start},{count}"
+        return con.execute(sql, [groupid]).fetchall()
 
 # Пользователи группы для инвайта
 def first_grouptoinvitebyid(groupid, start, count):

@@ -11,7 +11,7 @@ from tgbot.data.config import I18N_DOMAIN, LOCALES_DIR
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.dispatcher.middlewares import BaseMiddleware
-from tgbot.services.api_sqlite import get_user_lang
+from tgbot.services.api_sqlite import get_user_lang, get_userx
 #from aiogram.contrib.middlewares.i18n import I18nMiddleware as BaseMiddleware
 
 #from tgbot.data.config import I18N_DOMAIN, LOCALES_DIR
@@ -125,6 +125,19 @@ class I18nMiddleware(BaseMiddleware):
             *_, data = args
             language = data['locale'] = locale.language
             return language
+
+    async def get_user_locale2(self, user_id) -> str:
+        """
+        User locale getter
+        You can override the method if you want to use different way of getting user language.
+
+        :param action: event name
+        :param args: event arguments
+        :return: locale name
+        """
+        user_lang = get_userx(user_id=user_id)['user_lang']
+        if len(user_lang) == 0: user_lang = "ru"
+        return user_lang
 
     async def set_user_locale(self, locale: str) -> None:
         if user := types.User.get_current():

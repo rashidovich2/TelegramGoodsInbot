@@ -8,6 +8,7 @@ from tgbot.data.config import get_admins
 user_commands = [
     BotCommand("start", "♻ Перезапустить бота"),
     BotCommand("lang", "Изменить язык"),
+    BotCommand("edit_location", "📡 Изменить город"),
     BotCommand("support", "☎ Поддержка"),
     BotCommand("user_seller_request", "Я продавец"),
     BotCommand("faq", "ℹ FAQ"),
@@ -17,6 +18,7 @@ user_commands = [
 admin_commands = [
     BotCommand("start", "♻ Перезапустить бота"),
     BotCommand("lang", "Изменить язык"),
+    BotCommand("edit_location", "📡 Изменить город"),
     BotCommand("support", "☎ Поддержка"),
     BotCommand("faq", "ℹ FAQ"),
     BotCommand("check_seller_requests", "Заявки в продавцы"),

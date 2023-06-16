@@ -7,7 +7,7 @@ from aiogram.utils.deep_linking import get_start_link, decode_payload
 import gettext
 from pathlib import Path
 from contextvars import ContextVar
-from tgbot.data.config import I18N_DOMAIN, LOCALES_DIR
+from tgbot.data.config import I18N_DOMAIN, LOCALES_DIR, DEFAULT_LANGUAGE
 
 from tgbot.keyboards.inline_user import user_support_finl, open_deep_link_object_finl, lang_menu_finl, lang_menu_ext_finl
 from tgbot.keyboards.reply_z_all import menu_frep
@@ -16,7 +16,7 @@ from tgbot.loader import dp
 from tgbot.services.api_sqlite import get_settingsx, get_userx, get_positionx, update_userx, get_user_lang
 from tgbot.utils.misc.bot_filters import IsBuy, IsRefill, IsWork
 from tgbot.utils.misc_functions import get_position_of_day
-from tgbot.services.location_function import is_location
+from tgbot.services.location_function import is_location, add_city
 from tgbot.services.lang_function import is_lang
 from tgbot.services.location_stat import geo_choice
 from tgbot.keyboards.location_keyboards import geo_11_kb
@@ -131,7 +131,7 @@ async def main_start(message: Message, state: FSMContext):
     type_trade = get_settings['type_trade']
 
     if is_lang(message.from_user.id) == False:
-        lang = "en"
+        lang = DEFAULT_LANGUAGE
         await message.answer("Выберите язык", reply_markup=lang_menu_finl(lang))
     else:
         lang = get_userx(user_id=message.from_user.id)['user_lang']
@@ -141,7 +141,9 @@ async def main_start(message: Message, state: FSMContext):
         print("loco is not present")
         print("hybrid|real")
         if message.text == '⬆️ Выбрать город позже':
-            await message.answer("🔸 Город не определен. Бот готов к использованию.\n"
+            add_city(1, "Москва", message.from_user.id)
+            await message.answer("🔸 Город не определен. Вам показываются позиции в городе Москва.\n"
+                                 "🔸 Бот готов к использованию.\n"
                                  "🔸 Если не появились вспомогательные кнопки.\n"
                                  "▶ Введите /start",
                                  reply_markup=menu_frep(message.from_user.id, lang))
@@ -149,6 +151,7 @@ async def main_start(message: Message, state: FSMContext):
         elif is_location(message.from_user.id) == True:
             print("loco is present")
             await message.answer(f"🔸 Город определен. Бот готов к использованию.\n"
+                                 "🔸 Выберите один из разделов[Купить, Продать, Магазины, Афиша].\n"
                                  "🔸 Если не появились вспомогательные кнопки.\n"
                                  "▶ Введите /start",
                                  reply_markup=menu_frep(message.from_user.id, lang))
@@ -162,11 +165,16 @@ async def main_start(message: Message, state: FSMContext):
                              "▶ Введите /start",
                              reply_markup=menu_frep(message.from_user.id, lang))
 
-
 @dp.message_handler(commands='lang')
 async def cmd_lang(message: Message):
     lang = get_userx(user_id=message.from_user.id)['user_lang']
     await message.answer("Выберите язык: ", reply_markup=lang_menu_finl(lang))
+
+@dp.message_handler(commands='edit_location')
+async def cmd_location(message: Message):
+    await geo_choice.location.set()
+    #lang = get_userx(user_id=message.from_user.id)['user_lang']
+    await message.answer("Выберите Ваш город: ", reply_markup=geo_11_kb())
 
 @dp.callback_query_handler(text_startswith="lang", state="*")
 async def language_was_selected(call: CallbackQuery, state: FSMContext):

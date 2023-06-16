@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="1a816423-3e7d-4c8e-87b0-1b3045c22518" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/123" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/autoshopDjimbo3.1.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.ini" beforeDir="false" afterPath="$PROJECT_DIR$/settings.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/data/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/data/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/data/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/data/database.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/data/logs.log" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/data/logs.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_menu.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_menu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_payment.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_payment.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_products.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_products.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_products_shop.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_products_shop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/main_start.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/main_start.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/user_location.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/user_location.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/user_menu.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/user_menu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/user_transactions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/user_transactions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/z_all_errors.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/z_all_errors.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/handlers/z_all_missed_.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/z_all_missed_.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/keyboards/inline_admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/keyboards/inline_admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/keyboards/inline_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/keyboards/inline_user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/keyboards/inline_z_all.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/keyboards/inline_z_all.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/keyboards/inline_z_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/keyboards/inline_z_page.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/keyboards/location_keyboards.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/keyboards/location_keyboards.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/keyboards/reply_z_all.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/keyboards/reply_z_all.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/keyboards/shop_keyboards.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/keyboards/shop_keyboards.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/loader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/middlewares/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/middlewares/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/middlewares/exists_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/middlewares/exists_user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/middlewares/throttling.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/middlewares/throttling.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/services/api_qiwi.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/services/api_qiwi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/services/api_session.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/services/api_session.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/services/api_sqlite.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/services/api_sqlite.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/services/api_sqlite_shop.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/services/api_sqlite_shop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/services/location_function.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/services/location_function.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/services/location_stat.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/services/location_stat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/utils/const_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/utils/const_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/utils/misc/bot_commands.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/utils/misc/bot_commands.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/utils/misc/bot_filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/utils/misc/bot_filters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/utils/misc/bot_logging.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/utils/misc/bot_logging.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/utils/misc_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/utils/misc_functions.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Setup Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="ProjectId" id="2GoMIDEecWP0SmO5bEGV2ogWiZA" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="bot3101f" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1a816423-3e7d-4c8e-87b0-1b3045c22518" name="Changes" comment="" />
+      <created>1667050422078</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1667050422078</updated>
+      <workItem from="1667050433375" duration="435000" />
+      <workItem from="1667100977352" duration="3049000" />
+      <workItem from="1667145726047" duration="259000" />
+      <workItem from="1667148978419" duration="6637000" />
+      <workItem from="1669938716353" duration="50000" />
+      <workItem from="1670195928026" duration="1417000" />
+      <workItem from="1670197783097" duration="1769000" />
+      <workItem from="1670199615965" duration="1760000" />
+      <workItem from="1670201438230" duration="1730000" />
+      <workItem from="1670203394544" duration="876000" />
+      <workItem from="1670677002186" duration="1617000" />
+      <workItem from="1670684831990" duration="6509000" />
+      <workItem from="1670710764439" duration="4103000" />
+      <workItem from="1670766931809" duration="14009000" />
+      <workItem from="1670800072874" duration="782000" />
+      <workItem from="1672316279787" duration="4753000" />
+      <workItem from="1672344550032" duration="134000" />
+      <workItem from="1672344701852" duration="638000" />
+      <workItem from="1672414520242" duration="4677000" />
+      <workItem from="1672530008203" duration="91000" />
+      <workItem from="1672530174975" duration="209000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+</project>

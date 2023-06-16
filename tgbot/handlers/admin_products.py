@@ -26,13 +26,13 @@ i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 _ = i18n.gettext
 
 # Открытие страниц выбора категорий для редактирования
-@dp.message_handler(text="🗃 Изменить категорию 🖍", state="*")
+@dp.message_handler(text=["🗃 Изменить категорию 🖍", "🗃 Edit category 🖍"], state="*")
 async def product_category_edit(message: Message, state: FSMContext):
     user_id = message.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
     user_role = get_userx(user_id=user_id)['user_role']
 
-    if user_role == "Admin":
+    if user_role in ["Admin", "ShopAdmin"]:
         if len(get_all_categoriesx()) >= 1:
             await state.finish()
             await message.answer(_("<b>🗃 Выберите категорию для изменения 🖍</b>", locale=lang),
@@ -43,18 +43,20 @@ async def product_category_edit(message: Message, state: FSMContext):
 
 
 # Окно с уточнением удалить все категории (позиции и товары включительно)
-@dp.message_handler(IsAdmin(), text="🗃 Удалить все категории ❌", state="*")
+@dp.message_handler(text=["🗃 Удалить все категории ❌", "🗃 Delete all categories ❌"], state="*")
 async def product_category_remove(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
+    user_role = get_userx(user_id=user_id)['user_role']
 
-    await message.answer(_("<b>🗃 Вы действительно хотите удалить все категории? ❌</b>\n"
-                         "❗ Так же будут удалены все позиции и товары", locale=lang),
-                         reply_markup=category_remove_confirm_inl)
+    if user_role in ["Admin", "ShopAdmin"]:
+        await message.answer(_("<b>🗃 Вы действительно хотите удалить все категории? ❌</b>\n"
+                             "❗ Так же будут удалены все позиции и товары", locale=lang),
+                             reply_markup=category_remove_confirm_inl)
 
 # Начальные категории для изменения позиции
-@dp.message_handler(text="📁 Изменить позицию 🖍", state="*")
+@dp.message_handler(text="📁 Изменить позицию 🖍2", state="*")
 async def product_position_edit(message: Message, state: FSMContext):
     print('📁 Изменить позицию 🖍  admin_products.py 73')
     await state.finish()
@@ -66,18 +68,19 @@ async def product_position_edit(message: Message, state: FSMContext):
                              reply_markup=position_edit_category_open_fp(0, lang))
 
 # Подтверждение удаления всех позиций
-@dp.message_handler(IsAdmin(), text="📁 Удалить все позиции ❌", state="*")
+@dp.message_handler(text=["📁 Удалить все позиции ❌", "📁 Delete all positions ❌"], state="*")
 async def product_position_remove(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
-
-    await message.answer(_("<b>📁 Вы действительно хотите удалить все позиции? ❌</b>\n"
-                         "❗ Так же будут удалены все товары", locale=lang),
-                         reply_markup=position_remove_confirm_inl)
+    user_role = get_userx(user_id=user_id)['user_role']
+    if user_role == "Admin":
+        await message.answer(_("<b>📁 Вы действительно хотите удалить все позиции? ❌</b>\n"
+                             "❗ Так же будут удалены все товары", locale=lang),
+                             reply_markup=position_remove_confirm_inl)
 
 # Начальные категории для добавления товаров
-@dp.message_handler(text="🎁 Добавить товары ➕", state="*")
+@dp.message_handler(text=["🎁 Добавить товары ➕", "🎁 Add Goods➕"], state="*")
 async def product_item_create(message: Message, state: FSMContext):
     print('🎁 Добавить товары ➕  admin_products_shop.py 93')
     await state.finish()
@@ -94,30 +97,34 @@ async def product_item_create(message: Message, state: FSMContext):
 
 
 # Удаление определённых товаров
-@dp.message_handler(IsAdmin(), text="🎁 Удалить товары 🖍", state="*")
+@dp.message_handler(text=["🎁 Удалить товары 🖍", "🎁 Delete Goods 🖍"], state="*")
 async def product_item_delete(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
+    user_role = get_userx(user_id=user_id)['user_role']
 
-    await state.set_state("here_items_delete")
-    await message.answer(_("<b>🖍 Вводите айди товаров, которые нужно удалить</b>\n"
-                         "❕ Получить айди товаров можно при изменении позиции\n"
-                         "❕ Если хотите удалить несколько товаров, отправьте ID товаров через запятую или пробел. Пример:\n"
-                         "<code>▶ 123456,123456,123456</code>\n"
-                         "<code>▶ 123456 123456 123456</code>", locale=lang))
+    if user_role == "Admin":
+        await state.set_state("here_items_delete")
+        await message.answer(_("<b>🖍 Вводите айди товаров, которые нужно удалить</b>\n"
+                             "❕ Получить айди товаров можно при изменении позиции\n"
+                             "❕ Если хотите удалить несколько товаров, отправьте ID товаров через запятую или пробел. Пример:\n"
+                             "<code>▶ 123456,123456,123456</code>\n"
+                             "<code>▶ 123456 123456 123456</code>", locale=lang))
 
 
 # -------------------------------------------------------------------------------------------------------------------
 # Кнопки с подтверждением удаления всех категорий
-@dp.message_handler(IsAdmin(), text="🎁 Удалить все товары ❌", state="*")
+@dp.message_handler(text=["🎁 Удалить все товары ❌", "🎁 Delete All Goods ❌"], state="*")
 async def product_item_remove(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
+    user_role = get_userx(user_id=user_id)['user_role']
 
-    await message.answer(_("<b>🎁 Вы действительно хотите удалить все товары? ❌</b>\n", locale=lang),
-                         reply_markup=item_remove_confirm_inl)
+    if user_role == "Admin":
+        await message.answer(_("<b>🎁 Вы действительно хотите удалить все товары? ❌</b>\n", locale=lang),
+                             reply_markup=item_remove_confirm_inl)
 
 
 ################################################################################################
@@ -181,7 +188,7 @@ async def product_category_edit_open(call: CallbackQuery, state: FSMContext):
     if lang == "en":
         await call.message.edit_text(f"<b>🗃 Category: <code>{get_category['category_name']}</code></b>\n"
                                      "➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                                     f"📁 Poition quantity: <code>{get_fat_count}шт</code>",
+                                     f"📁 Position quantity: <code>{get_fat_count}pcs</code>",
                                      reply_markup=category_edit_open_finl(category_id, remover, lang))
 
 

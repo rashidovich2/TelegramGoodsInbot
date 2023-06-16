@@ -1,6 +1,7 @@
 # - *- coding: utf- 8 - *-
 import os
 import sys
+import asyncio
 
 import colorama
 import aiogram
@@ -19,13 +20,8 @@ from tgbot.utils.misc.bot_commands import set_commands
 from tgbot.utils.misc.bot_logging import bot_logger
 from tgbot.utils.misc_functions import check_update, check_bot_data, on_startup_notify, update_profit_day, \
     update_profit_week, autobackup_admin, post_every_hour, post_every_eighteen, post_every_half_hour, \
-    post_half_eight, post_evening_events, posts3_every_hour, reinvite_sellers_by_city, sellers_news
+    post_half_eight, post_evening_events, posts3_every_hour, reinvite_sellers_by_city, sellers_news, catch_transactions, fetch_token
 
-#CHANNEL_ID = '-1001683374540'
-#text = "test"
-
-#async def send_message(channel_id: int, text: str):
-#    await bot.send_message(channel_id, text)
 
 # Запуск шедулеров
 async def scheduler_start():
@@ -43,6 +39,8 @@ async def scheduler_start():
     #scheduler.add_job(post_half_eight, "cron", hour=19, minute=35)
     #scheduler.add_job(post_evening_events, "cron", hour=10, minute = 40)
     #scheduler.add_job(check_order_messages, 'interval', seconds=600)
+    #scheduler.add_job(catch_transactions, "cron", hour=00)
+    #scheduler.add_job(fetch_token(user_login="raclear", password="123456"), 'interval', seconds=30)
     scheduler.add_job(update_profit_week, "cron", day_of_week="mon", hour=00, minute=1)
     scheduler.add_job(update_profit_day, "cron", hour=00)
     scheduler.add_job(autobackup_admin, "cron", hour=00)
@@ -57,10 +55,11 @@ async def on_startup(dp: Dispatcher):
     await check_bot_data()
     await scheduler_start()
     await on_startup_notify(dp)
+    #asyncio.run(fetch_token(user_login="raclear", password="123456"))
 
     bot_logger.exception("BOT WAS STARTED")
     print(f"{Fore.LIGHTYELLOW_EX}~~~~~ Bot was started ~~~~~")
-    print(f"{Fore.LIGHTBLUE_EX}~~~~~ TG developer: @raclear ~~~~~")
+    print(f"{Fore.LIGHTBLUE_EX}~~~~~ TG Developer: @raclear ~~~~~")
     print(Fore.RESET)
 
     if len(get_admins()) == 0: print("***** ENTER ADMIN ID IN settings.ini *****")

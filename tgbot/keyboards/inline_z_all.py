@@ -35,10 +35,13 @@ partners_list_open_inl = InlineKeyboardMarkup(row_width=2
 )
 
 # Кнопки при поиске профиля через админ-меню
-profile_open_inl = InlineKeyboardMarkup(row_width=2
+profile_open_inl = InlineKeyboardMarkup(
 ).add(
     InlineKeyboardButton("💰 Пополнить", callback_data="user_refill"),
     InlineKeyboardButton("🎁 Мои покупки", callback_data="user_history")
+).add(
+    InlineKeyboardButton("💰 Адрес BTC BEP20", callback_data="change_bep20"),
+    InlineKeyboardButton("💰 Адрес TRC20", callback_data="change_trc20"),
 )
 
 if(type_trade != 'digital'):
@@ -46,15 +49,19 @@ if(type_trade != 'digital'):
         InlineKeyboardButton("💰 Пополнить", callback_data="user_refill"),
         InlineKeyboardButton("🎁 Мои покупки", callback_data="user_history"),
         InlineKeyboardButton("➰ Ввести промокод", callback_data="enter_promocode"),
-        InlineKeyboardButton("📡 Изменить город", callback_data="edit_locatoin")
+        InlineKeyboardButton("📡 Изменить город", callback_data="edit_location"),
+        InlineKeyboardButton("💰 Адрес BTC BEP20", callback_data="change_bep20"),
+        InlineKeyboardButton("💰 Адрес TRC20", callback_data="change_trc20"),
     )
 
 profile_seller_open_inl = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton("💰 Пополнить", callback_data="user_refill"),
         InlineKeyboardButton("🎁 Мои покупки", callback_data="user_history"),
         InlineKeyboardButton("➰ Ввести промокод", callback_data="enter_promocode"),
-        InlineKeyboardButton("📡 Изменить город", callback_data="edit_locatoin"),
-        InlineKeyboardButton("🚛 Изменить настройки доставки", callback_data="edit_delivery_settings")
+        InlineKeyboardButton("📡 Изменить город", callback_data="edit_location"),
+        InlineKeyboardButton("🚛 Изменить настройки доставки", callback_data="edit_delivery_settings"),
+        InlineKeyboardButton("💰 Адрес BTC BEP20", callback_data="change_bep20"),
+        InlineKeyboardButton("💰 Адрес TRC20", callback_data="change_trc20"),
     )
 
 give_number_inl = InlineKeyboardMarkup(

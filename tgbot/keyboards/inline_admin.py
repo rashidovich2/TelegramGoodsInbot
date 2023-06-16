@@ -252,9 +252,9 @@ def shop_name_edit_open_finl(shop_id, user_id, remover, lang):
         dbtn = "❌ Удалить"
         bbtn = "⬅ Вернуться ↩"
     if lang == "en":
-        ebtn = "🏷 Изм. название"
-        dbtn = "❌ Удалить"
-        bbtn = "⬅ Вернуться ↩"
+        ebtn = "🏷 Change Name"
+        dbtn = "❌ Delete"
+        bbtn = "⬅ Back Up ↩"
 
     return (
         InlineKeyboardMarkup()
@@ -283,9 +283,9 @@ def shop_description_edit_open_finl(shop_id, user_id, remover, lang):
         dbtn = "❌ Удалить"
         bbtn = "⬅ Вернуться ↩"
     if lang == "en":
-        ebtn = "🏷 Изм. описание"
-        dbtn = "❌ Удалить"
-        bbtn = "⬅ Вернуться ↩"
+        ebtn = "🏷 Change Name"
+        dbtn = "❌ Delete"
+        bbtn = "⬅ Back Up ↩"
 
     return (
         InlineKeyboardMarkup()
@@ -314,9 +314,9 @@ def category_edit_open_finl(category_id, remover, lang):
         dbtn = "❌ Удалить"
         bbtn = "⬅ Вернуться ↩"
     if lang == "en":
-        ebtn = "🏷 Изм. название"
-        dbtn = "❌ Удалить"
-        bbtn = "⬅ Вернуться ↩"
+        ebtn = "🏷 Change Name"
+        dbtn = "❌ Delete"
+        bbtn = "⬅ Back Up ↩"
 
     return (
         InlineKeyboardMarkup()
@@ -345,8 +345,8 @@ def category_edit_delete_finl(category_id, remover, lang):
         cbtn = "✅ Нет, отменить"
 
     if lang == "en":
-        dbtn = "❌ Yes, delete please"
-        cbtn = "✅ Нет, отменить"
+        dbtn = "❌ Yes, Delete Please"
+        cbtn = "✅ No, Cancel Please"
 
     return InlineKeyboardMarkup().add(
         ikb(
@@ -381,6 +381,7 @@ def shop_edit_delete_finl2(shop_id, remover, lang):
 
 # Кнопки при открытии позиции для изменения
 def position_edit_open_finl(position_id, category_id, remover, lang):
+    print(lang)
     if lang == "ru":
         chnbtn = "🏷 Изм. название"
         chpbtn = "💰 Изм. цену"
@@ -395,7 +396,7 @@ def position_edit_open_finl(position_id, category_id, remover, lang):
         prsbtn = "📥 Товары"
         delbtn = "❌ Удалить"
         backbtn = "⬅ Вернуться ↩"
-    if lang == "ru":
+    if lang == "en":
         chnbtn = "🏷 Edit Name"
         chpbtn = "💰 Edit Price"
         chdbtn = "📜 Edit Description"
@@ -547,7 +548,7 @@ def position_edit_delete_finl(position_id, category_id, remover, lang):
         dbtn = "❌ Да, удалить"
         cbtn = "✅ Нет, отменить"
     if lang == "en":
-        dbtn = "❌ Yes, delete"
+        dbtn = "❌ Yes, Delete"
         cbtn = "✅ No, Cancel"
 
     return InlineKeyboardMarkup().add(
@@ -568,8 +569,8 @@ def position_edit_clear_finl(position_id, category_id, remover, lang):
         clbtn = "❌ Да, очистить"
         ccbtn = "✅ Нет, отменить"
     if lang == "en":
-        clbtn = "❌ Yes, clear"
-        ccbtn = "✅ No, cancel"
+        clbtn = "❌ Yes, Clear"
+        ccbtn = "✅ No, Cancel"
 
     return InlineKeyboardMarkup().add(
         ikb(
@@ -670,12 +671,6 @@ def shop_edit_delete_finl(shop_id, user_id, lang):
         nobtn = "❌ Cancel Delete"
 
     return InlineKeyboardMarkup().add(
-        ikb(
-            yesbtn,
-            callback_data=f"shop_delete:yes:{shop_id}:{user_id}",
-        ),
-        ikb(
-            nobtn,
-            callback_data=f"shop_delete:not:{shop_id}:{user_id}",
-        ),
+        ikb(yesbtn, callback_data=f"shop_delete:yes:{shop_id}:{user_id}"),
+        ikb(nobtn, callback_data=f"shop_delete:not:{shop_id}:{user_id}"),
     )

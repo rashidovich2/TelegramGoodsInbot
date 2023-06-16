@@ -15,7 +15,7 @@ from tgbot.services.api_sqlite import get_all_categoriesx, get_itemsx, get_posit
     , get_position_on_city, get_category_in_city, get_shopsxx, get_paramposition_on_city, get_shopposition_on_city,\
     get_all_shopx, get_my_shopx, get_events_in_city, get_all_events, get_all_places, get_eventxx, get_events_in_place, \
     get_eventsxx,  get_artistsxx, get_category_in_cityx, get_shop_in_cityx, get_events_in_cityx, get_places_in_cityx, \
-    get_category_in_citypx
+    get_category_in_citypx, get_positionsorder, get_parent_cat, get_category_count, get_parent_catc
 
 cpage = 10
 
@@ -339,6 +339,7 @@ def position_people_create_open_fp(category_id, remover, level, parent, city_id,
     get_categories = get_category_in_citypx(parent_id=parent)
 
     print(len(get_categories))
+    print(category_id, remover, level, parent, city_id, action, lang)
 
     count = 0
     if city_id is None: city_id = 0
@@ -807,16 +808,16 @@ def position_edit_open_fp(remover, category_id, lang):
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    #order
     get_positions = get_positionsx(category_id=category_id)
+    #get_positions = get_positionsorder(category_id)
     keyboard = InlineKeyboardMarkup()
     print(get_positions)
 
     for count, a in enumerate(range(remover, len(get_positions))):
         if count < cpage:
-            #get_items = get_itemsx(position_id=get_positions[a]['position_id'])
-            #print(get_positions[a]['position_id'])
             keyboard.add(ikb(
-                f"{get_positions[a]['position_name']} | {get_positions[a]['position_price']}₽ |",  #{len(get_items)} шт",
+                f"{get_positions[a]['position_name']} | {get_positions[a]['position_price']}₽", # {len(get_items)} шт",
                 callback_data=f"position_edit:{get_positions[a]['position_id']}:{remover}:{category_id}"))
     if len(get_positions) <= 10:
         pass
@@ -828,12 +829,12 @@ def position_edit_open_fp(remover, category_id, lang):
     elif remover + cpage >= len(get_positions):
         keyboard.add(
             ikb(bwdbutton, callback_data=f"position_edit_backp:{remover - cpage}:{category_id}"),
-            ikb(f"🔸 {str(remover + cpage)[:-1]} 🔸", callback_data="...")
+            ikb(f"🔸 {str(remover + cpage)[:-1]}/{math.ceil(len(get_positions) / 10)} 🔸", callback_data="...")
         )
     else:
         keyboard.add(
             ikb(bwdbutton, callback_data=f"position_edit_backp:{remover - cpage}:{category_id}"),
-            ikb(f"🔸 {str(remover + cpage)[:-1]} 🔸", callback_data="..."),
+            ikb(f"🔸 {str(remover + cpage)[:-1]}/{math.ceil(len(get_positions) / 10)} 🔸", callback_data="..."),
             ikb(fwdbutton, callback_data=f"position_edit_nextp:{remover + cpage}:{category_id}"),
         )
     keyboard.add(ikb(bbutton, callback_data="position_edit_category_return"))
@@ -1061,27 +1062,34 @@ def request_seller_role(user_id, lang):
 #############################################################################################
 ####################################### ПОКУПКИ ТОВАРОВ #####################################
 # Страницы категорий при покупке товара
-def products_item_category_swipe_fp(remover, city_id, lang):
-    print(city_id)
+def products_item_category_swipe_fp(remover, parent_id, city_id, action, lang):
+    print(remover, parent_id, city_id, action, lang)
     #get_categories = get_category_in_city(city_id)
-    get_categories = get_category_in_cityx(position_city_id=city_id, position_type=1, flagallc=1)
+    #if parent_id == 0:
+    #    get_categories = get_category_in_cityx(level=1)
+    #else:
+    #category_precount = get_category_count(category_id)['countp']
+    #if category_precount == 0:
+    get_categories = get_category_in_cityx(parent_id=parent_id) #, position_city_id=city_id position_type=1, flagallc=1
 
     #get_categories = get_all_categoriesx()
     #lang = get_user_lang(user_id)['user_lang']
-    print(len(get_categories))
+    #print(get_categories, len(get_categories))
     #keyboard = InlineKeyboardMarkup()
     count = 0
 
-    if lang == 'ru':
+    if lang == "ru":
         fwdbutton = "Далее ➡"
         bwdbutton = "⬅ Назад"
-    elif lang == 'en':
+        bbbutton = "Вверх"
+    elif lang == "en":
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+        bbbutton = "Level Up"
 
     if city_id is None: city_id = 0
+    bbtntext = ""
 
-    #get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
 
     if remover >= len(get_categories): remover -= 10
@@ -1089,29 +1097,55 @@ def products_item_category_swipe_fp(remover, city_id, lang):
     keyboard.add(ikb(" Барахолка Вашего города ", callback_data="privateMarket"))
 
     for count, a in enumerate(range(remover, len(get_categories))):
-        if count < 10:
+        category_count = get_category_count(get_categories[a]['category_id'])['countp']
+        #print(category_count)
 
-            keyboard.add(ikb(get_categories[a]['category_name'],
-                             callback_data=f"buy_category_open:{get_categories[a]['category_id']}:{city_id}"))
+        if count < 10:
+            if get_categories[a]['level'] == 1 and action == "edit":
+                keyboard.add(ikb(f"{get_categories[a]['category_name']}",
+                                 callback_data=f"position_edit_category_swipe:{get_categories[a]['category_id']}:{city_id}:{lang}"))
+
+            elif get_categories[a]['level'] == 2 and action == "edit" or get_categories[a]['level'] == 1 and category_count > 0 and action == "edit":
+                keyboard.add(ikb(get_categories[a]['category_name'],
+                             callback_data=f"position_edit_category_open:{get_categories[a]['category_id']}:{city_id}:{lang}"))
+
+            elif get_categories[a]['level'] == 1 and category_count == 0 and action in ["open", "edit"]:
+                print("way3")
+                keyboard.add(ikb(get_categories[a]['category_name'],
+                                 callback_data=f"buy_category_swipe:{remover}:{get_categories[a]['category_id']}:{city_id}:{action}"))
+                #bbtntext = ikb(bbbutton, callback_data="start")
+
+            elif get_categories[a]['level'] == 2 and action == "create":
+                keyboard.add(ikb(get_categories[a]['category_name'],
+                                 callback_data=f"position_create_here:{get_categories[a]['category_id']}:{get_categories[a]['parent_id']}:{city_id}:{lang}"))
+                #bbtntext = ikb(bbbutton, callback_data=f"buy_category_swipe:{0}:{0}:{city_id}:{action}")
+
+            elif get_categories[a]['level'] == 2 and action == "open" or get_categories[a]['level'] == 1 and action == "open" and category_count > 0:
+                print("way5")
+                keyboard.add(ikb(get_categories[a]['category_name'],
+                                 callback_data=f"buy_category_open:{get_categories[a]['category_id']}:{city_id}"))
+                bbtntext = ikb(bbbutton, callback_data=f"buy_category_swipe:{0}:{0}:{city_id}:{action}")
+
 
     if len(get_categories) <= 10:
         pass
     elif remover < 10:
         keyboard.add(
             ikb(f"🔸 1/{math.ceil(len(get_categories) / 10)} 🔸", callback_data="..."),
-            ikb(fwdbutton, callback_data=f"buy_category_swipe:{remover + 10}:{city_id}"),
+            ikb(fwdbutton, callback_data=f"buy_category_swipe:{remover + 10}:{get_categories[a]['parent_id']}:{city_id}:{action}"),
         )
     elif remover + 10 >= len(get_categories):
         keyboard.add(
-            ikb(bwdbutton, callback_data=f"buy_category_swipe:{remover - 10}:{city_id}"),
+            ikb(bwdbutton, callback_data=f"buy_category_swipe:{remover - 10}:{get_categories[a]['parent_id']}:{city_id}:{action}"),
             ikb(f"🔸 {str(remover + 10)[:-1]}/{math.ceil(len(get_categories) / 10)} 🔸", callback_data="..."),
         )
     else:
         keyboard.add(
-            ikb(bwdbutton, callback_data=f"buy_category_swipe:{remover - 10}:{city_id}"),
+            ikb(bwdbutton, callback_data=f"buy_category_swipe:{remover - 10}:{get_categories[a]['parent_id']}:{city_id}:{action}"),
             ikb(f"🔸 {str(remover + 10)[:-1]}/{math.ceil(len(get_categories) / 10)} 🔸", callback_data="..."),
-            ikb(fwdbutton, callback_data=f"buy_category_swipe:{remover + 10}:{city_id}"),
+            ikb(fwdbutton, callback_data=f"buy_category_swipe:{remover + 10}:{get_categories[a]['parent_id']}:{city_id}:{action}"),
         )
+    keyboard.add(bbtntext)
 
     return keyboard
 
@@ -1406,20 +1440,25 @@ def products_item_shop_swipe_fp(remover, city_id, lang):
     return keyboard
 
 # Страницы позиций для покупки товаров
-def products_item_position_swipe_fp(remover, category_id, city_id, source, lang): # + source = people / commercial
+def products_item_position_swipe_fp(remover, action, category_id, city_id, source, lang): # + source = people / commercial
     source = str(source)
-    get_positions = get_positionsx(category_id=category_id)
-    print(remover, category_id, city_id, source)
+    if source == "people":
+        parent_category = get_parent_cat(category_id)[0]
+    elif source == "commerce":
+        parent_category = get_parent_catc(category_id)[0]
+    print(parent_category)
+    get_positions = get_positionsx(category_id=category_id, position_city_id=city_id)
+    print(remover, category_id, city_id, source, lang)
     print(get_positions)
     position_rest = 0
 
     keyboard = InlineKeyboardMarkup()
-    if lang == 'ru':
+    if lang == "ru":
         fwdbutton = "Далее ➡"
         bwdbutton = "⬅ Назад"
         bbutton = "⬅ Вернуться ↩"
 
-    elif lang == 'en':
+    elif lang == "en":
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
@@ -1435,9 +1474,15 @@ def products_item_position_swipe_fp(remover, category_id, city_id, source, lang)
             #get_items = len(get_itemsx(position_id=get_positions[a]['position_id']))
             if get_positions[a]['position_type'] == 1: position_rest = get_positions[a]['position_rest']
             if get_positions[a]['position_type'] == 2: position_rest = len(get_itemsx(position_id=get_positions[a]['position_id']))
-            keyboard.add(ikb(
-                f"{get_positions[a]['position_name']} | {get_positions[a]['position_price']}₽| {position_rest} шт",
-                callback_data=f"buy_position_open:{get_positions[a]['position_id']}:{category_id}:{remover}:{city_id}:{lang}"))
+
+            if action == "open":
+                keyboard.add(ikb(
+                    f"{get_positions[a]['position_name']} | {get_positions[a]['position_price']}₽| {position_rest} шт",
+                    callback_data=f"buy_position_open:{get_positions[a]['position_id']}:{category_id}:{remover}:{city_id}:{lang}"))
+            if action == "edit":
+                keyboard.add(ikb(
+                    f"{get_positions[a]['position_name']} | {get_positions[a]['position_price']}₽| {position_rest} шт",
+                    callback_data=f"position_edit:{get_positions[a]['position_id']}:{category_id}:{remover}:{city_id}:{lang}"))
 
     if len(get_positions) <= 10:
         pass
@@ -1458,7 +1503,7 @@ def products_item_position_swipe_fp(remover, category_id, city_id, source, lang)
             ikb(fwdbutton, callback_data=f"buy_position_swipe:{category_id}:{remover + 10}:{city_id}"),
         )
     keyboard.add(
-        ikb(bbutton, callback_data=f"buy_category_swipe:0:{city_id}")
+        ikb(bbutton, callback_data=f"buy_category_swipe:{0}:{parent_category}:{city_id}:{action}")
     )
 
     return keyboard

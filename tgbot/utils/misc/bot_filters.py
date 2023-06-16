@@ -5,12 +5,10 @@ from aiogram.dispatcher.filters import BoundFilter
 from tgbot.data.config import get_admins, get_shopadmins, is_shopadmin
 from tgbot.services.api_sqlite import get_settingsx, get_user_lang
 
-
 # Проверка на админа
 class IsAdmin(BoundFilter):
     async def check(self, message: types.Message):
         return message.from_user.id in get_admins()
-        #return True
 
 # Проверка на админа
 class IsShopAdmin(BoundFilter):

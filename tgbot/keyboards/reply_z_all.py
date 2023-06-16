@@ -7,8 +7,8 @@ from babel import Locale
 from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
 #from tgbot.middlewares.i18n import I18nMiddleware
 #from aiogram.contrib.middlewares.i18n import I18nMiddleware
-from tgbot.middlewares.i18n import I18nMiddleware
-i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
+#from tgbot.middlewares.i18n import I18nMiddleware
+#i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 #I18nMiddleware.setup_middlewares(i18n)
 #print(i18n)
 # Alias for gettext method
@@ -17,11 +17,9 @@ i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 
 # Кнопки главного меню
 def menu_frep(user_id, lang):
-    user_role=get_userx(user_id=user_id)
-    lang = get_user_lang(user_id)['user_lang']
-    print(lang)
-    user_role = "User" if user_role is None else user_role['user_role']
-    print(user_role)
+    user_role = get_userx(user_id=user_id)['user_role']
+    lang = get_userx(user_id=user_id)['user_lang']
+    user_role = "User" if user_role is None else user_role
 
     if lang == 'ru':
         buybtn = "🎁 Купить"
@@ -70,7 +68,7 @@ def menu_frep(user_id, lang):
         srbtn = "📊 Sales Report"
 
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.row(buybtn, sellbtn) # enbtn
+    keyboard.row(buybtn, sellbtn)
     keyboard.row(shopbtn, entbtn)
     keyboard.row(ptfbtn, tubtn, crtbtn)
 
@@ -83,11 +81,8 @@ def menu_frep(user_id, lang):
         keyboard.row(rsbtn, obtn, srbtn)
 
     if user_role == "ShopAdmin":
-        #print(f'вывод меню reply_z_all.py 28')
         keyboard.row(supbtn, prtbtn)
-        keyboard.row(pmbtn, psbtn) #, "🧮 Корзина") #, "🔑 Платежные системы") #, "📊 Статистика")
-        #keyboard.row("⚙ Настройки", "🔆 Общие функции", "🔑 Платежные системы")
-        #keyboard.row("Запросы продавцов", "Управление магазинами")
+        keyboard.row(pmbtn, psbtn)
 
     return keyboard
 
@@ -108,7 +103,7 @@ def shop_admin_frep(lang):
         sabtn = "Send Request"
         mmbtn = "⬅ Main Menu"
 
-    keyboard.row(sabtn) #"Отправить заявку"
+    keyboard.row(sabtn)
     keyboard.row(mmbtn)
 
     return keyboard
@@ -144,16 +139,18 @@ def functions_frep(lang):
     if lang == 'ru':
         fpbtn = "👤 Поиск профиля 🔍"
         msbtn = "📢 Рассылка"
+        mslbtn = "📢 Рассылка_lite"
         fcbtn = "🧾 Поиск чеков 🔍"
         mmbtn = "⬅ Главное меню"
     if lang == 'en':
         fpbtn = "👤 Find Profile 🔍"
+        mslbtn = "📢 MassSendlite"
         msbtn = "📢 Mass Send"
         fcbtn = "🧾 Find Checks 🔍"
         mmbtn = "⬅ Main Menu"
 
     keyboard.row(fpbtn, fcbtn)
-    keyboard.row(msbtn)
+    keyboard.row(msbtn, mslbtn)
     keyboard.row(mmbtn)
 
     return keyboard
@@ -241,15 +238,15 @@ def items_frep(lang):
         apbtn = "🎁 Add Goods➕"
         dpbtn = "🎁 Delete Goods 🖍"
         dapbtn = "🎁 Delete All Goods ❌"
-        cpbtn = "📁 Create position ➕"
-        chpbtn = "📁 Edit position 🖍"
-        dagbtn = "📁 Delete all positions ❌"
-        ccbtn = "🗃 Create category ➕"
-        chcbtn = "🗃 Edit category 🖍"
-        dacbtn = "🗃 Delete all categories ❌"
-        cshbtn = "🏪 Create shop ➕"
-        chbtn = "🏪 Edit shop 🖍"
-        dashbtn = "🏪 Delete all shops ❌"
+        cpbtn = "📁 Create Position ➕"
+        chpbtn = "📁 Edit Position 🖍"
+        dagbtn = "📁 Delete all Positions ❌"
+        ccbtn = "🗃 Create Category ➕"
+        chcbtn = "🗃 Edit Category 🖍"
+        dacbtn = "🗃 Delete all Categories ❌"
+        cshbtn = "🏪 Create Shop ➕"
+        chbtn = "🏪 Edit Shop 🖍"
+        dashbtn = "🏪 Delete all Shops ❌"
         mmbtn = "⬅ Main Menu"
 
     keyboard.row(apbtn, dpbtn, dapbtn)

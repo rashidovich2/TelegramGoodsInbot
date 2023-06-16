@@ -121,7 +121,7 @@ async def product_category_create_name(message: Message, state: FSMContext):
 
 # -----------------------------------------------------------------------------------------------------------
 # Открытие страниц выбора магазина для редактирования
-@dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить магазин 🖍", state="*")
+@dp.message_handler(IsAdminorShopAdmin(), text="🏪 Изменить магазин 🖍2", state="*")
 async def shop_list_edit(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
@@ -140,12 +140,13 @@ async def shop_list_edit(message: Message, state: FSMContext):
 @dp.message_handler(IsAdminorShopAdmin(), text_startswith="change_shop_edit_pg:", state="*")
 async def shop_list_edit(call: CallbackQuery, state: FSMContext):
     await state.finish()
+    user_id = call.from_user.id
+    lang = get_user_lang(user_id)['user_lang']
     if len(shops) >= 1:
-        page = int(str(call.data).split(':')[1])
-
+        remover = int(str(call.data).split(':')[1])
 
         await call.message.answer(_("<b>🏪 Выберите магазин для изменения 🖍</b>", locale=lang),
-                             reply_markup=shop_edit_open_fp(page, 0))
+                             reply_markup=shop_edit_open_fp(remover, user_id, lang))
     else:
         await call.message.answer(_("<b>🏪 Магазины отсутствуют 🖍</b>", locale=lang))
 
@@ -184,14 +185,14 @@ async def product_position_edit_return(call: CallbackQuery, state: FSMContext):
     if len(shops) >= 1:
         await call.message.delete()
         await call.message.answer(_("<b>📁 Выберите нужный Вам магазин 🖍</b>", locale=lang),
-                                  reply_markup=shop_edit_open_fp(0, user_id))
+                                  reply_markup=shop_edit_open_fp(0, user_id, lang))
     else:
         await call.answer("<b>❗ У Вас отсутствуют магазины</b>")
 
 ################################ Добавление магазина при создании позиции ########################
 
 # Создание новой позиции
-@dp.message_handler(IsAdminorShopAdmin(), text="📁 Создать позицию ➕", state="*")
+@dp.message_handler(IsAdminorShopAdmin(), text="📁 Создать позицию ➕2", state="*")
 async def product_position_create(message: Message, state: FSMContext):
     await state.finish()
     print("APS 182")
@@ -333,12 +334,16 @@ async def product_shop_edit_photo_get(message: Message, state: FSMContext):
 
 # -------------------------------------------------------------------------------------------------------------
 # Окно с уточнением удалить все магазины (позиции и товары включительно)
-@dp.message_handler(IsAdmin(), text="🏪 Удалить все магазины ❌", state="*")
+@dp.message_handler(text=["🏪 Удалить все магазины ❌", "🏪 Delete all shops ❌"], state="*")
 async def product_category_remove(message: Message, state: FSMContext):
     await state.finish()
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
+    user_role = get_userx(user_id=user_id)['user_role']
 
-    #await message.answer("<b>🗃 Вы действительно хотите удалить все магазины? ❌</b>\n"
-    #                     "❗ Так же будут удалены все позиции и товары", reply_markup=category_remove_confirm_inl)
+    if user_role == "Admin":
+        await message.answer("<b>🗃 Вы действительно хотите удалить все магазины? ❌</b>\n",
+                             reply_markup=category_remove_confirm_inl)
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ################################################################################################
@@ -427,13 +432,14 @@ async def shop_edit_dellete(call: CallbackQuery, state: FSMContext):
     shop_id = int(call.data.split(":")[1])
     remover = int(call.data.split(":")[2])
     user_id = call.from_user.id
+
     lang = get_userx(user_id=user_id)['user_lang']
     user_role = get_userx(user_id=user_id)['user_role']
     if user_role == "Admin":
         print("shop_edit_delete")
         await call.answer("🗃 Магазин будет удален ✅")
 
-        await call.message.answer("<b>❗ Вы действительно хотите удалить один из магазинов?</b>", #_("<b>❗ Вы действительно хотите удалить один из магазинов?</b>", locale=lang)
+        await call.message.answer("<b>❗ Вы действительно хотите удалить один из магазинов?</b>", #_("<b>❗ Вы действительно хотите удалить один из магазинов?</b>", locale=lang),
                                      reply_markup=shop_edit_delete_finl(shop_id, remover, lang))
 
 # Отмена удаления категории
@@ -441,17 +447,20 @@ async def shop_edit_dellete(call: CallbackQuery, state: FSMContext):
 async def shop_edit_delete_confirm(call: CallbackQuery, state: FSMContext):
     get_action = call.data.split(":")[1]
     shop_id = int(call.data.split(":")[2])
-    user_id = int(call.data.split(":")[3])
+    user_id = call.from_user.id
+    print(get_action, shop_id, user_id)
     lang = get_userx(user_id=user_id)['user_lang']
     user_role = get_userx(user_id=user_id)['user_role']
+    print(lang, user_role)
     if user_role == "Admin":
         if get_action == "yes":
             remove_shopx(shop_id=shop_id)
 
-            if len(get_all_shopx()) >= 1:
-                await call.message.answer(_("🗃 Магазин был успешно удален ✅", locale=lang), reply_markup=shop_edit_open_fp(0, user_id, lang))
-            else:
-                await call.message.delete()
+            #if len(get_all_shopx()) >= 1:
+            #await call.message.delete()
+            await call.message.edit_text(_("🗃 Магазин был успешно удален ✅", locale=lang), reply_markup=shop_edit_open_fp(0, user_id, lang))
+            #else:
+            #    await call.message.delete()
         else:
             get_shop_count = len(get_shopx(store_id=shop_id))
             get_shop = get_shopx(shop_id=shop_id)

@@ -910,11 +910,11 @@ msgstr "<b>❗ There are not enough funds in your account</b>"
 #: ../tgbot/handlers/user_menu_i18n.py:203
 #: ../tgbot/handlers/user_menu_i18n.py:250
 msgid ""
-"<b>🎁 В Вашем городе товаров нет, но Вы можете разместить свои, отправив запрос продавца или через как частное лицо, выбрав пункт Продать</b>"
+"<b>🎁 В Вашем городе товаров нет, но Вы можете разместить свои, отправив запрос продавца или как частное лицо, выбрав пункт Продать</b>"
 "\n"
 "🏙 Изменить город вы можете в личном кабинете"
 msgstr ""
-"<b>🎁 There are no goods in your city, but you can place your own by sending a seller's request or through as a private person by selecting Sell button</b>🏙 You can"
+"<b>🎁 There are no goods in your city, but you can place your own by sending a seller's request or as a private person by selecting Sell button</b>🏙 You can"
 " change your city in your personal cabinet"
 
 #: ../tgbot/handlers/user_menu_i18n.py:509
