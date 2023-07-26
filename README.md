@@ -3,7 +3,7 @@ A store with the functionality of multi-cities, multi-merchants. Бот - маг
 <img src="tggoodsinbot.gif" width="100"/>
 
 
-##Модули
+**##Модули##**
 - управление локацией пользователя, хранение города пользователя
 - управление языками интерфейса(Русский, Английский)
 - управление товарами и категориями товаров
@@ -69,6 +69,21 @@ A store with the functionality of multi-cities, multi-merchants. Бот - маг
 - защита от повторной выдачи баланса
 - защита от спама в боте (Middlewares)
 
+##Перед установкой
+**#install Python3.10**
+<code>apt update && sudo apt upgrade
+wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0rc2.tgz
+tar -xf Python-3.10.*.tgz
+cd Python-3.10.0rc2
+./configure --enable-optimizations
+make -j 4
+sudo make altinstall</code>
+
+**#check install & config**
+<code>python3.10 --version
+update-alternatives --list python3
+update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 1</code>
+
 ##настройки settings.ini
 - установить токен Бота, полученный у @BotFather
 - установить Telegram ID администратора
@@ -111,6 +126,8 @@ A store with the functionality of multi-cities, multi-merchants. Бот - маг
 Работающий экземпляр уже в 192 городах России: https://t.me/Goodsindemobot
 Чтобы торговать своими товарами, отправьте запрос на продавца из бота, нажав "Я продавец" или напишите мне, чтобы развернуть Вам полностью всего бота или его часть(платная опция).
 По вопросам пишите пожалуйста в телеграм: @raclear
+
+
 **Преимущества нашего бота**
 Существует множество преимуществ для торговли цифровыми товарами через Интернет, но вот некоторые из наиболее значимых:
 
