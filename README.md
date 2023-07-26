@@ -3,7 +3,7 @@ A store with the functionality of multi-cities, multi-merchants. Бот - маг
 <img src="tggoodsinbot.gif" width="100"/>
 <h1 align="center">Цифровая среда в Телеграм<a href="https://aliplaces.ru/" target="_blank">GoodsinBot</a></h1>
 
-<h3>##Модули##</h3>
+<h3>Модули</h3>
 - управление локацией пользователя, хранение города пользователя
 - управление языками интерфейса(Русский, Английский)
 - управление товарами и категориями товаров
