@@ -70,7 +70,7 @@ A store with the functionality of multi-cities, multi-merchants. Бот - маг
 - защита от спама в боте (Middlewares)
 
 <h3>Перед установкой</h3>
-<h4>#install Python3.10**
+<h4>install Python3.10</h4>
 <code>apt update && sudo apt upgrade
 wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0rc2.tgz
 tar -xf Python-3.10.*.tgz
