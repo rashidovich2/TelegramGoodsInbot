@@ -79,7 +79,7 @@ cd Python-3.10.0rc2
 make -j 4
 sudo make altinstall</code>
 
-**#check install & config**
+<h3>#check install & config</h3>
 <code>python3.10 --version
 update-alternatives --list python3
 update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 1</code>
@@ -144,7 +144,7 @@ update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10
 
     
 <h3>Telegram Ra</h3>
-**Telegram Ra функционал**
+<h4>Telegram Ra функционал</h4>
 - добавление аккаунтов Телеграм
 - учет исключений и ограничений платформы
 - парсинг групп Телеграм
