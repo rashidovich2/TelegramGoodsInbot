@@ -1,7 +1,12 @@
 A store with the functionality of multi-cities, multi-merchants. Бот - магазин в Телеграм с гибким каталогом, спраочник городов и управление продажами и продавцами.
 
 <img src="tggoodsinbot.gif" width="100"/>
-<h1 align="center">Цифровая среда в Телеграм<a href="https://aliplaces.ru/" target="_blank">GoodsinBot</a></h1>
+<h1 align="center">Цифровая среда в Телеграм <a href="https://aliplaces.ru/" target="_blank">GoodsinBot</a></h1>
+
+<h3>Digital</h3>
+<ul>
+    <li> попполнение баланса с банковских карт с подтверждением Админстратором</li>
+</ul>
 
 <h3>Модули</h3>
 <ul>
