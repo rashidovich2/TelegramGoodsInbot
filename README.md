@@ -6,7 +6,7 @@ A store with the functionality of multi-cities, multi-merchants. Бот - маг
 <h3>Digital</h3>
 <img src="GIB_digital.png" width="100"/>
 <ul>
-    <li> попполнение баланса с банковских карт с подтверждением Админстратором</li>
+    <li> пополнение баланса с банковских карт с подтверждением Админстратором</li>
 </ul>
 
 <h3>Модули</h3>
