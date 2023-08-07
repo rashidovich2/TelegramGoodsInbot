@@ -4,6 +4,7 @@ A store with the functionality of multi-cities, multi-merchants. Бот - маг
 <h1 align="center">Цифровая среда в Телеграм <a href="https://aliplaces.ru/" target="_blank">GoodsinBot</a></h1>
 
 <h3>Digital</h3>
+<img src="GIB_digital.png" width="100"/>
 <ul>
     <li> попполнение баланса с банковских карт с подтверждением Админстратором</li>
 </ul>
