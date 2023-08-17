@@ -1,5 +1,5 @@
-THE ACTUAL VERSION OF BOT AVAIBLE ON REQUEST
-АКТУАЛЬНАЯ ВЕРСИЯ БОТА ДОСТУПНА ПО ЗАПРОСУ
+<h1>THE ACTUAL VERSION OF BOT IS AVAIBLE ON REQUEST |<br>
+АКТУАЛЬНАЯ ВЕРСИЯ БОТА ДОСТУПНА ПО ЗАПРОСУ</h1>
 
 A store with the functionality of multi-cities, multi-merchants. Бот - магазин в Телеграм с гибким каталогом, спраочник городов и управление продажами и продавцами.
 
