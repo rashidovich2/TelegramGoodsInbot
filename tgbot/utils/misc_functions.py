@@ -2,7 +2,8 @@
 import asyncio
 import aiohttp
 import json
-import random
+import os, random
+import subprocess
 from datetime import datetime, timedelta
 import time
 
@@ -10,13 +11,16 @@ import sys
 import hashlib
 import base58
 
+import urllib.request
 import requests
 import subprocess
+
 
 import aiogram
 from aiogram import Dispatcher
 from aiogram import executor, exceptions
 from aiogram import Bot, types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 #from aiogram.types import Message
 #from aiogram.utils import exceptions, executor
 #from aiogram.methods import SendMessage, SendPhoto, SendVideo, SendAnimation
@@ -32,21 +36,25 @@ from tgbot.middlewares.i18n import I18nMiddleware
 from tgbot.keyboards.reply_z_all import menu_frep
 from tgbot.services.api_session import AsyncSession
 from tgbot.loader import bot
+from tgbot.keyboards.inline_user import products_open_finl
 from tgbot.services.api_sqlite import get_settingsx, update_settingsx, get_userx, get_all_positionsx, \
     update_positionx, get_all_categoriesx, get_all_purchasesx, get_all_refillx, get_all_usersx, get_all_itemsx, \
     get_itemsx, get_positionx, get_categoryx, get_all_positionsidx, get_requestx, get_user_orderx, get_cart_positionsx, \
     get_orderx, get_purchasesx, get_purchasesxx, get_shopx, get_artistx, get_planed_postx, get_planed_eventsx, get_tohour_postx,\
     update_tohour_postx, get_users_by_cities, get_users_by_citiesx, get_delivery_seller_options, get_params_orderx, get_orderxo, \
-    get_userxxx, get_upaymentx, get_userxx, get_userxn, get_user_lang, add_refillx
+    get_userxxx, get_upaymentx, get_userxx, get_userxn, get_user_lang, add_refillx, get_refillx, get_refills_to_confirm
 
 from tgbot.utils.const_functions import get_unix, convert_day, get_date, ded
+#from tgbot.utils.tg_sender import *
+
+from html_telegraph_poster import TelegraphPoster
+from html_telegraph_poster.upload_images import upload_image
 
 #bot = Bot(token=BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 
 print(i18n)
 _ = i18n.gettext
-
 
 
 async def fetch_token(user_login, password):
@@ -65,8 +73,6 @@ async def on_startup_notify(dp: Dispatcher):
     if len(get_admins()) >= 1:
         await send_admins(f"<b>✅ Бот был успешно запущен</b>\n"
                           f"➖➖➖➖➖➖➖➖➖➖\n"
-                          f"{BOT_DESCRIPTION}\n"
-                          f"➖➖➖➖➖➖➖➖➖➖\n"
                           f"<code>❗ Данное сообщение видят только администраторы бота.</code>",
                           markup="default")
         await check_update()
@@ -82,6 +88,37 @@ async def send_user(user_id, message, markup=None):
         await bot.send_message(user_id, message, reply_markup=markup, disable_web_page_preview=True)
     except Exception:
         pass
+
+
+async def post_position_to_telegraph(position_id):
+    get_message, get_photo = get_position_admin(position_id)
+    t = TelegraphPoster(use_api=True)
+    auth = t.create_api_token('TelegramGoodsinBot', 'RaClear', 'https://t.me/Goodsindemobot/') # second and third params are optional
+    image = upload_image(get_photo)
+    post = await t.post(title='TelegramGoodsinBot', author='RaClear', text=f'<img src={image}><blockquote>{get_message}</blockquote>')
+    print(post['url'])
+    return await post['url']
+
+
+async def approve_new_product_notify(position_id, markup=None):
+    print("::::LLLLLL::::::")
+    inline_kb = InlineKeyboardMarkup()
+    inline_btn1 = InlineKeyboardButton('Рассылка в боте: Да', callback_data=f'position_notify:{position_id}:yes')
+    inline_btn2 = InlineKeyboardButton('Рассылка в боте: Нет', callback_data=f'position_notify:{position_id}:no')
+    inline_btn3 = InlineKeyboardButton('Отправить сейчас', callback_data=f'position_planning:{position_id}:no')
+    inline_btn4 = InlineKeyboardButton('Запланировать пост', callback_data=f'position_planning:{position_id}:yes')
+    inline_btn5 = InlineKetboardButton('Вещание в PR чатах', callback_data=f'pr_broadcast:{position_id}:yes')
+    inline_kb.insert(inline_btn1)
+    inline_kb.insert(inline_btn2)
+    inline_kb.insert(inline_btn3)
+    inline_kb.insert(inline_btn4)
+    inline_kb.insert(inline_btn5)
+    print("::::LLLLLL::::::|||||")
+    get_message, get_photo = get_position_admin(position_id)
+
+    await bot.send_photo(chat_id=919148970,
+                         photo=get_photo,
+                         caption=get_message, reply_markup=inline_kb)
 
 
 # Рассылка сообщения всем администраторам
@@ -109,6 +146,11 @@ async def update_profit_day():
 async def update_profit_week():
     update_settingsx(misc_profit_week=get_unix())
 
+async def check_refills_for_confirmation():
+    print("Start Function")
+    new_refills = get_refills_to_confirm()
+    if len(new_refills) > 0:
+        await send_admins(message="📢 Появилось пополнение картой, посмотрите пожалуйста в админке")
 
 def catch_transactions(address):
     print("start to catch transactions")
@@ -132,30 +174,15 @@ async def catch_transactions20m(address_from, address_to):
     print(start_time, end_time)
     st = get_unix()
     am = ""
-    #while datetime.now() < end_time:
+
     while True:
-        #print(end_time)
-        #send_user(dp, user_id, "Ожидаем транзакцию")
         await check_trx_now(address_from, st, address_to)
         await asyncio.sleep(60)
-        #return am
-        #print(am)
-        #if trx_amount:
-        #    return trx_amount
 
 async def check_btc_now(address_from, st, address_to):
     print("BTC_NOW!!!")
-    #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
-    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions/trc20"
     url = f'https://api.bscscan.com/api?module=account&action=tokentx&address={address_to}&page=1&offset=5&startblock=0&endblock=999999999&sort=asc&apikey=MRGP3KDXP7K9BP8Q4E3I2Y1FYVMAE961VV'
-    #url = f'https://blockchain.info/rawaddr/{address_to}'
-    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions" #?only_confirmed=true&only_to=true"
     response = requests.get(url) #, headers={"TRON-PRO-API-KEY": "5c4c149e-83d1-4926-8d73-78dac1ab2d38"})
-    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions"
-    #headers = {"accept": "application/json"}
-    #transactions = requests.get(url, headers=headers)
-    #get_user = get_userx(user_id)
-    #transactions2 = json.loads(transactions)
     json_data = json.loads(response.text)
     try:
         txs = json_data['result']
@@ -180,27 +207,38 @@ async def check_btc_now(address_from, st, address_to):
 
 async def check_trx_address(address):
     print("CHECK_TRX_NOW!!!")
-    #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
     url = f"https://api.trongrid.io/wallet/validateaddress"
-    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions" #?only_confirmed=true&only_to=true"
     req = requests.get(url, headers={"TRON-PRO-API-KEY": "5c4c149e-83d1-4926-8d73-78dac1ab2d38"})
-    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions"
-    #headers = {"accept": "application/json"}
-    #transactions = requests.get(url, headers=headers)
-    #get_user = get_userx(user_id)
     result = json.loads(req.text)
+    return result
+
+
+async def validate_trx_address(address):
+    response = requests.get(f'https://api.trongrid.io/v1/accounts/{address}')
+    if response.status_code == 200:
+        #print("1")
+        result = json.loads(response.text)
+        print(result)
+        return result
+    else:
+        return False
+
+async def validate_bsc_address(address):
+    print(address)
+    response = requests.get(f"https://api.bscscan.com/api?module=account&action=balance&address={address}&apikey=MRGP3KDXP7K9BP8Q4E3I2Y1FYVMAE961VV")
+    if response.status_code == 200:
+        result = json.loads(response.text)
+        print(result)
+        return result
+    else:
+        return False
+
 
 
 async def check_trx_now(address_from, st, address_to):
     print("TRX_NOW!!!")
-    #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
     url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions/trc20"
-    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions" #?only_confirmed=true&only_to=true"
     transactions = requests.get(url, headers={"TRON-PRO-API-KEY": "5c4c149e-83d1-4926-8d73-78dac1ab2d38"})
-    #url = f"https://api.trongrid.io/v1/accounts/{address_to}/transactions"
-    #headers = {"accept": "application/json"}
-    #transactions = requests.get(url, headers=headers)
-    #get_user = get_userx(user_id)
     transactions2 = json.loads(transactions.text)
     amount = 0
     total = 0
@@ -218,20 +256,6 @@ async def check_trx_now(address_from, st, address_to):
         else:
             print(st, bts, dts, transaction['transaction_id'], transaction['value']) #st, bts, dts,
 
-        '''blockTS = transaction['block_timestamp']
-        td = st - blockTS
-        state = transaction['ret'][0]['contractRet']
-        if "amount" in transaction['raw_data']['contract'][0]['parameter']['value']:
-            amount = transaction['raw_data']['contract'][0]['parameter']['value']['amount']
-            total += amount
-            #if transaction["raw_data"]["contract"][0]["parameter"]["value"]["to_address"] == address_to: print("Адресат наш")
-            #if transaction["raw_data"]["contract"][0]["parameter"]["value"]["owner_address"] == address_from: print("Отправитель наш")
-            #add_refillx(get_user['user_id'], get_user['user_login'], get_user['user_name'], receipt,
-            #            amount, receipt, get_way, get_date(), get_unix())
-            if transaction["raw_data"]["contract"][0]["parameter"]["value"]["to_address"] == address_to and transaction["raw_data"]["contract"][0]["parameter"]["value"]["owner_address"] == address_from: # and td > 0
-                print("ПОПОЛНЯЕМ АККАУНТ НА:" + str(amount))
-                return amount #, state, blockTS
-            print(blockTS, td, amount, state, total)'''
     return 0, bts
 
 async def post_every_eighteen():
@@ -272,8 +296,9 @@ async def reinvite_sellers_by_city():
             message = f"Выберите пожалуйста Ваш город в боте.\n" \
                       f"Мы сможем предложить Вам товары \n" \
                       f"от продавцов в Вашем городе."
-            message = f"Выберите пожалуйста Ваш город в боте.\n" \
-                      f"Мы поздравляем Вас с праздником защиткика Отечества!\n" \
+            message = f"Мы добавили английски/русский языки, платежи в криптовалютах USDT, TRX и BTC.\n" \
+                      f"Мы добавили интеграцию с CRM МойСКлад, товары в каталоге бота, заказы в МойСклад.\n" \
+                      f"Магазины, Каталог, Афиша и Барахолка в Вашем городе!\n" \
                       f"Хорошего дня!."
             get_users = get_userxn()
             print(get_users)
@@ -288,7 +313,7 @@ async def reinvite_sellers_by_city():
             print(cityr)
             get_users = get_userxx(user_city_id=cityr)
 
-        #test = "yes"
+        test = "no"
         #get_users = get_userxx(user_city_id=int(cityr))
         #get_users = get_all_usersxx()
         receive_users, block_users, how_users = 0, 0, 0
@@ -296,7 +321,7 @@ async def reinvite_sellers_by_city():
             #print(user)
             if user['user_city_id'] is None: photo = "img/gbmes.png"
             else:
-                photo = f"img/msg0002{user['user_city_id']}.png"
+                photo = f"img/msg0007{user['user_city_id']}.png"
                 print(photo)
             #photo = "img/msg34.png"
             #image = InputFile(f"img/msg{city['user_city_id']}.png")
@@ -388,6 +413,90 @@ async def get_or_create_tron_account(wallet_user, wallet_net):
         check = False
         return tron_profile, check
 
+#api_id = 28712772
+#api_hash = '2e3785d00832ceee5cb453d7138b99ea'
+#client = TelegramClient('Forwarder', api_id, api_hash)
+
+
+
+
+async def functions_position_notify_bg(position_id, markup=None):
+    receive_users, block_users, how_users = 0, 0, 0
+    get_users = get_all_usersx()
+    test = "no"
+    print(position_id)
+    get_message, get_photo = get_position_admin(position_id)
+    print(get_message, get_photo)
+    #if get_message and get_photo:
+    #t = TelegraphPoster(use_api=True)
+    #auth = t.create_api_token('TelegramGoodsinBot', 'RaClear', 'https://t.me/Goodsindemobot/') # second and third params are optional
+    #image = upload_image(get_photo)
+    #print(image)
+    image = "https://www.donzella.ru/images/thumbs/000/0007490_erstnoj-kostm-ermenegildo-zegna_1002.jpeg"
+
+    #asyncio.get_event_loop().run_until_complete(await tg_send_message(message_type="photo", message_text=None, caption=get_message, image_url=image))
+    #subprocess.run(["python3", "/var/local/bot3101fc/tgbot/utils/tg_sender.py", f"{get_message}", f"{image}"])
+
+    #asyncio.create_task(await send_telegram_message(message_type="photo", message_text=None, caption=get_message, image_url=image))
+    #await tg_send_message("photo", message_text=None, caption=get_message, image_url=image)
+
+    get_position = get_positionx(position_id=position_id)
+    position_type = get_position['position_type']
+    if position_type == 1: cart = 1
+    if position_type == 2: cart = 0
+    if position_type != 3:
+        position_category_id = get_position['category_id']
+    else:
+        position_category_id = 0
+        cart = 0
+    shop_id = 0
+
+    if markup == "default":
+        markup = menu_frep(admin)
+
+    for user in get_users:
+        try:
+            if test == "yes": user['user_id'] = 919148970
+            if get_message and get_photo:
+                await bot.send_photo(
+                    chat_id=user['user_id'],
+                    photo=get_photo,
+                    caption=get_message or None,
+                    reply_markup=None, #products_open_finl(cart, position_id, 0, position_category_id, shop_id, "ru")
+                )
+            elif get_message == 0:
+                await bot.send_message(user['user_id'], get_message, disable_web_page_preview=True)
+            elif get_message == 3:
+                await bot.send_video(
+                    chat_id=user['user_id'],
+                    video=get_photo,
+                    caption=get_message or None,
+                )
+            elif get_message == 4:
+                await bot.send_animation(
+                    chat_id=user['user_id'],
+                    animation=get_photo,
+                    caption=get_message or None,
+                )
+
+            receive_users += 1
+        except Exception:
+            block_users += 1
+
+        how_users += 1
+
+        if how_users % 10 == 0:
+            await send_admins(f"<b>📢 Рассылка началась... ({how_users}/{len(get_users)})</b>")
+
+        await asyncio.sleep(0.05)
+
+    #await update_post(post[0], state = "sended")
+    await send_admins(
+        f"<b>📢 Рассылка была завершена ✅</b>\n"
+        f"👤 Пользователей получило сообщение: <code>{receive_users} ✅</code>\n"
+        f"👤 Пользователей не получило сообщение: <code>{block_users} ❌</code>"
+    )
+
 async def functions_advertising_make_bg(post, markup=None):
     receive_users, block_users, how_users = 0, 0, 0
     get_users = get_all_usersx()
@@ -418,7 +527,6 @@ async def functions_advertising_make_bg(post, markup=None):
                     caption=post[13] or None,
                 )
             elif post[1] == "video":
-                #print("|_>>>>")
                 await bot.send_video(
                     chat_id=user['user_id'],
                     video=post[5],
@@ -582,6 +690,8 @@ def address_to_hex(base58addr):
         raise ValueError("Invalid checksum")
     return address
 
+
+
 # Получить информацию о позиции для админа
 def get_position_of_day():
     print('Получить информацию о случайной позиции для админа misc_functions.py 127')
@@ -591,6 +701,7 @@ def get_position_of_day():
     # pos_id=random.choice(get_all_positionsidx())
     get_items = get_itemsx(position_id=pos_id['position_id'])
     get_position = get_positionx(position_id=pos_id['position_id'])
+    position_rest = get_position['position_rest']
     get_category = get_categoryx(category_id=get_position['category_id'])
 
     text_description = "<code>Отсутствует ❌</code>"
@@ -609,7 +720,7 @@ def get_position_of_day():
                   f"🏙 Город: <code>{get_position['position_city']}</code>\n" \
                   f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
                   f"💰 Стоимость: <code>{get_position['position_price']}₽</code>\n" \
-                  f"📦 Остаток: <code>{len(get_items)}шт</code>\n" \
+                  f"📦 Остаток: <code>{position_rest}шт</code>\n" \
                   f"📸 Изображение: {photo_text}\n" \
                   f"📜 Описание: {text_description}"
 
@@ -642,11 +753,10 @@ def get_artist_admin(artist_id):
 
 
 # Получить информацию о позиции для админа
-def get_position_admin(position_id):
+def get_position3_admin(position_id):
     print('Получить информацию о позиции для админа misc_functions.py 465')
-    get_items = get_itemsx(position_id=position_id)
+
     get_position = get_positionx(position_id=position_id)
-    get_category = get_categoryx(category_id=get_position['category_id'])
 
     text_description = "<code>Отсутствует ❌</code>"
     photo_text = "<code>Отсутствует ❌</code>"
@@ -659,22 +769,146 @@ def get_position_admin(position_id):
     if get_position['position_description'] != "0":
         text_description = f"\n{get_position['position_description']}"
 
-    if get_position['position_type'] == 1:
-        position_rest = get_position['position_rest']
-    elif get_position['position_type'] == 2:
-        position_rest = len(get_items)
-
-    get_message = f"<b>📁 Позиция: <code>{get_position['position_name']}</code></b>\n" \
+    get_message = f"<b>📁 Позиция: <code>{get_position['position_id']}</code></b>\n" \
                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-                  f"🏙 Город: <code>{get_position['position_city']}</code>\n" \
-                  f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
-                  f"💰 Стоимость: <code>{get_position['position_price']}₽</code>\n" \
-                  f"📦 Остаток: <code>{position_rest}шт</code>\n" \
-                  f"📸 Изображение: {photo_text}\n" \
                   f"📜 Описание: {text_description}"
 
     return get_message, get_photo
-# f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
+
+
+# Получить информацию о позиции для админа
+def get_position_admin(position_id):
+    print('Получить информацию о позиции для админа misc_functions.py 465')
+    #get_items = get_itemsx(position_id=position_id)
+    get_position = get_positionx(position_id=position_id)
+    #position_rest = get_position['position_rest']
+    if get_position['position_type'] != 3:
+        get_category = get_categoryx(category_id=get_position['category_id'])
+
+    text_description = "<code>Отсутствует ❌</code>"
+    photo_text = "<code>Отсутствует ❌</code>"
+    get_photo = None
+
+    if len(get_position['position_photo']) > 5:
+        photo_text = "<code>Присутствует ✅</code>"
+        #if get_position['position_type'] != 3:
+        get_photo = get_position['position_photo']
+        print("LLL:0001")
+        #elif get_position['position_type'] == 3:
+        #    get_photo = f"/var/local/bot3101fc/tgbot/images/position{position_id}.jpg"
+
+    if get_position['position_description'] != "0":
+        text_description = f"\n{get_position['position_description']}"
+
+    if get_position['position_type'] == 1:
+        position_rest = get_position['position_rest']
+    elif get_position['position_type'] == 2:
+        position_rest = len(get_itemsx(position_id=position_id))
+    elif get_position['position_type'] == 3:
+        print("LLL:0002")
+        get_message = f"<b>📁 Позиция: <code>{get_position['position_id']}</code></b>\n" \
+                      f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                      f"📜 Описание: {text_description}"
+
+    if get_position['position_type'] == 1:
+        get_message = f"<b>📁 Позиция: <code>{get_position['position_name']}</code></b>\n" \
+                      f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                      f"🏙 Город: <code>{get_position['position_city']}</code>\n" \
+                      f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
+                      f"💰 Стоимость: <code>{get_position['position_price']}₽</code>\n" \
+                      f"📦 Остаток: <code>{position_rest}шт</code>\n" \
+                      f"📸 Изображение: {photo_text}\n" \
+                      f"📜 Описание: {text_description}"
+
+    elif get_position['position_type'] == 2:
+        get_message = f"<b>📁 Позиция: <code>{get_position['position_name']}</code></b>\n" \
+                      f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+                      f"🗃 Категория: <code>{get_category['category_name']}</code>\n" \
+                      f"💰 Стоимость: <code>{get_position['position_price']}₽</code>\n" \
+                      f"📦 Остаток: <code>{position_rest}шт</code>\n" \
+                      f"📸 Изображение: {photo_text}\n" \
+                      f"📜 Описание: {text_description}"
+
+    return get_message, get_photo
+
+# Принятие чека для поиска
+async def get_refill_admin(receipt):
+    print(receipt)
+    #print("OLOL")
+    #get_refill = ""
+    #get_message = ""
+    #lang = get_userx(user_id=get_refill['user_id'])['user_lang']
+    #print(lang)
+    lang = "ru"
+    #print(lang)
+    get_refill = get_refillx(refill_receipt=receipt)
+    print(get_refill)
+    #get_purchase = get_purchasex(purchase_receipt=receipt)
+    #print(get_purchase)
+
+    if get_refill is not None:
+        '''if get_refill['refill_way'] == "Form":
+            way_input = _("🥝 Способ пополнения: <code>По форме</code>", locale=lang)
+        elif get_refill['refill_way'] == "Nickname":
+            way_input = _("🥝 Способ пополнения: <code>По никнейму</code>", locale=lang)
+        elif get_refill['refill_way'] == "Number":
+            way_input = _("🥝 Способ пополнения: <code>По номеру</code>", locale=lang)
+        else:'''
+        way_input = f"🥝 Способ пополнения: <code>{get_refill['refill_way']}</code>"
+
+        if lang == "ru":
+            get_message = ded(f"<b>🧾 Чек: <code>#{get_refill['refill_receipt']}</code></b>\n"
+                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                f"👤 Пользователь: <a href='tg://user?id={get_refill['user_id']}'>{get_refill['user_name']}</a> <code>({get_refill['user_id']})</code>\n"
+                f"💰 Сумма пополнения: <code>{get_refill['refill_amount']}₽</code>\n"
+                f"{way_input}\n"
+                f"🏷 Комментарий: <code>{get_refill['refill_comment']}</code>\n"
+                f"🕰 Дата пополнения: <code>{get_refill['refill_date']}</code>")
+
+        if lang == "en":
+            get_message = ded(f"<b>🧾 Receipt: <code>#{get_refill['refill_receipt']}</code></b>\n"
+                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                f"👤 User: <a href='tg://user?id={get_refill['user_id']}'>{get_refill['user_name']}</a> <code>({get_refill['user_id']})</code>\n"
+                f"💰 Charge Amount: <code>{get_refill['refill_amount']}₽</code>\n"
+                f"{way_input}\n"
+                f"🏷 Comment: <code>{get_refill['refill_comment']}</code>\n"
+                f"🕰 Date of charge: <code>{get_refill['refill_date']}</code>")
+
+    '''elif get_purchase is not None:
+        link_items = await upload_text(message, get_purchase['purchase_item'])
+        if lang == "ru":
+            get_message += ded(
+                f"<b>🧾 Чек: <code>#{get_purchase['purchase_receipt']}</code></b>\n"
+                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                f"👤 Пользователь: <a href='tg://user?id={get_purchase['user_id']}'>{get_purchase['user_name']}</a> <code>({get_purchase['user_id']})</code>\n"
+                f"🏷 Название товара: <code>{get_purchase['purchase_position_name']}</code>\n"
+                f"📦 Куплено товаров: <code>{get_purchase['purchase_count']}шт</code>\n"
+                f"💰 Цена 1-го товара: <code>{get_purchase['purchase_price_one']}₽</code>\n"
+                f"💸 Сумма покупки: <code>{get_purchase['purchase_price']}₽</code>\n"
+                f"🔗 Товары: <a href='{link_items}'>кликабельно</a>\n"
+                f"🔻 Баланс до покупки: <code>{get_purchase['balance_before']}₽</code>\n"
+                f"🔺 Баланс после покупки: <code>{get_purchase['balance_after']}₽</code>\n"
+                f"🕰 Дата покупки: <code>{get_purchase['purchase_date']}</code>"
+            )
+        if lang == "en":
+            get_message += ded(
+                f"<b>🧾 Receipt: <code>#{get_purchase['purchase_receipt']}</code></b>\n"
+                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                f"👤 User: <a href='tg://user?id={get_purchase['user_id']}'>{get_purchase['user_name']}</a> <code>({get_purchase['user_id']})</code>\n"
+                f"🏷 Name of Product: <code>{get_purchase['purchase_position_name']}</code>\n"
+                f"📦 Products Purchased: <code>{get_purchase['purchase_count']}pcs</code>\n"
+                f"💰 Price for One Pieces: <code>{get_purchase['purchase_price_one']}R</code>\n"
+                f"💸 Summ of Purchaces: <code>{get_purchase['purchase_price']}R</code>\n"
+                f"🔗 Items: <a href='{link_items}'>кликабельно</a>\n"
+                f"🔻 Balance Before Purchase: <code>{get_purchase['balance_before']}R</code>\n"
+                f"🔺 Balance After Purchase: <code>{get_purchase['balance_after']}R</code>\n"
+                f"🕰 Purchase Date: <code>{get_purchase['purchase_date']}</code>"
+            )'''
+
+    return get_message
+
+
+
 
 def user_refill_my(user_id, lang):
     return _("<b>Нажмите пожалуйста кнопку:</b>", locale=lang)
@@ -798,8 +1032,6 @@ def calc_order_summ(order_id):
         poscost = position['count'] * position['position_price']
         totalm += poscost
     return totalm
-
-
 
 # Открытие корзины
 def open_cart_orders(order_id, lang):
@@ -929,7 +1161,12 @@ def open_profile_search_req(user_id, lang):
 
     if len(get_requests) >= 1:
         for items in get_requests:
-            total_items += "|" + str(items['requesttxt'])
+            total_items += f"| {str(items['requesttxt'])} | \n"
+            '''if items['state']:
+                state = items['state']
+            else:
+                state = "None"'''
+
 
 #            total_ids += " " + str(items['increment']) + " "
 
@@ -937,6 +1174,7 @@ def open_profile_search_req(user_id, lang):
         message = f"<b>👤 Запрос от пользователя: <a href='tg://user?id={get_user['user_id']}'>{get_user['user_name']}</a></b>\n" \
                f"➖➖➖➖➖➖➖➖➖➖\n" \
                f"Группа товаров: <b>{total_items}</b>\n" \
+               f"🆔 Статус: <code>{items['state']}</code>\n" \
                f"🆔 userID: <code>{get_user['user_id']}</code>\n" \
                f"👤 Логин: <b>@{get_user['user_login']}</b>\n" \
                f"👤 Роль: <b>{get_user['user_role']}</b>\n" \
@@ -969,6 +1207,7 @@ def get_statisctics(lang):
     show_profit_all, show_profit_day, show_profit_week = 0, 0, 0
     show_refill_all, show_refill_day, show_refill_week = 0, 0, 0
     show_money_users, show_money_sellers, show_buy_items, show_city_users, top_sellers = 0, 0, 0, "", 0
+    show_users_all, show_users_day, show_users_week = 0, 0, 0
 
     get_categories = get_all_categoriesx()
     get_positions = get_all_positionsx()
@@ -999,12 +1238,17 @@ def get_statisctics(lang):
 
     for user in get_users:
         #print(user)
+        show_users_all += 1
+        if user['user_unix'] - get_settings['misc_profit_day'] >= 0:
+            show_users_day += 1
+        if user['user_unix'] - get_settings['misc_profit_week'] >= 0:
+            show_users_week += 1
         if user['user_role'] == "ShopAdmin":
             show_money_sellers += user['user_balance']
         elif user['user_role'] is None:
             show_money_users += user['user_balance']
-        if user['user_role'] == "ShopAdmin" and user['user_balance'] >= 0:
-            top_sellers += user['user_name'] + str(user['user_balance']) + "|"
+        #if user['user_role'] == "ShopAdmin" and user['user_balance'] >= 0:
+        #    top_sellers += user['user_name'] + str(user['user_balance']) + "|"
 
     #cities = json.loads(get_all_users_by_cities)
     for city in get_all_users_by_cities:
@@ -1020,12 +1264,19 @@ def get_statisctics(lang):
         #show_city_users += "|" + city['user_city'] + "|"
 
     if lang == "ru":
-        return f"<b>📊 Статистика бота</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\nПродано товаров: <code>{show_buy_items}шт</code>\n🎁 По городам: <code>{show_city_users}</code>\n"
+        return f"<b>📊 Статистика бота</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"<b>🔶 Пользователи: 🔶</b>\n" \
+               f"┣ Юзеров за День: <code>{show_users_day}</code>\n" \
+               f"┣ Юзеров за Неделю: <code>{show_users_week}</code>\n" \
+               f"┗ Юзеров за Всё время: <code>{show_users_all}</code>\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\nПродано товаров: <code>{show_buy_items}шт</code>\n🎁 По городам: <code>{show_city_users}</code>\n"
     if lang == "en":
         return f"<b>📊 Bot statistics</b>\n" \
                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                f"<b>🔶 Users: 🔶</b>\n" \
-               f"👤 Users Total: <code>{len(get_users)}</code>\n" \
+               f"┣ Users for a Day: <code>{show_users_day}</code>\n" \
+               f"┣ Users for a Week: <code>{show_users_week}</code>\n" \
+               f"┗ Users in Total: <code>{show_users_all}</code>\n" \
                f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                f"<b>🔶 Finance 🔶</b>\n" \
                f"💸 Sales for 24 hours: <code>{show_profit_day}R</code>\n" \
@@ -1042,7 +1293,6 @@ def get_statisctics(lang):
                f"🗃 Categories: <code>{len(get_categories)}pcs</code>\n" \
                f"🎁 Products Sold: <code>{show_buy_items}pcs</code>\n" \
                f" Users in Cities: {show_city_users}"
-
 
 
 # Открытие профиля при поиске
@@ -1241,8 +1491,8 @@ def generate_sales_report():
             show_money_sellers += user['user_balance']
         elif user['user_role'] is None or user['user_role'] == "User":
             show_money_users += user['user_balance']
-        if user['user_role'] == "ShopAdmin" and user['user_balance'] >= 0:
-            top_sellers += user['user_name'] + str(user['user_balance']) + "\n"
+        #if user['user_role'] == "ShopAdmin" and user['user_balance'] >= 0:
+        #    top_sellers += user['user_name'] + str(user['user_balance']) + "\n"
 
     return f"<b>📊 Отчет о продажах</b>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Пользователи: 🔶</b>\n👤 Пользователей: <code>{len(get_users)}</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Средства 🔶</b>\n💸 Продаж за 24 часа: <code>{show_profit_day}₽</code>\n💸 Продаж за неделю: <code>{show_profit_week}₽</code>\n💸 Продаж за всё время: <code>{show_profit_all}₽</code>\n💳 Средств на балансах пользователей: <code>{show_money_users}₽</code>\n💳 Средств на балансах продавцов: <code>{show_money_sellers}₽</code>\n💰 Пополнений за 24 часа: <code>{show_refill_day}₽</code>\n💰 Пополнений за неделю: <code>{show_refill_week}₽</code>\n💰 Пополнений за всё время: <code>{show_refill_all}₽</code>\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n<b>🔶 Прочее 🔶</b>\n🎁 Товаров: <code>{len(get_items)}шт</code>\n📁 Позиций: <code>{len(get_positions)}шт</code>\n🗃 Категорий: <code>{len(get_categories)}шт</code>\n🎁 Продано товаров: <code>{show_buy_items}шт</code>\n"
 

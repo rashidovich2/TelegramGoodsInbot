@@ -18,14 +18,3 @@ def setup_middleware(dp: Dispatcher):
     i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
     dp.middleware.setup(i18n)
     return i18n
-
-#i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
-#dp.middleware.setup(i18n)
-#print(i18n)
-#_ = i18n.gettext
-#_ = i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
-#_ = i18n
-
-#print(i18n.find_locales())
-
-#print(i18n.gettext("<b>📁 Enter type of goods, what you want to sell:</b>", locale='ru'))

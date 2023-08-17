@@ -2,5 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/TGConvertor" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/beautifulMaps" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/city-street-orientations" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/session-conv-bot" vcs="Git" />
   </component>
 </project>

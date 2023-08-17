@@ -13,7 +13,7 @@ from tgbot.keyboards.inline_user import user_support_finl, open_deep_link_object
 from tgbot.keyboards.reply_z_all import menu_frep
 from aiogram import Dispatcher
 from tgbot.loader import dp
-from tgbot.services.api_sqlite import get_settingsx, get_userx, get_positionx, update_userx, get_user_lang
+from tgbot.services.api_sqlite import get_settingsx, get_userx, get_positionx, update_userx, get_user_lang, get_userx_name
 from tgbot.utils.misc.bot_filters import IsBuy, IsRefill, IsWork
 from tgbot.utils.misc_functions import get_position_of_day
 from tgbot.services.location_function import is_location, add_city
@@ -150,7 +150,18 @@ async def main_start(message: Message, state: FSMContext):
 
         elif is_location(message.from_user.id) == True:
             print("loco is present")
-            await message.answer(f"🔸 Город определен. Бот готов к использованию.\n"
+            user_id = message.from_user.id
+            my_file = Path(f'img/u{user_id}.png')
+            try:
+                my_file = my_file.resolve(strict=True)
+            except FileNotFoundError:
+                # doesn't exist
+                user_name = get_userx_name(user_id)
+                subprocess.run(["python3", "neon.py", f"-t{user_name}, привет. Хорошего дня Вам!", f"-fimg/u{user_id}.png"])
+            else:
+                photo = open(f'img/u{user_id}.png', 'rb')
+
+            await message.answer_photo(photo, caption=f"🔸 Город определен. Бот готов к использованию.\n"
                                  "🔸 Выберите один из разделов[Купить, Продать, Магазины, Афиша].\n"
                                  "🔸 Если не появились вспомогательные кнопки.\n"
                                  "▶ Введите /start",
@@ -176,6 +187,25 @@ async def cmd_location(message: Message):
     #lang = get_userx(user_id=message.from_user.id)['user_lang']
     await message.answer("Выберите Ваш город: ", reply_markup=geo_11_kb())
 
+@dp.message_handler(commands='update_new_product_subscription')
+async def cmd_location(message: Message):
+    user_id = message.from_user.id
+    get_user = get_userx(user_id=user_id)
+    print(get_user)
+    #lang = get_userx(user_id=user_id)['user_lang']
+    lang = "ru"
+    if get_user['new_prod_notify'] == 0:
+        new_value = 1
+        message = "<b>Вы успешно включили уведомления о новых позициях</b>"
+    else:
+        new_value = 0
+        message = "<b>Вы успешно выключили уведомления о новых позициях</b>"
+
+    await update_userx(user_id, new_prod_notify=new_value)
+
+    await message.answer(message, reply_markup=menu_frep(user_id, lang))
+
+
 @dp.callback_query_handler(text_startswith="lang", state="*")
 async def language_was_selected(call: CallbackQuery, state: FSMContext):
     lang = call.data.split(":")[1]
@@ -199,3 +229,4 @@ async def language_was_selected(call: CallbackQuery, state: FSMContext):
         await call.answer(f"{lang}")
         await call.message.answer(f"{yourl} : {lang}", reply_markup=menu_frep(call.from_user.id, lang))
     else: print("Такого языка нет.-*")
+

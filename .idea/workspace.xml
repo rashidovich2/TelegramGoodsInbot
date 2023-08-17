@@ -1,20 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="1a816423-3e7d-4c8e-87b0-1b3045c22518" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/123" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/admin_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/admin_menu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/admin_payment.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/admin_products.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/admin_products_shop.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/admin_settings.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/main_start.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/user_location.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/user_menu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/user_menu_i18n.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/user_transactions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/z_all_errors.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/z_all_missed_.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/inline_admin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/inline_user.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/inline_z_all.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/inline_z_page.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/location_keyboards.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/reply_z_all.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboards/shop_keyboards.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_binance.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_cb.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_coinbasey.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_crypto.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_qiwi-orig.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_qiwi.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_qiwi2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_session.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_sqlite.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_sqlite_advert.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_sqlite_shop.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_tron.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_yoo.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/api_yoo2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/dbconnect.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/lang_function.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/location_function.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/location_stat.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/mes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/model_events.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/regular.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/tick.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11459.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11462.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11470.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11474.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11506.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11534.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11587.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11594.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11629.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11636.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11659.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11688.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tgbot/images/11691.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/const_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/logger.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/misc/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/misc/bot_commands.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/misc/bot_filters.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/misc/bot_logging.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/misc_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/tg_sender.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/autoshopDjimbo3.1.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TGConvertor/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/TGConvertor/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TGConvertor/manager/manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/TGConvertor/manager/manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TGConvertor/manager/sessions/pyro.py" beforeDir="false" afterPath="$PROJECT_DIR$/TGConvertor/manager/sessions/pyro.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TGConvertor/manager/sessions/tele.py" beforeDir="false" afterPath="$PROJECT_DIR$/TGConvertor/manager/sessions/tele.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/beautifulMaps/createMapRoads.py" beforeDir="false" afterPath="$PROJECT_DIR$/beautifulMaps/createMapRoads.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/beautifulMaps/createWaterMap.py" beforeDir="false" afterPath="$PROJECT_DIR$/beautifulMaps/createWaterMap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/city-street-orientations/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/city-street-orientations/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/city-street-orientations/street_orientation.py" beforeDir="false" afterPath="$PROJECT_DIR$/city-street-orientations/street_orientation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.ini" beforeDir="false" afterPath="$PROJECT_DIR$/settings.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tgbot/data/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/data/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/data/data_cities.db" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/data/data_cities.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tgbot/data/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/data/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tgbot/data/logs.log" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/data/logs.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tgbot/data/logs.log" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/tgbot/handlers/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tgbot/handlers/admin_menu.py" beforeDir="false" afterPath="$PROJECT_DIR$/tgbot/handlers/admin_menu.py" afterDir="false" />
@@ -74,26 +154,35 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 4
+}]]></component>
   <component name="ProjectId" id="2GoMIDEecWP0SmO5bEGV2ogWiZA" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
-    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.mappings": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.symlinks": "true",
+    "WebServerToolWindowPanel.toolwindow.show.date": "false",
+    "WebServerToolWindowPanel.toolwindow.show.permissions": "false",
+    "WebServerToolWindowPanel.toolwindow.show.size": "false",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RunManager">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="bot3101f" />
@@ -147,6 +236,7 @@
       <workItem from="1672414520242" duration="4677000" />
       <workItem from="1672530008203" duration="91000" />
       <workItem from="1672530174975" duration="209000" />
+      <workItem from="1691492630887" duration="1155000" />
     </task>
     <servers />
   </component>
@@ -155,5 +245,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/bot3101fc$main.coverage" NAME="main Coverage Results" MODIFIED="1691080361081" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
