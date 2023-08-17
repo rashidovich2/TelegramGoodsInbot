@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as ikb
 
 from tgbot.data.config import BOT_VERSION, PATH_LOGS, PATH_DATABASE
-from tgbot.keyboards.reply_z_all import payments_frep, settings_frep, functions_frep, items_frep, seller_requests_frep, vacposition_post_frep, fund_adds_frep
+from tgbot.keyboards.reply_z_all import payments_frep, settings_frep, functions_frep, items_frep, seller_requests_frep
 from tgbot.loader import dp
 from babel import Locale
 from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
@@ -44,7 +44,7 @@ async def admin_settings(message: Message, state: FSMContext):
 
 
 # Запросы продавцов
-@dp.message_handler(text=["🧾 Cогласование вакансий", "🧾 Vacancies Approval"],state="*")
+@dp.message_handler(text=["Запросы продавцов", "Sellers Request"],state="*")
 async def admin_requests(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
@@ -52,32 +52,7 @@ async def admin_requests(message: Message, state: FSMContext):
     lang = get_userx(user_id=user_id)['user_lang']
     print(lang)
     if user_role in ['Admin']:
-        await message.answer(_("<b>⚙ Запросы продавцов.</b>", locale=lang), reply_markup=vacposition_post_frep(lang))
-
-
-# Запросы продавцов
-@dp.message_handler(text=["🧾 Пополнения", "🧾 Fund Adds"], state="*")
-async def admin_requests(message: Message, state: FSMContext):
-    await state.finish()
-    user_id = message.from_user.id
-    user_role = get_userx(user_id=user_id)['user_role']
-    lang = get_userx(user_id=user_id)['user_lang']
-    print(lang)
-    if user_role in ['Admin']:
-        await message.answer("Пополнения", reply_markup=fund_adds_frep(lang))
-
-# Общие функции
-@dp.message_handler(text=["🔆 Общие функции", "🔆 General Functions"], state="*") #, "🔆 General Functions"
-async def admin_functions(message: Message, state: FSMContext):
-    user_id = message.from_user.id
-    user_role = get_userx(user_id=user_id)['user_role']
-    lang = get_userx(user_id=user_id)['user_lang']
-    print(lang)
-    if user_role in ['Admin', 'ShopAdmin']:
-        print(lang)
-        await state.finish()
-        await message.answer(_("<b>🔆 Выберите нужную функцию.</b>", locale=lang), reply_markup=functions_frep(lang))
-
+        await message.answer(_("<b>⚙ Запросы продавцов.</b>", locale=lang), reply_markup=seller_requests_frep(lang))
 
 
 # Общие функции

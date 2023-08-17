@@ -15,12 +15,12 @@ log_formatter_console = colorlog.ColoredFormatter(
 # Логгирование в файл tgbot/data/logs.log
 file_handler = bot_logger.FileHandler(PATH_LOGS, "w", "utf-8")
 file_handler.setFormatter(log_formatter_file)
-file_handler.setLevel(bot_logger.DEBUG)
+file_handler.setLevel(bot_logger.INFO)
 
 # Логгирование в консоль
 console_handler = bot_logger.StreamHandler()
 console_handler.setFormatter(log_formatter_console)
-console_handler.setLevel(bot_logger.CRITICAL) #CRITICAL
+console_handler.setLevel(bot_logger.CRITICAL)
 
 # Подключение настроек логгирования
 bot_logger.basicConfig(

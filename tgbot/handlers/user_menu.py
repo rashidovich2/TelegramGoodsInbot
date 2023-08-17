@@ -1,47 +1,35 @@
 # - *- coding: utf- 8 - *-
 #from pathlib import Path
 import os
-from os import path
 import asyncio
 import json
-import math
-import random
 import gettext
-
 from pathlib import Path
 from contextvars import ContextVar
+#import i18n
 
 from aiogram.dispatcher import FSMContext
 from aiogram import Bot
 from aiogram import Dispatcher
 from aiogram.utils.deep_linking import get_start_link, decode_payload
-from aiogram.utils.markdown import hlink
-from aiogram import types
 from aiogram.types import CallbackQuery, Message, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.contrib.middlewares.i18n import I18nMiddleware
 from babel import Locale
 from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
 #from tgbot.middlewares.i18n import I18nMiddleware
 #from aiogram.contrib.middlewares.i18n import I18nMiddleware
-from aiogram_calendar import simple_cal_callback, SimpleCalendar, dialog_cal_callback, DialogCalendar
-from aiogram_timepicker.panel import FullTimePicker, full_timep_callback, full_timep_default, \
-    HourTimePicker, hour_timep_callback, MinuteTimePicker, minute_timep_callback, \
-    SecondTimePicker, second_timep_callback, \
-    MinSecTimePicker, minsec_timep_callback, minsec_timep_default
-from aiogram_timepicker import result, carousel, clock
-
 from tgbot.middlewares.i18n import I18nMiddleware
 
 from tgbot.keyboards.inline_admin import category_edit_open_finl, position_edit_open_finl, category_edit_delete_finl, \
-    position_edit_clear_finl, position_edit_delete_finl, payment_choice_finl, artist_edit_open_finl, select_place_finl, profile_search_reqs_finl
+    position_edit_clear_finl, position_edit_delete_finl, payment_choice_finl, artist_edit_open_finl, select_place_finl
 from tgbot.keyboards.inline_user import user_support_finl, products_open_finl, products_confirm_finl, \
     products_addcart_confirm_finl, payment_as_choice_finl, accept_saved_adr, accept_saved_phone, \
     cart_enter_message_finl, give_number_inl, reply_order_message_finl, refill_choice_finl, charge_button_add, \
     switch_category_shop_finl, shop_creation_request_finl, event_open_finl, enter_promocode_finl, cart_open_created_finl, \
-    cart_open_delivery_finl, edit_delivery_settings_finl, position_select_type_finl, checkout_step2_accept_finl, confirm_cart_del_finl, profile_open_finl, profile_seller_open_finl, refill_open_finl, partners_list_finl, position_select_local_finl, unwrap_post_finl, wrap_post_finl, choise_time_finl, places_list_finl
+    cart_open_delivery_finl, edit_delivery_settings_finl, position_select_type_finl, checkout_step2_accept_finl, confirm_cart_del_finl, profile_open_finl, profile_seller_open_finl, refill_open_finl
 from tgbot.keyboards.inline_z_all import category_remove_confirm_inl, position_remove_confirm_inl, \
     item_remove_confirm_inl, close_inl, confirm_delete_user_cart_inl
-from tgbot.keyboards.inline_z_all import refill_open_inl, profile_open_inl, checkout_step2_accept, order_user_refill, profile_seller_open_inl
+from tgbot.keyboards.inline_z_all import refill_open_inl, profile_open_inl, checkout_step2_accept, order_user_refill, partners_list_inl, profile_seller_open_inl
 from tgbot.keyboards.inline_z_page import *
 from tgbot.keyboards.reply_z_all import finish_load_rep
 from tgbot.keyboards.reply_z_all import menu_frep, items_sh_frep, events_frep
@@ -54,317 +42,23 @@ from tgbot.services.api_sqlite import *
 from tgbot.utils.const_functions import get_date, split_messages, get_unix, clear_list
 from tgbot.utils.misc.bot_filters import IsShopAdmin, IsAdminorShopAdmin, IsAdmin
 from tgbot.utils.misc_functions import user_refill_my, calc_cart_summ, calc_order_summ, open_cart_orders, open_profile_my, upload_text, get_faq, send_admins
-from tgbot.utils.misc_functions import get_position_admin, upload_text, get_artist_admin, functions_position_notify_bg, approve_new_product_notify, open_profile_search_req, post_position_to_telegraph
+from tgbot.utils.misc_functions import get_position_admin, upload_text, get_artist_admin
 from tgbot.keyboards.location_keyboards import geo_1_kb
 from tgbot.services.location_function import update_position_city, get_city_info, is_location, update_artist_city
 from tgbot.services.location_stat import geo_choice
 from tgbot.keyboards.location_keyboards import geo_11_kb
 
-from html_telegraph_poster import TelegraphPoster
-from html_telegraph_poster.upload_images import upload_image
-
 i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 
 print(i18n)
 _ = i18n.gettext
-
+#print(i18n.find_locales())
 
 
 async def notify(dp: Dispatcher, msg):
     print(f'Уведомление!' + msg)
     await send_admins(msg, markup="default")
-
-
-
 ################################################################################################
-
-# Создание новой позиции
-@dp.message_handler(text=["💼 Создать вакансию", "💼 Create Vacancy"], state="*")
-async def product_position_create(message: Message, state: FSMContext):
-    await state.finish()
-    print("APS 74")
-    user_id = message.from_user.id
-    lang = get_userx(user_id=user_id)['user_lang']
-    print(lang)
-    await state.set_state("here_vacposition_city")
-    #await state.set_state("here_position_photo")
-    await dp.bot.send_message(chat_id=user_id, text="<b>Выберите город вакансии или Россия/Мир для позиций с возможностью удаленной работы.</b>", disable_web_page_preview=True, reply_markup=places_list_finl())
-    #await message.answer("<b>Выберите город вакансии или Россия/Мир для позиций с возможностью удаленной работы.</b>") #, reply_markup=places_list_finl() , reply_markup=places_list_finl()
-
-
-'''@dp.message_handler(IsAdminorShopAdmin(), state="here_position_name")
-async def product_position_create_name(message: Message, state: FSMContext):
-    print('Принятие имени для создания позиции  user_menu.py 1084')
-    user_id = message.from_user.id
-    lang = get_userx(user_id=user_id)['user_lang']
-    if len(message.text) <= 100:
-        await state.update_data(here_position_name=clear_html(message.text))
-
-        await state.set_state("here_vacposition_photo")
-        await message.answer("<b>Добавьте изображение вакансиии и текст в описание изображения, либо введите текст, если вакансия не содержит изображения.</b>")
-    else:
-        await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
-                             "📁 Введите название для позиции 🏷")'''
-
-
-@dp.callback_query_handler(text_startswith="position_city:", state="*")
-async def product_position_create_name(call: CallbackQuery, state: FSMContext):
-    print('Принятие города для создания позиции  user_menu.py 1084')
-    place_url = call.data.split(":")[1]
-    user_id = call.from_user.id
-    print(place_url)
-    #lang = get_userx(user_id=user_id)['user_lang']
-    if place_url:
-        await state.update_data(here_position_city=place_url)
-
-        await state.set_state("here_vacposition_photo")
-        await call.message.answer("<b>Добавьте изображение вакансиии и текст в описание изображения, либо введите текст, если вакансия не содержит изображения.</b>")
-    else:
-        await call.message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
-                             "📁 Введите название для позиции 🏷")
-
-
-@dp.message_handler(state="here_position_photo")
-async def product_position_create_name(message: Message, state: FSMContext):
-    print('Принятие имени для создания позиции  user_menu.py 1084')
-    user_id = message.from_user.id
-    lang = get_userx(user_id=user_id)['user_lang']
-    if len(message.text) <= 100:
-        await state.update_data(here_position_name=clear_html(message.text))
-
-        await state.set_state("here_vacposition_photo")
-        await message.answer("<b>Добавьте изображение вакансиии и текст в описание изображения, либо введите текст, если вакансия не содержит изображения.</b>")
-    else:
-        await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
-                             "📁 Введите название для позиции 🏷")
-
-
-# Принятие изображения позиции для её создания
-@dp.message_handler(content_types=types.ContentType.ANY, state="here_vacposition_photo")
-@dp.message_handler(text="0", state="here_vacposition_photo")
-async def product_position_create_photo(message: Message, state: FSMContext):
-    print('Принятие изображения позиции  admin_products.py 418')
-    user_id = message.from_user.id
-    lang = get_userx(user_id=user_id)['user_lang']
-    position_type = 3
-    async with state.proxy() as data:
-        position_user_id = message.from_user.id
-        vacs_url = data['here_position_city']
-        position_state = "Approved"
-        #вилка включения вещания при создании
-        if vacs_url == "ALL_CHANNELS":
-            position_state = "Created"
-        #position_name = clear_html(data['here_position_name'])
-
-    await state.finish()
-
-    print("POSITION ADDED")
-    position_id = random.randint(1000000000, 9999999999)
-
-    if types.ContentType.TEXT == message.content_type:
-        ct = 'text'
-        print("!text message entered")
-        await state.update_data(ct='text', here_position_description=str(message.html_text))
-    elif types.ContentType.PHOTO == message.content_type:
-        ct = 'photo'
-        print("!photo message entered")
-        position_description=message.html_text if message.caption else None
-        position_photo = "" if "text" in message else message.photo[-1].file_id
-        photo_name = f"/var/local/bot3101fc/tgbot/images/position{position_id}.png"
-        await message.photo[-1].download(destination_file=photo_name)
-        await state.update_data(ct="photo", here_position_photo=message.photo[-1].file_id, caption=position_description)
-
-    add_position_vacx(position_id, position_type, position_photo, position_description, position_user_id, position_state, vacs_url)
-
-    position = get_positionx(position_id=position_id)
-    shortml = 200
-    descritionlen = len(position_description)
-    if descritionlen >= shortml:
-        shortmestext = f"{position_description[0:shortml]}\n"
-    elif descritionlen < shortml:
-        shortmestext = position_description
-
-    #||| ПОСТИМ В TELEGRAPH
-    t = TelegraphPoster(use_api=True, convert_html=True, clean_html=True)
-    auth = t.create_api_token('Oleg Aliullov', 'Oleg', 'https://www.aliplaces.ru/') # second and third params are optional
-    print(auth)
-    filex = open(photo_name, 'rb')
-    print(filex)
-    image = upload_image(filex)
-    article = t.post(title=f'Вакансия №: {position_id}', author='', text=f'<img src={image}>{position_description}') #title='Вакансия',
-    print(article)
-    #author='требуется',
-    update_positionx(position_id, article_url = article['url'])
-
-    #добавляем ссылку на полную версию
-    if descritionlen < shortml:
-        hlinktext = hlink('читать далее..', article['url'])
-        shortmestext += hlinktext
-    else: shortmestext = position_description
-
-    #|||| СОХРАНЯЕМ В JSON
-    positionj = {"position_id": position_id, "position_description": position['position_description'], "position_photo": position['position_photo'], "position_file": photo_name, "article_url": article['url'], "position_state": "Created", "vacs_url": vacs_url}
-    print(positionj)
-    exist_positions = []
-    filename = 'positions.json'
-    if path.isfile('positions.json') is False:
-        raise Exception("File not found")
-
-    with open(filename) as f:
-        exist_positions = json.load(f)
-
-    print(exist_positions)
-
-    if len(exist_positions) == 0:
-        exist_positions = positionj
-        print("EMPTY JSON FILE")
-
-    else:
-        print("JSON FILE WITH DATA")
-        print(exist_positions)
-        print(type(exist_positions))
-        exist_positions.append(positionj)
-
-    print(exist_positions)
-
-    with open('positions.json', 'w', encoding='utf-8') as f:
-        json.dump(exist_positions, f, ensure_ascii=False, indent=4, separators=(',',': '))
-    f.close()
-
-
-    await notify(dp, f"Создана позиция: {position_id}, пользователем ID: {position_user_id}")
-
-    if ct == "text":
-        await message.answer(f"{shortmestext}")
-    elif ct == "photo":
-        await message.answer_photo(photo=position_photo, caption=f"{shortmestext}")
-
-    await message.answer(_("<b>📁 Позиция была успешно создана ✅</b>", locale=lang))
-    await asyncio.create_task(await approve_new_product_notify(position_id, markup=None))
-
-
-@dp.callback_query_handler(text_startswith="position_notify:", state="*")
-async def product_position_notify_approve(call: CallbackQuery, state: FSMContext):
-    position_id = int(call.data.split(":")[1])
-    decision = call.data.split(":")[2]
-
-    print(position_id, decision)
-
-    user_id = call.from_user.id
-
-    if decision == "yes":
-        await functions_position_notify_bg(position_id, markup=None)
-
-    if decision == "no":
-        await call.answer("<b>📁 Вы отменили рассылку позиции 🖍</b>",
-                          reply_markup=menu_frep(user_id, "ru"))
-
-
-# simple calendar usage
-@dp.callback_query_handler(simple_cal_callback.filter())
-async def process_simple_calendar(call: CallbackQuery, callback_data: dict):
-    selected, date = await SimpleCalendar().process_selection(call, callback_data)
-    user_id = call.from_user.id
-    print(user_id)
-    #async with state.proxy() as data:
-    #    position_id = data['here_position_id']
-    #    print(position_id)
-    lang = "ru"
-    #await state.set_state("here_position_time_selection")
-    if selected:
-        await dp.bot.send_message(
-            chat_id=user_id,
-            text=f'Вы выбрали: {date.strftime("%d/%m/%Y")}',
-            reply_markup=menu_frep(user_id, lang)
-            )
-
-        '''await dp.bot.send_message(
-            chat_id=user_id,
-            text=f"Пожалуйста, выберите время для постинга позиции:",
-            reply_markup=choise_time_finl(position_id)
-            )'''
-
-@dp.callback_query_handler(text="choise_time", state="here_position_time_selection")
-async def full2_picker_handler(call: CallbackQuery):
-    position_id = int(call.data.split(":")[1])
-    print("PT")
-    await call.message.answer(
-        "Пожалуйста, выберите время публикации вакансии: ",
-        reply_markup=await HourTimePicker().start_picker()
-    )
-
-
-
-@dp.callback_query_handler(hour_timep_callback.filter())
-async def process_hour_timepicker(callback_query: CallbackQuery, callback_data: dict):
-    r = await HourTimePicker().process_selection(callback_query, callback_data)
-    user_id = call.from_user.id
-    lang = "ru"
-    if r.selected:
-        await call.message.answer(
-            f'Вы выбрали {r.hours}',
-            reply_markup=menu_frep(user_id, lang)
-        )
-        await state.update_data(here_position_plan_hour=r.hours)
-        await state.set_state("here_vacposition_plan_post_position")
-        await call.message.delete_reply_markup()
-
-
-@dp.message_handler(state="here_vacposition_plan_post_position")
-async def full2_picker_handler(message: Message, state: FSMContext):
-
-    async with state.proxy() as data:
-        position_plan_date = data['here_position_plan_date']
-        position_plan_time = data['here_position_plan_time']
-        position_id = data['here_position_id']
-
-        update_positionx(position_id, position_datetime=f"{position_plan_date} {position_plan_time}")
-
-    await message.answer(
-        "Время публикации поста установлено успешно! ",
-        reply_markup=menu_frep(user_id, lang)
-    )
-
-
-@dp.callback_query_handler(text_startswith="position_planning:", state="*")
-async def product_position_planning_approve(call: CallbackQuery, state: FSMContext):
-    position_id = int(call.data.split(":")[1])
-    decision = call.data.split(":")[2]
-
-    print(position_id, decision)
-
-    user_id = call.from_user.id
-
-    if decision == "yes":
-        await state.set_state("position_planning")
-        await state.update_data(here_position_id=position_id)
-        #await functions_position_planning(position_id, markup=None)
-        await dp.bot.send_message(
-            chat_id=user_id,
-            text=f"Пожалуйста, выберите дату для постинга позиции:",
-            reply_markup=await SimpleCalendar().start_calendar()
-        )
-
-    if decision == "no":
-        await update_positionx(position_id, position_state="Approved")
-        #await functions_position_notify_bg(position_id, markup=None)
-        await call.answer("<b>📁 Отправляем позицию в канал 🖍</b>",
-                          reply_markup=menu_frep(user_id, "ru"))
-
-
-@dp.callback_query_handler(text_startswith="pr_broadcast:", state="*")
-async def product_position_planning_approve(call: CallbackQuery):
-    position_id = int(call.data.split(":")[1])
-    decision = call.data.split(":")[2]
-
-    user_id = call.from_user.id
-
-    if decision == "yes":
-        await update_positionx(position_id, position_state="Broadcast")
-
-        await call.answer("<b>📁 Начинаем броадкаст поста 🖍</b>",
-                          reply_markup=menu_frep(user_id, "ru"))
-
 
 # Заявка на продавца магазина
 # Открытие товаров
@@ -373,20 +67,8 @@ async def user_seller_request(message: Message, state: FSMContext):
     user_id = message.from_user.id
     lang = get_user_lang(user_id)['user_lang']
 
-    print("LLLLLL")
-    user_requests = get_requestx(requester=user_id)
-    #print(user_requests)
-
-    if user_requests:
-        await message.answer("У Вас уже есть запросы продавца |||| Если админ Вам не подтвердил запрос, напишите: @raclear")
-        #for request in user_requests:
-        #print(request)
-        await message.answer(open_profile_search_req(user_id, lang), reply_markup=menu_frep(user_id, lang))
-        await state.set_state("here_seller_request_direction")
-        await message.answer(_("<b>📁 Введите тип товара, который Вы будете продавать:</b>", locale=lang))
-    else:
-        await state.set_state("here_seller_request_direction")
-        await message.answer(_("<b>📁 Введите тип товара, который Вы будете продавать:</b>", locale=lang))
+    await state.set_state("here_seller_request_direction")
+    await message.answer(_("<b>📁 Введите тип товара, который Вы будете продавать:</b>", locale=lang))
 
 # Открытие товаров
 @dp.message_handler(text=["Админ Афиши", "Events Admin"],state="*")
@@ -414,54 +96,6 @@ async def admin_products(message: Message, state: FSMContext):
         await state.finish()
         await message.answer("<b>🎫 У Вас недостаточно прав для доступа в данный раздел.</b>")
 
-
-# Развернуть пост
-@dp.callback_query_handler(text_startswith="unwrap_post:", state="*")
-async def unwrap_post(call: CallbackQuery, state: FSMContext):
-    user_id = int(call.data.split(":")[1])
-    post_id = int(call.data.split(":")[2])
-    print(user_id, post_id)
-
-    get_post = get_postx(post_id)
-    get_spost = get_sending_postxx(user_id, post_id)
-    #print(get_post)
-    #if get_post['ct']=="text":
-    #mtext = get_post['post_text']
-    #mtext = "DFGHFGHFGHGH"
-    #print(mtext)
-
-    #await dp.bot.edit_message_text(inline_message_id=call.inline_message_id, text=mtext, disable_web_page_preview=True, reply_markup=wrap_post_finl(user_id, post_id))
-    #await call.message.edit_text(chat_id=call.from_user.id, message_id=get_post['msgid'], text=mtext, reply_markup=wrap_post_finl(user_id, post_id))
-    #await dp.bot.edit_message_text(chat_id=call.from_user.id, message_id=get_spost['msgid'], text=mtext, disable_web_page_preview=True, reply_markup=wrap_post_finl(user_id, post_id))
-    if get_post['ct']=="text":
-        mtext = get_post['post_text']
-        await dp.bot.edit_message_text(chat_id=call.from_user.id, message_id=get_spost['msgid'], text=mtext, disable_web_page_preview=True, reply_markup=wrap_post_finl(user_id, post_id))
-    if get_post['ct']=="photo":
-        mtext = get_post['post_text']
-        await dp.bot.edit_message_caption(chat_id=call.from_user.id, message_id=get_spost['msgid'], caption=mtext, disable_web_page_preview=True, reply_markup=wrap_post_finl(user_id, post_id))
-
-
-# Свернуть пост
-@dp.callback_query_handler(text_startswith="wrap_post:", state="*")
-async def wrap_post(call: CallbackQuery, state: FSMContext):
-    user_id = int(call.data.split(":")[1])
-    post_id = int(call.data.split(":")[2])
-    print(user_id, post_id)
-
-    get_post = get_postx(post_id)
-    get_spost = get_sending_postxx(user_id, post_id)
-    #print(get_post)
-    #if get_post['ct']=="text":
-    #mtext = get_post['post_text']
-    #shortmtext = mtext[0:400]
-    #await call.message.edit_text(chat_id=call.from_user.id, message_id=get_post['msgid'], text=shortmtext, reply_markup=wrap_post_finl(user_id, post_id))
-    #await dp.bot.message.edit_text(chat_id=call.from_user.id, text=mtext, disable_web_page_preview=True, reply_markup=unwrap_post_finl(user_id, post_id))
-    if get_post['ct']=="text":
-        mtext = get_post['post_text']
-        await dp.bot.edit_message_text(chat_id=call.from_user.id, message_id=get_spost['msgid'], text=mtext, disable_web_page_preview=True, reply_markup=unwrap_post_finl(user_id, post_id))
-    if get_post['ct']=="photo":
-        mtext = get_post['post_text']
-        await dp.bot.edit_message_caption(chat_id=call.from_user.id, message_id=get_spost['msgid'], caption=mtext, disable_web_page_preview=True, reply_markup=unwrap_post_finl(user_id, post_id))
 
 # Управление товарами
 @dp.message_handler(IsShopAdmin(), text="🎁 Управление товарами дмаг.🖍", state="*")
@@ -502,7 +136,7 @@ async def product_position_edit(message: Message, state: FSMContext):
 # Открытие товаров
 @dp.message_handler(text=["🎁 Купить", "🎁 Buy"], state="*")
 async def user_shop(message: Message, state: FSMContext):
-    print('Открытие категорий товаров user_menu.py 154')
+    print('Открытие категорий товаров user_menu.py 65')
     await state.finish()
 
     user_id = message.from_user.id
@@ -528,7 +162,6 @@ async def user_shop(message: Message, state: FSMContext):
         await message.answer(_("<b>🎁 Выберите нужный вам товар:</b>", locale=lang),
                              reply_markup=products_item_category_swipe_fp(0, 0, 0, action, lang))
 
-
 # Открытие товаров
 @dp.callback_query_handler(text_startswith="privateMarket", state="*")
 async def private_user_shop(call: CallbackQuery, state: FSMContext):
@@ -542,8 +175,6 @@ async def private_user_shop(call: CallbackQuery, state: FSMContext):
     lang = get_userx(user_id=user_id)['user_lang']
     print("IIII")
 
-    pm_cats = get_pm_category_count()
-
     get_settings = get_settingsx()
     print("IIIII")
     if(get_settings['type_trade'] != 'digital'):
@@ -553,19 +184,15 @@ async def private_user_shop(call: CallbackQuery, state: FSMContext):
         print(city_id)
         print(category_id, remover, level, parent, city_id, action, lang)
 
-        #if len(get_category_in_city(city_id)) >= 1:
-        if len(pm_cats) > 0:
-            await call.message.edit_text(_("<b>🎁 Выберите нужную вам категорию:</b>", locale=lang),
+        if len(get_category_in_city(city_id)) >= 1:
+            await call.message.answer(_("<b>🎁 Выберите нужную вам категорию:</b>", locale=lang),
                                  reply_markup=position_people_create_open_fp(category_id, remover, level, parent, city_id, action, lang))
         else:
-            await call.message.edit_text("<b>🎁 В вашем городе товаров нет, выберите другой город</b>\n"
+            await call.message.answer("<b>🎁 В вашем городе товаров нет, выберите другой город</b>\n"
                                       "🏙 Изменить город вы можете в личном кабинете")
     else:
-        await call.message.edit_text(_("<b>🎁 Выберите нужную вам категорию:</b>", locale=lang),
+        await call.message.answer(_("<b>🎁 Выберите нужную вам категорию:</b>", locale=lang),
                              reply_markup=position_people_create_open_fp(category_id, remover, level, parent, city_id, action, lang))
-
-
-
 
 # Открытие товаров
 @dp.message_handler(text=["🏫 Кружки", "🏫 Сources"], state="*")
@@ -739,8 +366,6 @@ async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContex
     await call.message.edit_text(_("<b>События в городе, выберите что-нибудь интересное:</b>", locale=lang),
                                  reply_markup=places_in_city_swipe_fp(remover, city_id, lang))
 
-
-
 # Переключение страниц категорий для покупки
 @dp.callback_query_handler(text_startswith="open_inline_support", state="*")
 async def open_inline_support(call: CallbackQuery, state: FSMContext):
@@ -840,7 +465,7 @@ async def user_profile(message: Message, state: FSMContext):
 @dp.message_handler(text=["Партнеры", "Partners"], state="*")
 async def open_partners_list(message: Message, state: FSMContext):
     await state.finish()
-    await message.answer("Наши славные партнеры:", reply_markup=partners_list_finl())
+    await message.answer("Наши славные партнеры:", reply_markup=partners_list_inl)
 
 # Открытие корзины
 @dp.message_handler(text=['🧮 Корзина', '🚛 Заказы', '🧮 Cart', '🚛 Orders'], state="*")
@@ -1369,24 +994,19 @@ async def shop_list_edit(call: CallbackQuery, state: FSMContext):
 
 
 # Открытие сообщения с ссылкой на поддержку
-@dp.message_handler(text=["☎ Поддержка", "/support", "support"], state="*")
+@dp.message_handler(text=["☎ Поддержка", "/support"], state="*")
 async def user_support(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
-    get_user = get_userx(user_id=user_id)
-    if get_user['user_login'] is None:
-            username = "Не заполнено"
-    else: username = get_user['user_login']
-    #lang = get_userx(user_id=user_id)['user_lang']
+    lang = get_userx(user_id=user_id)['user_lang']
 
     user_support = get_settingsx()['misc_support']
     if str(user_support).isdigit():
         get_user = get_userx(user_id=user_support)
 
         if len(get_user['user_login']) >= 1:
-            await message.answer("<b>☎ Нажмите кнопку ниже для связи с Администратором.</b>",
+            await message.answer(_("<b>☎ Нажмите кнопку ниже для связи с Администратором.</b>", locale=lang),
                                  reply_markup=user_support_finl(get_user['user_login']))
-            #await notify(dp, f"Пользователь запрашивает диалог с поддержкой, Username: {user_name}, пользователем ID: {user_id}")
             return
         else:
             update_settingsx(misc_support="None")
@@ -1398,7 +1018,6 @@ async def user_support(message: Message, state: FSMContext):
 @dp.message_handler(state="here_seller_request_direction")
 async def user_seller(message: Message, state: FSMContext):
     await state.finish()
-
     # message.answer(message.text)
     seller_request = create_seller_request(message.from_user.id, message.text)
     await message.answer("👌 Ваш запрос успешно отправлен.")
@@ -1487,7 +1106,7 @@ async def product_position_edit_clear_confirm(call: CallbackQuery, state: FSMCon
 
 
 # Открытие способов пополнения
-@dp.message_handler(IsShopAdmin(), text=["🖲 Способы пополнения7", "🖲 Payment Methods7"], state="*")
+@dp.message_handler(IsShopAdmin(), text=["🖲 Способы пополнения", "🖲 Payment Methods"], state="*")
 async def payment_systems(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
@@ -1856,10 +1475,9 @@ async def product_position_create_select_category(call: CallbackQuery, state: FS
     if key != "NoCreate":
         shop_id = int(call.data.split(":")[1])
         await state.update_data(here_cache_change_shop_id=shop_id)
-    else: await state.update_data(here_cache_change_shop_id=0)
 
-    await state.set_state("here_position_name")
-    await call.message.edit_text(_("<b>📁 Введите название для позиции 🏷</b>", locale=lang))
+        await state.set_state("here_position_name")
+        await call.message.edit_text(_("<b>📁 Введите название для позиции 🏷</b>", locale=lang))
 
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Заготовка под принятие города магазином
@@ -1895,39 +1513,16 @@ async def product_position_create_type(call: CallbackQuery, state: FSMContext):
     lang = get_userx(user_id=user_id)['user_lang']
     position_type_txt = call.data.split(":")[1]
     position_type = 1 if position_type_txt == "real" else 2
-    print(position_type_txt)
-
+    #print(message.text)
     if len(position_type_txt) <= 7:
-        await state.update_data(here_position_type=position_type,
-                                here_position_city=get_citytext_user(call.from_user.id)[0]
-                                , position_city_id=get_city_user(call.from_user.id)[0])
-
-    if position_type_txt == "real":
-        await state.set_state("here_position_local")
-        await call.message.answer("<b>📁 Выберите значение признака Местный [местный - позиция отображается только в городе продавца, глобальный - позиция отображается во всех городах]</b>", reply_markup=position_select_local_finl(lang))
-
-    elif position_type_txt == "digital":
-        await state.set_state("here_position_price")
-        await call.message.answer(_("<b>📁 Введите цену для позиции 💰</b>", locale=lang))
-
-
-@dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="here_position_local:", state="*")
-async def product_position_create_type(call: CallbackQuery, state: FSMContext):
-    print('Принятие имени для создания позиции  user_menu.py 1084')
-    user_id = call.from_user.id
-    lang = get_userx(user_id=user_id)['user_lang']
-    position_local_txt = call.data.split(":")[1]
-    position_local = 1 if position_local_txt == 1 else 2
-
-    if len(position_local_txt) <= 7:
-        await state.update_data(here_position_local=position_local,
+        await state.update_data(here_position_type=position_type, #clear_html(message.text),
                                 here_position_city=get_citytext_user(call.from_user.id)[0]
                                 , position_city_id=get_city_user(call.from_user.id)[0])
 
         await state.set_state("here_position_price")
         await call.message.answer(_("<b>📁 Введите цену для позиции 💰</b>", locale=lang))
     else:
-        await call.message.answer("<b>❌ Признак местный позиции не может отличаться от перечисленных значений. Местный или глобальный.</b>\n"
+        await call.message.answer("<b>❌ Тип позиции не может отличаться от перечисленных значений. 1 или 2.</b>\n"
                              "📁 Введите тип позиции 🏷")
 
 
@@ -2028,20 +1623,15 @@ async def product_position_create_photo(message: Message, state: FSMContext):
     lang = get_userx(user_id=user_id)['user_lang']
     async with state.proxy() as data:
         position_user_id = message.from_user.id
+        position_city = data['here_position_city']
+        position_city_id = data['position_city_id']
         position_name = clear_html(data['here_position_name'])
         position_price = data['here_position_price']
         position_type = data['here_position_type']
-
         if position_type == 1:
-            position_city = data['here_position_city']
-            position_city_id = data['position_city_id']
             position_rest = data['here_position_rest']
-            position_local = data['here_position_local']
         elif position_type == 2:
             position_rest = 0
-            position_city = 0
-            position_city_id = 0
-            position_local = 0
         catategory_id = data['here_cache_change_category_id']
         position_source = data['here_position_source']
         if position_source == "commercial":
@@ -2053,34 +1643,15 @@ async def product_position_create_photo(message: Message, state: FSMContext):
     await state.finish()
 
     position_photo = "" if "text" in message else message.photo[-1].file_id
-    position_id = random.randint(1000000000, 9999999999)
-    add_positionx(position_id, position_city, position_city_id, position_name, position_price, position_type, position_rest, position_description, position_photo,
-                  catategory_id, position_shop_id, position_user_id, position_source, position_local)
-    #new_position_notify(position_id)
+    add_positionx(position_city, position_city_id, position_name, position_price, position_type, position_rest, position_description, position_photo,
+                  catategory_id, position_shop_id, position_user_id, position_source)
 
     #async def on_notify(dp: Dispatcher, msg, markup):
     #    await send_admins(msg, markup="default")
-
     await notify(dp, f"Создана позиция: {position_name}, пользователем ID: {position_user_id}")
-    #await asyncio.create_task(post_position_to_telegraph(position_id))
+
     await message.answer(_("<b>📁 Позиция была успешно создана ✅</b>", locale=lang))
-    await asyncio.create_task(await approve_new_product_notify(position_id, markup=None))
 
-
-@dp.callback_query_handler(text_startswith="position_notify:", state="*")
-async def product_position_notify_approve(call: CallbackQuery, state: FSMContext):
-    position_id = int(call.data.split(":")[1])
-    decision = call.data.split(":")[2]
-
-    print(position_id, decision)
-
-    user_id = call.from_user.id
-
-    if decision == "yes":
-        await functions_position_notify_bg(position_id, markup=None)
-    if decision == "no":
-        await call.answer("<b>📁 Вы отменили рассылку позиции 🖍</b>",
-                                 reply_markup=menu_frep(user_id, "ru"))
 
 ################################################################################################
 ####################################### ИЗМЕНЕНИЕ ПОЗИЦИЙ #####################################
@@ -2112,7 +1683,6 @@ async def product_position_edit_category_back(call: CallbackQuery, state: FSMCon
 # Выбор категории с нужной позицией
 @dp.callback_query_handler(text_startswith="position_edit_category_swipe:", state="*")
 async def product_position_edit_category_open(call: CallbackQuery, state: FSMContext):
-    print(category_id, city_id, lang)
     category_id = int(call.data.split(":")[1])
     city_id = int(call.data.split(":")[2])
     lang = call.data.split(":")[3]
@@ -2120,11 +1690,13 @@ async def product_position_edit_category_open(call: CallbackQuery, state: FSMCon
     user_role = get_userx(user_id=user_id)['user_role']
     #print(i18n.get_user_locale('position_edit', user_id=message.from_user.id))
     action = "edit"
-    #print("SWIPE_CAT1")
     if user_role in ["Admin", "ShopAdmin"]:
-        #print("SWIPE_CAT2")
+        #if len(get_category_in_cityx(parent_id=category_id)) >= 1:
         await call.message.edit_text(_("<b>📁 Выберите нужную вам позицию 🖍</b>", locale=lang),
                                      reply_markup=products_item_category_swipe_fp(0, category_id, city_id, action, lang))
+        #else:
+        #    await call.answer("📁 Позиции в данной категории отсутствуют")
+
 
 
 # Следующая страница позиций для их изменения
@@ -2768,9 +2340,6 @@ async def user_cart_return(call: CallbackQuery, state: FSMContext):
 async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
     print('Открытие категорий для покупки user_menu.py 133')
     category_id = int(call.data.split(":")[1])
-    #type_platform = get_settingsx()['type_trade']
-    #if type_platform == "digital":
-    #    city_id=0
     city_id = int(call.data.split(":")[2])
     user_id = call.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
@@ -2778,21 +2347,20 @@ async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
     source = "commercial"
     action = "open"
     get_category = get_categoryx(category_id=category_id)
-    #city_id = get_city_user(call.from_user.id)[0]
-    get_positions = get_positions_cx(category_id=category_id) #, position_city_id=city_id
-    #get_positions = get_positions_in_cityx(category_id=category_id, position_city_id=city_id)  #, position_city_id=city_id # , flagallc=1, position_type=1 get_positionsx(category_id=category_id)
-    print(get_positions)
+    city_id = get_city_user(call.from_user.id)[0]
+    get_positions = get_positions_in_cityx(category_id=category_id, position_city_id=city_id, flagallc=1, position_type=1)  # get_positionsx(category_id=category_id)
+    #print(get_positions)
     print(category_id, city_id)
-    if get_positions:
+    if len(get_positions) >= 1:
         await call.message.edit_text(_("<b>🎁 Товары категории:</b>", locale=lang) + get_category['category_name'],
-                                     reply_markup=products_item_position_swipe_fp(0, action, category_id, city_id, source, lang))
+                                     reply_markup=products_item_position_swipe_fp(0, action, category_id, city_id, "commercial", lang))
     else:
         await call.answer(f"❕ Товары в категории {get_category['category_name']} отсутствуют")
 
 ######################################### ПОКУПКА ТОВАРА #######################################
 ########################################### КАТЕГОРИИ ##########################################
 # Открытие категорий для покупки
-@dp.callback_query_handler(text_startswith="hpeople_category_open:", state="*")
+@dp.callback_query_handler(text_startswith="buy_people_category_open:", state="*")
 async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
     print('Открытие категорий для покупки user_menu.py 133')
     category_id = int(call.data.split(":")[1])
@@ -2810,26 +2378,6 @@ async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
                                      reply_markup=products_item_position_swipe_fp(0, action, category_id, city_id, source))
     else:
         await call.answer(f"❕ Товары в категории {get_category['category_name']} отсутствуют")
-
-
-
-# Рейтинг позиции
-@dp.callback_query_handler(text_startswith="rate_position:", state="*")
-async def user_purchase_category_return(call: CallbackQuery, state: FSMContext):
-    position_id = int(call.data.split(":")[1])
-    rate = int(call.data.split(":")[2])
-    get_settings = get_settingsx()
-    user_id = call.from_user.id
-    lang = get_user_lang(user_id)['user_lang']
-    print("LLLLL")
-    
-    city_id = 0
-
-    add_ratex(position_id, user_id, rate)
-    #remover, parent_id, city_id, action, lang
-    await call.answer("❇️ Ваш оценка позиции успешно сохраненв!")
-    #await call.message.edit_text("Ваша оценка сохранена.", reply_markup=products_item_category_swipe_fp(0, 0, city_id, "open", lang))
-    #await call.answer("! ")
 
 # Вернуться к категориям для покупки
 @dp.callback_query_handler(text_startswith="buy_category_return", state="*")
@@ -2863,7 +2411,6 @@ async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
     print(shop_id, city_id, lang)
     get_shop = get_shopsxx(shop_id=shop_id)
     print(get_shop)
-    source = "commercial"
     user_id = call.from_user.id
     #lang = get_userx(user_id=user_id)['user_lang']
     print(lang)
@@ -2906,7 +2453,7 @@ async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
         #await bot.send_media_group(call.message.chat.id, media=media)
 
         await call.message.answer(_("<b>🎁 Товары магазина:</b>", locale=lang) + get_shop[0]['name'],
-                                  reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id, source, lang))
+                                  reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id, lang))
     else:
         if lang == "ru":
             await call.answer(f"❕ Товары в магазине {get_shop[2]} отсутствуют")
@@ -2954,7 +2501,6 @@ async def user_evebt_in_city_open(call: CallbackQuery, state: FSMContext):
     #get_events_in_city
     #get_shop = get_shopsxx(place_id=place_id)
     print(get_event)
-    source = "commercial"
     #if get_shop[8] != None: logo = get_shop[8]
     user_id = call.from_user.id
     #city_id = get_city_user(user_id)[0]
@@ -2976,7 +2522,7 @@ async def user_evebt_in_city_open(call: CallbackQuery, state: FSMContext):
         #await bot.send_media_group(call.message.chat.id, media=media)
 
         await call.message.answer(_("<b>🎁 Выберите нужный вам товар:</b>", locale=lang),
-                                  reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id, source, lang))
+                                  reply_markup=products_shopitem_position_swipe_fp(0, shop_id, city_id, lang))
     else:
         await call.answer(f"❕ Товары в магазине {get_shop[2]} отсутствуют")
 
@@ -3114,7 +2660,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     tt = get_settings['type_trade']
     print("||")
 
-    if get_position['position_type'] == 1: #tt != "digital":
+    if tt != "digital":
         print("|||-")
         #    product_markup = products_open_finl(position_id, remover, category_id)
         # product_markup = products_open_cart_finl(position_id, remover, category_id)
@@ -3125,7 +2671,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
         else:
             await call.message.edit_text(send_msg,
                                          reply_markup=products_open_finl(1, position_id, remover, 0, shop_id, lang))
-    elif get_position['position_type'] == 2:
+    else:
         print("|||--")
         if len(get_position['position_photo']) >= 5:
             await call.message.delete()
@@ -3172,14 +2718,13 @@ async def user_purchase_position_next_page(call: CallbackQuery, state: FSMContex
     shop_id = call.data.split(":")[1]
     remover = int(call.data.split(":")[2])
     city_id = int(call.data.split(":")[3])
-    source = call.data.split(":")[4]
     user_id = call.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
 
     get_shop = get_shopx(shop_id=shop_id)
 
     await call.message.edit_text(f"<b>🎁 Текущий магазин: <code>{get_shop['name']}</code></b>",
-                                 reply_markup=products_shopitem_position_swipe_fp(remover, shop_id, city_id, source, lang))
+                                 reply_markup=products_shopitem_position_swipe_fp(remover, shop_id, city_id, lang))
 
 # Переключение страницы позиций для покупки
 @dp.callback_query_handler(text_startswith="buy_position_swipe:", state="*")
@@ -3208,6 +2753,8 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     city_id = int(call.data.split(":")[4])
     lang = call.data.split(":")[5]
 
+    get_items = get_itemsx(position_id=position_id)
+
     if lang == "ru":
         description = "📜 Описание:"
         cardtitle = "<b>Карточка:</b>"
@@ -3218,7 +2765,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
         cardcategory = "🗃 Категория:"
         cardcost = "💰 Стоимость:"
     if lang == "en":
-        description = "📜 Description: "
+        description = "📜 Description:"
         cardtitle = "<b>Product Card:</b>"
         cardname = "🏷 Name:"
         cardlink = "🏷 Link:"
@@ -3243,37 +2790,26 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
 
     if get_position['position_type'] == 1:
         position_rest = get_position['position_rest']
-    elif get_position['position_type'] == 2:
-        position_rest = len(get_itemsx(position_id=position_id))
+    elif get_position['position_type'] == 1:
+        position_rest = len(get_items)
 
     get_settings = get_settingsx()
 
     if get_position['position_description'] == "0":
         text_description = ""
     else:
-        text_description = f"\n{description}\n\n" \
+        text_description = f"\n{description}\n" \
                            f"{get_position['position_description']}"
 
-    if get_position['position_type'] == 1:
-        send_msg = f"{cardtitle}\n" \
-                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-                   f"{cardname} <code>{get_position['position_name']}</code>\n" \
-                   f"{cardlink} <code>{link}</code>\n" \
-                   f"{cardcity} <code>{get_position['position_city']}</code>\n" \
-                   f"{cardcategory} <code>{category}</code>\n" \
-                   f"{cardrest} <code>{position_rest}шт</code>\n" \
-                   f"{cardcost} <code>{get_position['position_price']}₽</code>\n" \
-                   f"{text_description}"
-
-    if get_position['position_type'] == 2:
-        send_msg = f"{cardtitle}\n" \
-                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-                   f"{cardname} <code>{get_position['position_name']}</code>\n" \
-                   f"{cardlink} <code>{link}</code>\n" \
-                   f"{cardcategory} <code>{category}</code>\n" \
-                   f"{cardrest} <code>{position_rest}шт</code>\n" \
-                   f"{cardcost} <code>{get_position['position_price']}₽</code>\n" \
-                   f"{text_description}"
+    send_msg = f"{cardtitle}\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"{cardname} <code>{get_position['position_name']}</code>\n" \
+               f"{cardlink} <code>{link}</code>\n" \
+               f"{cardcity} <code>{get_position['position_city']}</code>\n" \
+               f"{cardcategory} <code>{category}</code>\n" \
+               f"{cardrest} <code>{get_position['position_rest']}шт</code>\n" \
+               f"{cardcost} <code>{get_position['position_price']}₽</code>\n" \
+               f"{text_description}"
 
     print(get_settings['type_trade'])
     tt = get_settings['type_trade']
@@ -3287,17 +2823,11 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
             await call.message.edit_text(send_msg,
                                          reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))
 
-    elif tt == "hybrid" and len(get_position['position_photo']) >= 5:
+    elif len(get_position['position_photo']) > 5:
         #print(get_position['position_photo'])
-        if get_position['position_type'] == 1:
-            await call.message.delete()
-            await call.message.answer_photo(get_position['position_photo'],
-                                            send_msg, reply_markup=products_open_finl(1, position_id, remover, category_id, 0, lang))
-
-        if get_position['position_type'] == 2:
-            await call.message.delete()
-            await call.message.answer_photo(get_position['position_photo'],
-                                            send_msg, reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))
+        await call.message.delete()
+        await call.message.answer_photo(get_position['position_photo'],
+                                        send_msg, reply_markup=products_open_finl(1, position_id, remover, category_id, 0, lang))
 
     elif len(get_position['position_photo']) < 6:
         print("0O0O0")
@@ -3655,13 +3185,9 @@ async def user_addcart_confirm(call: CallbackQuery, state: FSMContext):
 async def del_user_cart(call: CallbackQuery, state: FSMContext):
     order_id = int(call.data.split(":")[1])
     print("||||")
-    user_id=call.from_user.id
-    user = get_userx(user_id=user_id)
-    lang = user['user_lang']
-    print(lang)
     await state.finish()
     await call.message.edit_text(_("<b> Удалить корзину и ее позиции?</b>", locale=lang),
-                                 reply_markup=confirm_delete_user_cart_inl(order_id, lang))
+                                 reply_markup=confirm_delete_user_cart_inl(order_id))
 
 # Подтверждение удаления корзины
 @dp.callback_query_handler(text_startswith="confirm_del_user_cart", state="*")
@@ -3670,7 +3196,6 @@ async def confirm_del_user_cart(call: CallbackQuery, state: FSMContext):
     print(order_id)
     user_id=call.from_user.id
     print(user_id)
-    #lang = get_userx(user_id=user_id)['user_lang']
     order_id=order['order_id']
     #возврат количества в товаров в позиции
     orderdata = get_orderxo(order_id=order_id)
@@ -4136,27 +3661,14 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
     get_position = get_positionx(position_id=position_id)
     get_items = get_itemsx(position_id=position_id)
     get_user = get_userx(user_id=call.from_user.id)
-    lang = get_user['user_lang']
 
     if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-        #get_count = min(get_count, len(get_items))
+        get_count = min(get_count, len(get_items))
     else:
         get_count = len(get_items)
 
-    if get_items == 0: get_count = 0
-
     if int(get_user['user_balance']) >= int(get_position['position_price']):
-        if get_count == 0:
-            await state.update_data(here_cache_position_id=position_id)
-            await state.finish()
-
-            await call.message.delete()
-            await call.message.answer(f"<b>🎁 К сожалению данный товар закончился!</b>\n"
-                                      f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                                      f"🎁 Товар: <code>{get_position['position_name']}</code>",
-                                      reply_markup=products_confirm_finl(position_id, 1, lang))
-
         if get_count == 1:
             await state.update_data(here_cache_position_id=position_id)
             await state.finish()
@@ -4167,7 +3679,7 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
                                       f"🎁 Товар: <code>{get_position['position_name']}</code>\n"
                                       f"📦 Количество: <code>1шт</code>\n"
                                       f"💰 Сумма к покупке: <code>{get_position['position_price']}₽</code>",
-                                      reply_markup=products_confirm_finl(position_id, 1, lang))
+                                      reply_markup=products_confirm_finl(position_id, 1))
         elif get_count >= 1:
             await state.update_data(here_cache_position_id=position_id)
             await state.set_state("here_item_count")
@@ -4183,7 +3695,10 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
     else:
         #await call.answer("❗ У вас недостаточно средств. Пополните баланс", True)
         #await call.message.delete()
-        await call.message.answer("<b>❗ У вас недостаточно средств. Пополните баланс</b>", reply_markup=charge_button_add(0))
+        await call.message.answer(
+            "<b>❗ У вас недостаточно средств. Пополните баланс</b>",
+            reply_markup=charge_button_add(0),
+        )
 
 
 @dp.callback_query_handler(text_startswith="edit_delivery_settings", state="*")
@@ -4314,19 +3829,13 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
 
     get_position = get_positionx(position_id=position_id)
     get_user = get_userx(user_id=message.from_user.id)
-    lang = get_user['user_lang']
-    if lang is None: lang = "ru"
     get_items = get_itemsx(position_id=position_id)
 
-    if get_position['position_type'] == 1:
-        #get_count = len(get_items)
+    if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-    elif get_position['position_type'] == 2:
-        get_count = get_position['position_rest']
-
-
-    print("|||||")
-    print(get_count, get_items)
+        get_count = min(get_count, len(get_items))
+    else:
+        get_count = len(get_items)
 
     send_message = f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                    f"🎁 Введите количество товаров для покупки\n" \
@@ -4334,7 +3843,6 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
                    f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                    f"🎁 Товар: <code>{get_position['position_name']}</code> - <code>{get_position['position_price']}₽</code>\n" \
                    f"💰 Ваш баланс: <code>{get_user['user_balance']}₽</code>"
-    
 
     if message.text.isdigit():
         get_count = int(message.text)
@@ -4349,7 +3857,7 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
                                          f"🎁 Товар: <code>{get_position['position_name']}</code>\n"
                                          f"📦 Количество: <code>{get_count}шт</code>\n"
                                          f"💰 Сумма к покупке: <code>{amount_pay}₽</code>",
-                                         reply_markup=products_confirm_finl(position_id, get_count, lang))
+                                         reply_markup=products_confirm_finl(position_id, get_count))
                 else:
                     await message.answer(
                         f"<b>❌ Недостаточно средств на счете.</b>\n{send_message}"
@@ -4368,23 +3876,15 @@ async def user_purchase_confirm(call: CallbackQuery, state: FSMContext):
     get_action = call.data.split(":")[1]
     position_id = int(call.data.split(":")[2])
     get_count = int(call.data.split(":")[3])
-    #print(get_action, position_id, get_count)
-    get_user = get_userx(user_id=call.from_user.id)
-    lang = get_user['user_lang']
-    if lang is None: lang = "ru"
 
     if get_action == "yes":
-        await call.message.edit_text("<b>🔄 Ждите, товары подготавливаются</b>") #_("<b>🔄 Ждите, товары подготавливаются</b>", locale=lang))
+        await call.message.edit_text(_("<b>🔄 Ждите, товары подготавливаются</b>", locale=lang))
 
         get_position = get_positionx(position_id=position_id)
         get_items = get_itemsx(position_id=position_id)
-        #get_user = get_userx(user_id=call.from_user.id)
-        #lang = get_user['user_lang']
-        #print(get_position, get_items, get_user, lang, amount_pay)
+        get_user = get_userx(user_id=call.from_user.id)
 
         amount_pay = int(get_position['position_price'] * get_count)
-
-        #print(get_position, get_items, get_user, lang, amount_pay)
 
         if 1 <= get_count <= len(get_items):
             if int(get_user['user_balance']) >= amount_pay:
@@ -4417,12 +3917,12 @@ async def user_purchase_confirm(call: CallbackQuery, state: FSMContext):
                                           f"🧾 Чек: <code>#{receipt}</code>\n"
                                           f"🎁 Товар: <code>{get_position['position_name']} | {get_count}шт | {amount_pay}₽</code>\n"
                                           f"🕰 Дата покупки: <code>{buy_time}</code>",
-                                          reply_markup=menu_frep(call.from_user.id, lang))
+                                          reply_markup=menu_frep(call.from_user.id))
             else:
-                await call.message.answer("<b>❗ На вашем счёте недостаточно средств</b>")
+                await call.message.answer(_("<b>❗ На вашем счёте недостаточно средств</b>", locale=lang))
         else:
             await call.message.answer(_("<b>🎁 Товар который вы хотели купить закончился или изменился.</b>", locale=lang),
-                                      reply_markup=menu_frep(call.from_user.id, lang))
+                                      reply_markup=menu_frep(call.from_user.id))
     elif len(get_all_categoriesx()) >= 1:
         await call.message.edit_text(_("<b>🎁 Выберите нужный вам товар:</b>", locale=lang),
                                      reply_markup=category_edit_open_fp(0))

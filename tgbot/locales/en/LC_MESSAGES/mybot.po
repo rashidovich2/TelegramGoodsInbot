@@ -61,8 +61,6 @@ msgstr "<b>✅ Message to User "
 msgid "было отправлено сообщение:</b>"
 msgid " message was sended:</b>"
 
-msgid "<b>🧾 Посмотрим поданные вакансии:</b>"
-msgstr "<b>🧾 Let's see the created vacancies:</b>"
 
 #: ../tgbot/handlers/admin_functions.py:215
 msgid "<b>🧾 Посмотрим запросы продавцов:</b>"
@@ -1137,9 +1135,6 @@ msgstr "Ⓜ By nickname"
 #: ../tgbot/keyboards/inline_admin.py:84
 msgid "📋 По Yoo"
 msgstr "📋 By Yoo"
-
-msgid "📋 Перевод на карту"
-msgstr "📋 Card Transfer"
 
 #: ../tgbot/keyboards/inline_admin.py:85
 msgid "📋 Свободные реквизиты"

@@ -10,7 +10,7 @@ print(client.klines("BTCUSDT", "1m"))
 print(client.klines("BNBUSDT", "1h", limit=10))
 
 # API key/secret are required for user data endpoints
-client = Spot(api_key='0dPZSBNZt50jG1OsZw8Ihaavt5XHndsEmOarTBh0u6Kxn03ViuhSeLr9rwenMcyP', api_secret='07FmZzO40IJ4fWJkcvOMyS99hJJgRLBhOGvgMRuZcuS6f6zOWK6pGCAdYVmJnYER')
+client = Spot(api_key='XXXXXXXXX', api_secret='XXXXXXXXX')
 
 # Get account and balance information
 print(client.account())

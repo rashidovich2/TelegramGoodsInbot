@@ -10,7 +10,6 @@ user_commands = [
     BotCommand("lang", "Изменить язык"),
     BotCommand("edit_location", "📡 Изменить город"),
     BotCommand("support", "☎ Поддержка"),
-    BotCommand("switch_new_product_subscription", "Получать карточки новых позиций"),
     BotCommand("user_seller_request", "Я продавец"),
     BotCommand("faq", "ℹ FAQ"),
 ]
@@ -21,7 +20,6 @@ admin_commands = [
     BotCommand("lang", "Изменить язык"),
     BotCommand("edit_location", "📡 Изменить город"),
     BotCommand("support", "☎ Поддержка"),
-    BotCommand("switch_new_product_subscription", "Получать карточки новых позиций"),
     BotCommand("faq", "ℹ FAQ"),
     BotCommand("check_seller_requests", "Заявки в продавцы"),
     BotCommand("db", "📦 Получить Базу Данных"),

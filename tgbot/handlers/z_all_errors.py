@@ -7,7 +7,6 @@ from tgbot.services.api_sqlite import get_categoryx, get_all_categoriesx, get_po
 from tgbot.utils.misc.bot_logging import bot_logger
 
 
-
 # Обработка телеграм ошибок
 @dp.errors_handler()
 async def all_errors(update: Update, exception):

@@ -28,9 +28,7 @@ async def scheduler_start():
     #scheduler.add_job(send_message_start, 'interval', seconds=600)
     #scheduler.add_job(post_every_hour, "cron", hour=21, minute=43)
     #scheduler.add_job(sellers_news, "cron", hour=15, minute=9)
-    #scheduler.add_job(te, "cron", hour=15, minute=9)
-    
-    #scheduler.add_job(reinvite_sellers_by_city, "cron", hour=18, minute=25)
+    #scheduler.add_job(reinvite_sellers_by_city, "cron", hour=11, minute=20)
     #scheduler.add_job(posts3_every_hour, "interval", minutes=60)
     #scheduler.add_job(post_every_hour, "interval", minutes=30)
     #scheduler.add_job(post_half_eight, "cron", hour=18, minute=30)

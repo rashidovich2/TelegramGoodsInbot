@@ -116,7 +116,7 @@ print(sys.argv)
 #mode2 = int(input(gr+"Введите свой выбор( 1/2 ) : "+re))
 acc_mode = 2
 mode2 = 1
-gusername = "goodnewsrussia1" #"denminiailo" #"goodnewsrussia1" #"tea_club_pnz" #"goodnewsrussia1" #"pf_ya" ##"shoptelegramg" #pf_ya" #"goodnewsrussia1" #"pf_ya" "pf_ya" # Current chat ID: 5620443733
+gusername = "tea_club_pnz" #"goodnewsrussia1" #"tea_club_pnz" #"goodnewsrussia1" #"pf_ya" ##"shoptelegramg" #pf_ya" #"goodnewsrussia1" #"pf_ya" "pf_ya" # Current chat ID: 5620443733
 
 
 '''if sys.argv[1] == 'group':
@@ -133,9 +133,9 @@ gusername = "goodnewsrussia1" #"denminiailo" #"goodnewsrussia1" #"tea_club_pnz" 
     source_group_selected = 1'''
 
 group_name = "Накрутка пф"
-source_group = 1550329321 #1715536909 #1596576630 #1592040758 #1463574774 #1562926249  #1592040758 #1935533426 #1711920479 #1592040758 #1715536909 #1711920479 #1592040758 ##1691432548 #1520545687 #1557904116 #1224708719 #1520545687 #1640509728 #1697116411
-rows = first_grouptoinvitebyid(source_group, start, count)
-#rows = first_grouptoreinvite(0, 110) #Пенза реинвайт
+source_group = 1592040758  #1592040758 #1935533426 #1711920479 #1592040758 #1715536909 #1711920479 #1592040758 ##1691432548 #1520545687 #1557904116 #1224708719 #1520545687 #1640509728 #1697116411
+#rows = first_grouptoinvitebyid(source_group, start, count)
+rows = first_grouptoreinvite(0, 110) #Пенза реинвайт
 if sys.argv[1] == 'geoparse': rows = firstgeo_toinvite(state, start, count)
 
 cpass=get_all_tgaccounts_to_invite()
@@ -176,6 +176,7 @@ for cp in cpass:
             banner()
             client.start()
             print(f'[+] Успешная аутентификация - {phone}')
+
             print(f'[+] Проверяем и входим в группу - {phone}')
 
         furl = f"t.me/{gusername}"

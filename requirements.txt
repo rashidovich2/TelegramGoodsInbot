@@ -11,5 +11,3 @@ async_class
 yoomoney
 geopy
 coinbase
-base58
-tronpy

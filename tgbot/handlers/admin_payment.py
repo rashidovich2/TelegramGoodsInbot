@@ -2,7 +2,7 @@
 import asyncio
 
 from aiogram.dispatcher import FSMContext
-from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton as ikb
+from aiogram.types import CallbackQuery, Message
 
 import json
 from tgbot.keyboards.inline_admin import payment_choice_finl
@@ -10,65 +10,42 @@ from tgbot.loader import dp
 from tgbot.services.api_qiwi import QiwiAPI
 from tgbot.services.api_yoo import YooAPI
 from tgbot.services.api_cb import CoinbaseAPI
-from tgbot.services.api_sqlite import update_paymentx, get_paymentx, get_upaycount, get_upaymentx, update_upaymentx, get_userx, get_admin_crypto_address, update_admin_crypto_address, create_admin_crypto_payment_row
+from tgbot.services.api_sqlite import update_paymentx, get_paymentx, get_upaycount, get_upaymentx, update_upaymentx, get_userx
 from tgbot.utils.misc.bot_filters import IsAdmin, IsAdminorShopAdmin
-from tgbot.utils.misc_functions import validate_trx_address, validate_bsc_address
-from babel import Locale
-from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
-from tgbot.middlewares.i18n import I18nMiddleware
 
-i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
-
-print(i18n)
-_ = i18n.gettext
 
 ###################################################################################
 ############################# ВЫБОР СПОСОБА ПОПОЛНЕНИЯ ############################
 # Открытие способов пополнения
-@dp.message_handler(IsAdminorShopAdmin(), text=["🖲 Способы пополнения", "🖲 Payment Methods"], state="*")
+@dp.message_handler(text=["🖲 Способы пополнения", "🖲 Payment methods"], state="*")
 async def payment_systems(message: Message, state: FSMContext):
     await state.finish()
-    print("PAYMENT METHODS")
     user_id = message.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
     user_role = get_userx(user_id=user_id)['user_role']
-    print(user_role, lang)
-    if user_role in ['Admin', 'ShopAdmin']:
+    print(user_role)
+    if user_role == "Admin" or user_role == "ShopAdmin":
         await message.answer(_("<b>🖲 Выберите способ пополнения</b>", locale=lang), reply_markup=payment_choice_finl(user_id, lang))
-
 
 # Включение/выключение самих способов пополнения
 @dp.callback_query_handler(IsAdminorShopAdmin(), text_startswith="change_payment:")
 async def payment_systems_edit(call: CallbackQuery):
     way_pay = call.data.split(":")[1]
     way_status = call.data.split(":")[2]
-    #user_id = str(json.dumps(call.data.split(":")[3]))
-    user_id = call.data.split(":")[3]
-    #user_id = user_id.strip("\"")
-    print(way_pay, way_status, user_id)
-    #print(call.from_user.id)
+    user_id = str(json.dumps(call.data.split(":")[3]))
+    user_id = user_id.strip("\"")
+    print(user_id)
+    print(call.from_user.id)
 
-    get_payment = get_upaymentx(user_id)
-    #count = get_upaycount(user_id)
-    if len(get_payment) == 0:
+    count = get_upaycount(user_id)
+    if count == 0:
         cur = create_upayments_row(user_id)
-    #elif len(get_payment) == 1:
+    else:
         #get_payment = get_paymentx
-        #get_payment = get_upaymentx(user_id)
-    print(user_id, way_pay, way_status)
+        get_payment = get_upaymentx(user_id)
+        print(get_payment)
 
-    if way_pay == "USDT":
-        way_payx = "way_usdt"
-    if way_pay == "BTCB":
-        way_payx = "way_btcb"
-    if way_pay == "TRX":
-        way_payx = "way_tron"
-
-    if way_pay is not None:
-        way_payz = f"{way_payx} = {way_status}"
-        update_upaymentx(user_id, way_payz)
-
-    '''if get_payment['qiwi_login'] != "None" and get_payment['qiwi_token'] != "None" or way_status == "False":
+    if get_payment['qiwi_login'] != "None" and get_payment['qiwi_token'] != "None" or way_status == "False":
         if way_pay == "Form":
             if get_payment['qiwi_secret'] != "None" or way_status == "False":
                 update_upaymentx(user_id, way_form=way_status)
@@ -96,7 +73,7 @@ async def payment_systems_edit(call: CallbackQuery):
         elif way_pay == "CoinBase":
             update_upaymentx(user_id, way_coinbase=way_status)
     else:
-        await call.answer("❗ Добавьте киви кошелёк перед включением Способов пополнений.", True)'''
+        await call.answer("❗ Добавьте киви кошелёк перед включением Способов пополнений.", True)
 
     try:
         await call.message.edit_text(_("<b>🖲 Выберите способ пополнения</b>", locale=lang), reply_markup=payment_choice_finl(user_id, lang))
@@ -113,90 +90,6 @@ async def payment_qiwi_edit(message: Message, state: FSMContext):
 
     await state.set_state("here_qiwi_login")
     await message.answer("<b>🥝 Введите <code>номер (через +7, +380)</code> QIWI кошелька 🖍</b>")
-
-
-# Изменение ₮ Tether, USDT(Trc-20) кошелька
-@dp.message_handler(IsAdminorShopAdmin(), text=["₮ Tether адрес", "TRX, Tron(Trc20) адрес", "₿, Bitcoin(Bep-20) адрес", "Изменить номер карты"], state="*")
-async def payment_qiwi_edit(message: Message, state: FSMContext):
-    await state.finish()
-    await state.set_state("here_admin_address")
-    if message.text ==  "₮ Tether адрес":
-        await state.update_data(here_type_net="USDT")
-        await message.answer("<b>Введите <code>₮ Tether, USDT(Trc-20)</code> адрес</b>")
-    if message.text ==  "TRX, Tron(Trc20) адрес":
-        await state.update_data(here_type_net="TRX")
-        await message.answer("<b>Введите <code>TRX(Trc-20)</code> адрес</b>")
-    if message.text ==  "₿, Bitcoin(Bep-20) адрес":
-        await state.update_data(here_type_net="BTCB")
-        await message.answer("<b>Введите <code>₿, Bitcoin(Bep-20)</code> адрес</b>")
-    if message.text ==  "Изменить номер карты":
-        await state.update_data(here_type_net="RUB")
-        await message.answer("<b>Введите <code>номер</code> карты</b>")
-
-
-# Принятие Трон адреса и сохранение если нет
-@dp.message_handler(IsAdminorShopAdmin(), state="here_admin_address")
-async def enter_tron_address(message: Message, state: FSMContext):
-    user_id = message.from_user.id
-    type_net = (await state.get_data())['here_type_net']
-    print(type_net)
-    save = 0
-    admin_address = ""
-
-    if message.text:
-        admin_address = message.text
-        if admin_address == "" or admin_address is None:
-            await message.answer(f"<b>♻ Был введен пустой адрес</b>", reply_markup=back_to_profile_finl('ru'))
-
-        admin_addressdb = get_admin_crypto_address(type_net)
-        print(admin_addressdb)
-        #trx_addressdb = get_crypto_address(user_id, type_net)
-        if type_net == "TRX" or type_net == "USDT":
-            trx_address = await validate_trx_address(admin_address)
-            print(trx_address)
-
-            #await message.answer(f"<b>♻ Проверяем Ваш адрес.</b>")
-            #есть ли адрес в TRC20
-            if trx_address['success']:
-                await message.answer(f"<b>♻ Все в порядке. {admin_address} найден в TRC20.</b>")
-                save = 1
-            if trx_address is False:
-                await message.answer(f"<b>♻ Адреса: {admin_address} нет в сети.</b>",
-                                     reply_markup=back_to_profile_finl('ru'))
-                save = 0
-
-        if type_net == "BTCB":
-            bsc_addressbep = await validate_bsc_address(admin_address)
-
-            # есть ли адрес в BEP-20
-            if bsc_addressbep['message'] == 'OK':
-                # если адрес есть в нашей БД
-                await message.answer(f"<b>♻ Все в порядке. {admin_address} найден в BEP-20.</b>")
-                save = 1
-            if bsc_addressbep['message'] == 'NOTOK':
-                await message.answer(f"<b>♻ Адреса: {admin_address} нет в сети.</b>", reply_markup=back_to_profile_finl('ru'))
-                save = 0
-
-        if type_net == "RUB":
-            print(f"{admin_address} OK")
-            save = 1
-
-        if admin_addressdb and save == 1:
-            update_admin_crypto_address(type_net, tron_address=admin_address)
-            await message.answer(f"Обновляем адрес в профиле {type_net} админа.")
-        elif admin_addressdb is None and save == 1:
-            create_admin_crypto_payment_row(type_net, admin_address)
-            await message.answer(f"Добавляем адрес в профиле {type_net} админа.")
-
-            #await state.update_data(here_admin_address=admin_address)
-            #await state.set_state("here_pay_amount")
-
-            await message.answer(f"<b>♻ Успешно сохранили Ваш {type_net} адрес [{admin_address}] в профиле.</b>",
-                                     reply_markup=back_to_profile_finl('ru'))
-
-
-
-
 
 
 # Проверка работоспособности QIWI

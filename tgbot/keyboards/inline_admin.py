@@ -14,39 +14,6 @@ i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 print(i18n)
 _ = i18n.gettext
 
-
-# Рассылка
-def ad_telegraph_finl(post_id):
-    keyboard = InlineKeyboardMarkup()
-    keyboard.add(
-        ikb("✅ Отправить", callback_data=f"telegraph_ad:{post_id}:yes"),
-        ikb("❌ Отменить", callback_data=f"telegraph_ad:{post_id}:not")
-    )
-    return keyboard
-
-
-# Рассылка
-def ad_confirm_finl(post_id):
-    keyboard = InlineKeyboardMarkup()
-    keyboard.add(
-        ikb("✅ Отправить", callback_data=f"confirm_ad:{post_id}:yes"),
-        ikb("❌ Отменить", callback_data=f"confirm_ad:{post_id}:not")
-    )
-    return keyboard
-
-
-# Рассылка
-def ad_add_to_plan_finl(post_id):
-    print(post_id)
-    keyboard = InlineKeyboardMarkup()
-    keyboard.add(
-        ikb("✅ Включить", callback_data=f"plan_once_ad:{post_id}:yes"),
-        ikb("❌ Отправить один раз", callback_data=f"plan_once_ad:{post_id}:not"),
-        ikb("👁️ Дублировать Telegra.ph", callback_data=f"telegraph_add:{post_id}:yes")
-    )
-    return keyboard
-
-
 # Поиск профиля
 def select_place_finl(city_id):
     remover = 0
@@ -106,53 +73,6 @@ def profile_search_finl(user_id, lang):
         )
     )
 
-# Поиск профиля с запросом на продавца
-def fund_add_confirmation_finl(receipt, lang):
-    if lang == "ru":
-        submbtn = "Да, подтверждаю"
-        declbtn = "Нет, отклоняю"
-        delbtn = "Отправить сейчас"
-        plbtn = "Запланировать отправку"
-        bcbtn = "Броадкаст"
-    if lang == "en":
-        submbtn = "Yes, Confirm"
-        declbtn = "No, Dellay"
-        delbtn = "Send To Channel"
-        plbtn = "Plan Delivery"
-        bcbtn = "Broadcast"
-
-    return InlineKeyboardMarkup().add(
-        ikb(submbtn, callback_data=f"PayСonfirm:CardTransfer:{receipt}:yes"),
-        ikb(declbtn, callback_data=f"PayСonfirm:CardTransfer:{receipt}:no"),
-        #ikb(delbtn, callback_data=f"position_planning:{position_id}:no"),
-        #ikb(plbtn, callback_data=f"position_planning:{position_id}:yes"),
-        #ikb(bcbtn, callback_data=f"pr_broadcast:{position_id}:yes"),
-    )
-
-
-# Поиск профиля с запросом на продавца
-def position_approve_reqs_finl(position_id, lang):
-    if lang == "ru":
-        submbtn = "Да, рассылка"
-        declbtn = "Нет, рассылка"
-        delbtn = "Отправить сейчас"
-        plbtn = "Запланировать отправку"
-        bcbtn = "Броадкаст"
-    if lang == "en":
-        submbtn = "Yes, Bulk Send"
-        declbtn = "No Bulk Send"
-        delbtn = "Send To Channel"
-        plbtn = "Plan Delivery"
-        bcbtn = "Broadcast"
-
-    return InlineKeyboardMarkup().add(
-        ikb(submbtn, callback_data=f"position_post_request_approve:{position_id}"),
-        ikb(declbtn, callback_data=f"position_post_request_decline:{position_id}"),
-        ikb(delbtn, callback_data=f"position_planning:{position_id}:no"),
-        ikb(plbtn, callback_data=f"position_planning:{position_id}:yes"),
-        ikb(bcbtn, callback_data=f"pr_broadcast:{position_id}:yes"),
-    )
-
 
 # Поиск профиля с запросом на продавца
 def profile_search_reqs_finl(user_id, lang):
@@ -175,39 +95,58 @@ def profile_search_reqs_finl(user_id, lang):
 # Способы пополнения
 def payment_choice_finl(user_id, lang):
     keyboard = InlineKeyboardMarkup()
-    print(user_id, lang)
-    get_payments = get_paymentx()
+    print("inline_admin")
+    print(user_id)
+    print(lang)
+    count = get_upaycount(user_id)
+    print(count['paycount'])
+    if count['paycount'] == 0:
+        cur = create_upayments_row(user_id)
+    else:
+        get_payments = get_upaymentx(user_id)
 
+    print(get_payments)
     if lang == "en":
-        byusdt = "₮ Tether, USDT(Trc-20)"
-        bytrx = "TRX, Trc-20"
-        bybtcb = "₿, Bitcoin(Bep-20)"
-        bycard = "Card Transfer"
-
+        byqwformbtn = "📋 By QIWI Form"
+        byqwphonebtn = "📞 By QIWI Number"
+        byqwnickbtn = "Ⓜ By Nickname"
+        byyoobtn = "📋 By Yoo Form"
+        byfreereqs = "📋 By Free Data"
+        bycbbtn = "Coinbase"
     if lang == "ru":
-        byusdt = "₮ Tether, USDT(Trc-20)"
-        bytrx = "TRX, Trc-20"
-        bybtcb = "₿, Bitcoin(Bep-20)"
-        bycard = "Перевод на карту по номеру"
+        byqwformbtn = "📋 По QIWI форме"
+        byqwphonebtn = "📞 По QIWI номеру"
+        byqwnickbtn = "Ⓜ По Никнейму"
+        byyoobtn = "📋 По Yoo форме"
+        byfreereqs = "📋 Свободные реквизиты"
+        bycbbtn = "Coinbase"
 
-    status_byusdt_kb = ikb("✅", callback_data=f"change_payment:USDT:False:{user_id}")
-    #status_bytrx_kb = ikb("✅", callback_data=f"change_payment:TRX:False:{user_id}")
-    #status_bybtcb_kb = ikb("✅", callback_data=f"change_payment:BTCB:False:{user_id}")
-    status_bycard_kb = ikb("✅", callback_data=f"change_payment:CardTransfer:False:{user_id}")
+    status_form_kb = ikb("✅", callback_data=f"change_payment:Form:False:{user_id}")
+    status_number_kb = ikb("✅", callback_data=f"change_payment:Number:False:{user_id}")
+    status_nickname_kb = ikb("✅", callback_data=f"change_payment:Nickname:False:{user_id}")
+    status_formy_kb = ikb("✅", callback_data=f"change_payment:ForYm:False:{user_id}")
+    status_freecredi_kb = ikb("✅", callback_data=f"change_payment:FreeCredi:False:{user_id}")
+    status_coinbase_kb = ikb("✅", callback_data=f"change_payment:CoinBase:False:{user_id}")
 
-    #if get_payments['way_tron'] == ["False", "None"]:
-    #    status_bytrx_kb = ikb("❌", callback_data=f"change_payment:TRX:True:{user_id}")
-    if get_payments['way_usdt'] == ["False", "None"]:
-        status_byusdt_kb = ikb("❌", callback_data=f"change_payment:USDT:True:{user_id}")
-    #if get_payments['way_btcb'] == ["False", "None"]:
-    #    status_bybtcb_kb = ikb("❌", callback_data=f"change_payment:BTCB:True:{user_id}")
-    if get_payments['way_ct'] == ["False", "None"]:
-        status_bycard_kb = ikb("❌", callback_data=f"change_payment:CardTransfer:True:{user_id}")
+    if get_payments['way_form'] == "False":
+        status_form_kb = ikb("❌", callback_data=f"change_payment:Form:True:{user_id}")
+    if get_payments['way_number'] == "False":
+        status_number_kb = ikb("❌", callback_data=f"change_payment:Number:True:{user_id}")
+    if get_payments['way_nickname'] == "False":
+        status_nickname_kb = ikb("❌", callback_data=f"change_payment:Nickname:True:{user_id}")
+    if get_payments['way_formy'] == "False":
+        status_formy_kb = ikb("❌", callback_data=f"change_payment:ForYm:True:{user_id}")
+    if get_payments['way_freecredi'] == "False":
+        status_freecredi_kb = ikb("❌", callback_data=f"change_payment:FreeCredi:True:{user_id}")
+    if get_payments['way_coinbase'] == "False":
+        status_coinbase_kb = ikb("❌", callback_data=f"change_payment:CoinBase:True:{user_id}")
 
-    keyboard.add(ikb(byusdt, url="https://vk.cc/bYjKEy"), status_byusdt_kb)
-    #keyboard.add(ikb(bytrx, url="https://vk.cc/bYjKGM"), status_bytrx_kb)
-    #keyboard.add(ikb(bybtcb, url="https://vk.cc/c8s66X"), status_bybtcb_kb)
-    keyboard.add(ikb(bycard, url="https://vk.cc/bYjKGM"), status_bycard_kb)
+    keyboard.add(ikb(byqwformbtn, url="https://vk.cc/bYjKGM"), status_form_kb)
+    keyboard.add(ikb(byqwphonebtn, url="https://vk.cc/bYjKEy"), status_number_kb)
+    keyboard.add(ikb(byqwnickbtn, url="https://vk.cc/c8s66X"), status_nickname_kb)
+    keyboard.add(ikb(byyoobtn, url="https://vk.cc/bYjKGM"), status_formy_kb)
+    keyboard.add(ikb(byfreereqs, url="https://vk.cc/bYjKGM"), status_freecredi_kb)
+    keyboard.add(ikb(bycbbtn, url="https://vk.cc/bYjKGM"), status_coinbase_kb)
 
     return keyboard
 

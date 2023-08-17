@@ -5,7 +5,7 @@ from contextvars import ContextVar
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from tgbot.services.api_sqlite import get_paymentx, get_upaymentx, get_upaycount, create_upayments_row, get_all_partnersx, get_cities_places
+from tgbot.services.api_sqlite import get_paymentx, get_upaymentx, get_upaycount, create_upayments_row
 
 from babel import Locale
 from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
@@ -15,60 +15,6 @@ i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
 
 print(i18n)
 _ = i18n.gettext
-
-
-# Проверка киви платежа
-def places_list_finl():
-    keyboard = InlineKeyboardMarkup()
-
-    places = get_cities_places()
-    print(places)
-    for place in places:
-        keyboard.insert(InlineKeyboardButton(f"{place['place_name']}", callback_data=f"position_city:{place['vacs_url']}"))
-
-    #keyboard.insert(InlineKeyboardButton("PR Броадкаст", callback_data="pr_broadcast:yes"))
-
-    return keyboard
-
-# Проверка киви платежа
-def choise_time_finl(position_id):
-    #print("WRAP: ", post_id)
-
-    keyboard = InlineKeyboardMarkup()
-
-    k1 = InlineKeyboardButton("Выбрать время", callback_data=f"choise_time:{position_id}")
-    #k2 = InlineKeyboardButton(_("Нет, вернуться в корзину", locale=lang), callback_data="user_cart")
-    keyboard.insert(k1)
-    #keyboard.insert(k2)
-
-    return keyboard
-
-# Проверка киви платежа
-def wrap_post_finl(ct, user_id, post_id):
-    #print("WRAP: ", post_id)
-
-    keyboard = InlineKeyboardMarkup()
-
-    k1 = InlineKeyboardButton("Свернуть", callback_data=f"wrap_post:{ct}:{user_id}:{post_id}")
-    #k2 = InlineKeyboardButton(_("Нет, вернуться в корзину", locale=lang), callback_data="user_cart")
-    keyboard.insert(k1)
-    #keyboard.insert(k2)
-
-    return keyboard
-
-
-# Проверка киви платежа
-def unwrap_post_finl(ct, user_id, post_id):
-    #print("UNWRAP: ", post_id)
-
-    keyboard = InlineKeyboardMarkup()
-
-    k1 = InlineKeyboardButton("Развернуть", callback_data=f"unwrap_post:{ct}:{user_id}:{post_id}")
-    #k2 = InlineKeyboardButton(_("Нет, вернуться в корзину", locale=lang), callback_data="user_cart")
-    keyboard.insert(k1)
-    #keyboard.insert(k2)
-
-    return keyboard
 
 # Кнопки при поиске профиля через админ-меню
 def refill_open_finl(lang):
@@ -143,51 +89,18 @@ def profile_seller_open_finl(lang):
     return keyboard
 
 # Проверка киви платежа
-def confirm_cart_del_finl(order_id, lang):
-    print(lang)
-
+def confirm_cart_del_finl(order_id):
     keyboard = InlineKeyboardMarkup()
 
-    k1 = InlineKeyboardButton(_("Да, удалите", locale=lang), callback_data=f"confirm_del_user_cart:{order_id}")
+    k1 = InlineKeyboardButton(_("Да, удалите", locale=lang), callback_data="confirm_del_user_cart:{order_id}")
     k2 = InlineKeyboardButton(_("Нет, вернуться в корзину", locale=lang), callback_data="user_cart")
     keyboard.insert(k1)
     keyboard.insert(k2)
 
     return keyboard
 
-
-def partners_list_finl():
-    keyboard = InlineKeyboardMarkup()
-    get_partners = get_all_partnersx()
-    print(get_partners)
-    x = 0
-    k = {}
-    for x, partner in enumerate(get_partners):
-        print(x, partner)
-        k[x] = InlineKeyboardButton(f"{partner['name']}", url=partner['url'])
-        keyboard.insert(k[x])
-    return keyboard
-
-
 # Проверка киви платежа
 def lang_menu_finl(lang):
-    keyboard = InlineKeyboardMarkup()
-    if lang == "ru":
-        rubtn = "🇷🇺 Русский"
-        enbtn = "🇬🇧 Английский"
-    if lang == "en":
-        rubtn = "🇷🇺 Russian"
-        enbtn = "🇬🇧 English"
-
-    k1 = InlineKeyboardButton(rubtn, callback_data="lang:ru")
-    k2 = InlineKeyboardButton(enbtn, callback_data="lang:en")
-    keyboard.insert(k1)
-    keyboard.insert(k2)
-
-    return keyboard
-
-# Проверка киви платежа
-def lang_menu_finl2(lang):
     keyboard = InlineKeyboardMarkup()
     if lang == "ru":
         rubtn = "🇷🇺 Русский"
@@ -225,26 +138,30 @@ def lang_menu_finl2():
     return keyboard
 
 # Выбор способов пополнения
-def refill_choice_finl(lang):
+def refill_choice_finl(lang): #lang
     keyboard = InlineKeyboardMarkup()
 
+    #print(lang)
     print(":::")
     get_payments = get_paymentx()
     print(get_payments)
 
+    #currencies = ['USDT', 'BUSD', 'USDC', 'BTC', 'ETH', 'TON', 'BNB']
     currencies = ["USDT", "BUSD", "USDC", "BTC", "ETH", "TON", "BNB"]
     active_kb = []
 
+    if get_payments['way_form'] == "True":
+        active_kb.append(InlineKeyboardButton(_("📋 QIWI форма", locale=lang), callback_data="refill_choice:Form"))
+    if get_payments['way_number'] == "True":
+        active_kb.append(InlineKeyboardButton(_("📞 QIWI номер", locale=lang), callback_data="refill_choice:Number"))
+    if get_payments['way_nickname'] == "True":
+        active_kb.append(InlineKeyboardButton(_("Ⓜ QIWI никнейм", locale=lang), callback_data="refill_choice:Nickname"))
     if get_payments['way_formy'] == "True":
         active_kb.append(InlineKeyboardButton(_("📋 Yoo форма", locale=lang), callback_data="refill_choice:ForYm"))
-    if get_payments['way_ct'] == "True":
-        active_kb.append(InlineKeyboardButton("📋 Карта Тинькофф", callback_data="refill_choice:CardTransfer:RUB"))
-    if get_payments['way_usdt'] == "True":
-        active_kb.append(InlineKeyboardButton("USDT(Trc-20)", callback_data="refill_choice:Tron:USDT"))
-    #if get_payments['way_tron'] == "True":
-    #    active_kb.append(InlineKeyboardButton("TRX", callback_data="refill_choice:Tron:TRX"))
-    #if get_payments['way_btcb'] == "True":
-    #    active_kb.append(InlineKeyboardButton("BTC BEP20", callback_data="refill_choice:BTCB"))
+    if get_payments['way_coinbase'] == "True":
+        active_kb.append(InlineKeyboardButton("USDT", callback_data="refill_choice:Tron:USDT"))
+        active_kb.append(InlineKeyboardButton("TRX", callback_data="refill_choice:Tron:TRX"))
+        active_kb.append(InlineKeyboardButton("BTC BEP20", callback_data="refill_choice:BTCB"))
 
     if len(active_kb) == 9:
         keyboard.add(active_kb[0], active_kb[1])
@@ -285,7 +202,7 @@ def refill_choice_finl(lang):
 
     if active_kb:
         keyboard.add(InlineKeyboardButton("⬅ Вернуться в профиль ↩", callback_data="user_profile"))
-        #keyboard.add(InlineKeyboardButton("⬅ Вернуться в корзину ↩", callback_data="user_cart"))
+        keyboard.add(InlineKeyboardButton("⬅ Вернуться в корзину ↩", callback_data="user_cart"))
 
     return keyboard
 
@@ -315,31 +232,6 @@ def position_select_type_finl(lang):
         )
     )
 
-# Проверка киви платежа
-def position_select_local_finl(lang):
-    if lang == "ru":
-        realbtn = "✅ Местный"
-        digibtn = "❌ Глобальный"
-    if lang == "en":
-        realbtn = "✅ Местный"
-        digibtn = "❌ Глобальный"
-
-    return (
-        InlineKeyboardMarkup()
-            .add(
-            InlineKeyboardButton(
-                realbtn,
-                callback_data="here_position_local:1",
-            )
-        )
-            .add(
-            InlineKeyboardButton(
-                digibtn,
-                callback_data="here_position_local:2",
-            )
-        )
-    )
-
 
 # Проверка киви платежа
 def open_deep_link_object_finl(object_id, category_id, remover, city_id):
@@ -357,9 +249,6 @@ def open_deep_link_object_finl(object_id, category_id, remover, city_id):
             )
         )
     )
-
-
-
 
 # Проверка киви платежа
 def refill_bill_crypto_finl(get_way, type_net, receipt, lang):
@@ -477,7 +366,6 @@ def products_open_cart_finl2(position_id, remover, category_id):
         )
     )
 
-
 # Кнопки при открытии самого товара c корзиной
 def products_open_finl(cart, position_id, remover, category_id, shop_id, lang):
     if lang == "ru":
@@ -489,155 +377,6 @@ def products_open_finl(cart, position_id, remover, category_id, shop_id, lang):
         bpbtn = "💰 Buy Product"
         bbtn = "⬅ Back ↩"
 
-        onerate = "1"
-        tworate = "2"
-        threerate = "3"
-        fourrate = "4"
-        fiverate = "5"
-        heartrate = "❤️"
-        starrate = "⭐"
-        goodrate = "👍"
-        badrate = "👎"
-
-    orbtn = InlineKeyboardButton("1", callback_data=f"rate_position:{position_id}:1")
-    tbtn = InlineKeyboardButton("2", callback_data=f"rate_position:{position_id}:2")
-    thbtn = InlineKeyboardButton("3", callback_data=f"rate_position:{position_id}:3")
-    fobtn = InlineKeyboardButton("4", callback_data=f"rate_position:{position_id}:4")
-    fibtn = InlineKeyboardButton("5", callback_data=f"rate_position:{position_id}:5")
-    hbtn = InlineKeyboardButton("❤️", callback_data=f"rate_position:{position_id}:6")
-    sbtn = InlineKeyboardButton("⭐", callback_data=f"rate_position:{position_id}:7")
-    grbtn = InlineKeyboardButton("👍", callback_data=f"rate_position:{position_id}:8")
-    brbtn = InlineKeyboardButton("👎", callback_data=f"rate_position:{position_id}:9")
-
-    '''keyboard = (InlineKeyboardMarkup()
-    .add(InlineKeyboardButton(onerate, callback_data=f"rate_position:{position_id}:1"))
-    .add(InlineKeyboardButton(tworate, callback_data=f"rate_position:{position_id}:2"))
-    .add(InlineKeyboardButton(threerate, callback_data=f"rate_position:{position_id}:3"))
-    .add(InlineKeyboardButton(fourrate, callback_data=f"rate_position:{position_id}:4"))
-    .add(InlineKeyboardButton(fiverate, callback_data=f"rate_position:{position_id}:5"))
-    .add(InlineKeyboardButton(heartrate, callback_data=f"rate_position:{position_id}:6"))
-    .add(InlineKeyboardButton(starrate, callback_data=f"rate_position:{position_id}:7"))
-    .add(InlineKeyboardButton(goodrate, callback_data=f"rate_position:{position_id}:8"))
-    .add(InlineKeyboardButton(badrate, callback_data=f"rate_position:{position_id}:9")))'''
-
-    if cart == 1 and category_id != 0:
-        keyboard = (
-            InlineKeyboardMarkup()
-                #.row(orbtn, tbtn, thbtn, fobtn, fibtn)
-                #.row(brbtn, sbtn, grbtn, hbtn)
-                .add(
-                InlineKeyboardButton(
-                    acbtn,
-                    callback_data=f"add_item_cart:{position_id}",
-                )
-            )
-                .add(
-                InlineKeyboardButton(
-                    bbtn,
-                    callback_data=f"buy_position_return:{remover}:{category_id}:0",
-                )
-            )
-        )
-
-    if cart == 1 and shop_id != 0:
-        keyboard = (
-            InlineKeyboardMarkup()
-                #.row(orbtn, tbtn, thbtn, fobtn, fibtn)
-                #.row(brbtn, sbtn, grbtn, hbtn)
-                .add(
-                InlineKeyboardButton(
-                    acbtn,
-                    callback_data=f"add_item_cart:{position_id}",
-                )
-            )
-                .add(
-                InlineKeyboardButton(
-                    bbtn,
-                    callback_data=f"buy_position_return:{remover}:0:{shop_id}",
-                )
-            )
-                #.add(orbtn, tbtn, thbtn, fobtn, fibtn, hbtn, sbtn, grbtn, brbtn)
-        )
-
-    if cart == 0 and category_id != 0:
-        keyboard = (
-            InlineKeyboardMarkup()
-                #.row(orbtn, tbtn, thbtn, fobtn, fibtn)
-                #.row(brbtn, sbtn, grbtn, hbtn)
-                .add(
-                InlineKeyboardButton(
-                    bpbtn,
-                    callback_data=f"buy_item_select:{position_id}",
-                )
-            )
-                .add(
-                InlineKeyboardButton(
-                    bbtn,
-                    callback_data=f"buy_position_return:{remover}:{category_id}:0",
-                )
-            )
-                #.add(orbtn, tbtn, thbtn, fobtn, fibtn, hbtn, sbtn, grbtn, brbtn)
-        )
-
-    if cart == 0 and shop_id != 0:
-        keyboard = (
-            InlineKeyboardMarkup()
-                #.row(orbtn, tbtn, thbtn, fobtn, fibtn)
-                #.row(brbtn, sbtn, grbtn, hbtn)
-                .add(
-                InlineKeyboardButton(
-                    bpbtn,
-                    callback_data=f"buy_item_select:{position_id}",
-                )
-            )
-                .add(
-                InlineKeyboardButton(
-                    bbtn,
-                    callback_data=f"buy_position_return:{remover}:0:{shop_id}",
-                )
-            )
-            #.add(orbtn, tbtn, thbtn, fobtn, fibtn, hbtn, sbtn, grbtn, brbtn)
-        )
-
-
-    return keyboard
-
-
-
-# Кнопки при открытии самого товара c корзиной
-def products_open_finl2(cart, position_id, remover, category_id, shop_id, lang):
-    if lang == "ru":
-        acbtn = "🛒 Добавить в корзину"
-        bpbtn = "💰 Купить товар"
-        bbtn = "⬅ Вернуться ↩"
-    if lang == "en":
-        acbtn = "🛒 Add to Cart"
-        bpbtn = "💰 Buy Product"
-        bbtn = "⬅ Back ↩"
-
-        onerate = "1"
-        tworate = "2"
-        threerate = "3"
-        fourrate = "4"
-        fiverate = "5"
-        heartrate = "❤️"
-        starrate = "⭐"
-        goodrate = "👍"
-        badrate = "👎"
-
-        keyboard = (
-            InlineKeyboardMarkup()
-                .add(InlineKeyboardButton(onerate, callback_data=f"rate_position:{position_id}:1",))
-                .add(InlineKeyboardButton(tworate, callback_data=f"rate_position:{position_id}:2",))
-                .add(InlineKeyboardButton(threerate, callback_data=f"rate_position:{position_id}:3",))
-                .add(InlineKeyboardButton(fourrate, callback_data=f"rate_position:{position_id}:4",))
-                .add(InlineKeyboardButton(fiverate, callback_data=f"rate_position:{position_id}:5",))
-                .add(InlineKeyboardButton(heartrate, callback_data=f"rate_position:{position_id}:6",))
-                .add(InlineKeyboardButton(starrate, callback_data=f"rate_position:{position_id}:7",))
-                .add(InlineKeyboardButton(goodrate, callback_data=f"rate_position:{position_id}:8",))
-                .add(InlineKeyboardButton(badrate, callback_data=f"rate_position:{position_id}:9",))
-        )
-
     if cart == 1 and category_id != 0:
         keyboard = (
             InlineKeyboardMarkup()
@@ -653,7 +392,6 @@ def products_open_finl2(cart, position_id, remover, category_id, shop_id, lang):
                     callback_data=f"buy_position_return:{remover}:{category_id}:0",
                 )
             )
-                .add(InlineKeyboardButton("1", callback_data=f"rate_position:{position_id}:1",))
         )
 
     if cart == 1 and shop_id != 0:
@@ -767,7 +505,7 @@ def enter_promocode_finl():
 def charge_button_add(anull):
     return InlineKeyboardMarkup().add(
         InlineKeyboardButton(
-            "💰 Пополнить", callback_data="user_refill"
+            _("💰 Пополнить", locale=lang), callback_data="user_refill"
         )
     )
 
@@ -957,8 +695,7 @@ def products_addcart_confirm_finl(position_id, get_count, lang):
     )
 
 # Подтверждение покупки товара
-def products_confirm_finl(position_id, get_count, lang):
-    print(lang)
+def products_confirm_finl(position_id, get_count):
     return InlineKeyboardMarkup().add(
         InlineKeyboardButton(
             _("✅ Подтвердить", locale=lang),
@@ -972,7 +709,7 @@ def products_confirm_finl(position_id, get_count, lang):
 
 
 # Подтверждение покупки товара
-def products_confirm_finl2(position_id, get_count):
+def products_confirm_finl(position_id, get_count):
     return InlineKeyboardMarkup().add(
         InlineKeyboardButton(
             _("✅ Подтвердить", locale=lang),
@@ -1067,7 +804,7 @@ def reply_order_message_finl(user_id):
 def user_support_finl(user_name):
     return InlineKeyboardMarkup().add(
         InlineKeyboardButton(
-            "💌 Написать в поддержку",
+            _("💌 Написать в поддержку", locale=lang),
             url=f"https://t.me/{user_name}",
         ),
     )

@@ -16,16 +16,11 @@ class NeonGlowText:
     MIN_SHADOW    = 20
     FONT          = "Tomorrow"
 
-    BG_COLOR   = 'ffffff'
-    GLOW_COLOR = '66b4ff' #(0.929, 0.055, 0.467)
-    FG_COLOR_1 = '1588c9' #(1, 0.196, 0.957)
-    FG_COLOR_2 = '40b2f3' #(1, 0.847, 0.592)
-    FILL_COLOR = 'ff5733'
-    '''BG_COLOR   = '000000'
+    BG_COLOR   = '000000'
     GLOW_COLOR = 'ec0e77' #(0.929, 0.055, 0.467)
     FG_COLOR_1 = 'ff31f4' #(1, 0.196, 0.957)
     FG_COLOR_2 = 'ffd796' #(1, 0.847, 0.592)
-    FILL_COLOR = 'FFFFFF'''
+    FILL_COLOR = 'FFFFFF'
 
     def __init__(self, args_dict):
         self.text           = args_dict.get('text')
