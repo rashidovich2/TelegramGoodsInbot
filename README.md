@@ -1,6 +1,3 @@
-<h2>THE ACTUAL VERSION OF BOT IS AVAIBLE ON REQUEST |<br>
-АКТУАЛЬНАЯ ВЕРСИЯ БОТА ДОСТУПНА ПО ЗАПРОСУ</h2>
-
 A store with the functionality of multi-cities, multi-merchants. Бот - магазин в Телеграм с гибким каталогом, спраочник городов и управление продажами и продавцами.
 
 <img src="tggoodsinbot.gif" width="100"/>
@@ -203,5 +200,6 @@ update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10
 <h4>How and where to change code:</h4>
 - **to add your city** - table data_cities [database.db], each city have coordinates of his center.
 
-
+<h2>THE ACTUAL VERSION OF BOT IS AVAIBLE ON REQUEST |<br>
+АКТУАЛЬНАЯ ВЕРСИЯ БОТА ДОСТУПНА ПО ЗАПРОСУ</h2>
 
