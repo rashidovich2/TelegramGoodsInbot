@@ -27,6 +27,7 @@ def menu_frep(user_id, lang):
         shopbtn = "🎁 Магазины"
         enbtn = "🏫 Кружки"
         entbtn = "Афиша"
+        vacancies = "💼 Создать вакансию"
         ptfbtn = "👤 Профиль"
         tubtn = "💰 Пополнить"
         crtbtn = "🧮 Корзина"
@@ -50,6 +51,7 @@ def menu_frep(user_id, lang):
         shopbtn = "🎁 Shops"
         enbtn = "🏫 Cources"
         entbtn = "Events"
+        vacancies = "💼 Create Vacancy"
         ptfbtn = "👤 Profile"
         tubtn = "💰 Top Up"
         crtbtn = "🧮 Cart"
@@ -68,20 +70,24 @@ def menu_frep(user_id, lang):
         srbtn = "📊 Sales Report"
 
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.row(buybtn, sellbtn)
-    keyboard.row(shopbtn, entbtn)
-    keyboard.row(ptfbtn, tubtn, crtbtn)
+    keyboard.row(buybtn, tubtn)
+    #keyboard.row(buybtn, sellbtn)
+    #keyboard.row(vacancies)
+    #keyboard.row(shopbtn, stbtn, entbtn)
+    #keyboard.row(ptfbtn)
 
-    if user_role is None or user_role == "":
-        keyboard.row(supbtn, isbtn, esbtn, prtbtn)
+    if user_role is None or user_role == "User":
+        keyboard.row(ptfbtn, supbtn)
+        #keyboard.row(vacancies)
 
     if user_role == "Admin": #in get_admins():
-        keyboard.row(pmbtn, stabtn, prtbtn)
-        keyboard.row(stbtn, embtn, ufbtn, psbtn)
-        keyboard.row(rsbtn, obtn, srbtn)
+        keyboard.row(pmbtn, ptfbtn, stabtn)
+        #keyboard.row(vacancies, enbtn)
+        keyboard.row(stbtn, psbtn, ufbtn)
+        keyboard.row(srbtn)
 
     if user_role == "ShopAdmin":
-        keyboard.row(supbtn, prtbtn)
+        #keyboard.row(supbtn)
         keyboard.row(pmbtn, psbtn)
 
     return keyboard
@@ -113,22 +119,25 @@ def shop_admin_frep(lang):
 def payments_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     if lang == 'ru':
-        chqbtn = "🥝 Изменить QIWI 🖍"
-        chkqbtn = "🥝 Проверить QIWI ♻"
-        bqbtn = "🥝 Баланс QIWI 👁"
+        chqbtn = "₮ Tether адрес"
+        chtrbtn = "TRX, Tron(Trc20) адрес"
+        chkqbtn = "₿, Bitcoin(Bep-20) адрес"
+        bqbtn = "Изменить номер карты"
         mmbtn = "⬅ Главное меню"
         chybtn = "💳 Изменить Yoo 🖍"
         pmbtn = "🖲 Способы пополнения"
     if lang == 'en':
-        chqbtn = "🥝 Change QIWI 🖍"
-        chkqbtn = "🥝 Check QIWI ♻"
-        bqbtn = "🥝 Balance QIWI 👁"
+        chqbtn = "₮ Tether Address"
+        chtrbtn = "TRX, Tron(Trc20) Address"
+        chkqbtn = "₿, Bitcoin(Bep-20) Address"
+        bqbtn = "Change Card Number"
         mmbtn = "⬅ Main Menu"
         chybtn = "💳 Change Yoo 🖍"
         pmbtn = "🖲 Payment Methods"
 
-    keyboard.row(chqbtn, chkqbtn, bqbtn)
-    keyboard.row(mmbtn, chybtn, pmbtn)
+    keyboard.row(chqbtn, chkqbtn)
+    keyboard.row(chtrbtn, bqbtn)
+    keyboard.row(mmbtn, pmbtn)
 
     return keyboard
 
@@ -137,21 +146,56 @@ def payments_frep(lang):
 def functions_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     if lang == 'ru':
-        fpbtn = "👤 Поиск профиля 🔍"
+        fpbtn = "🔍 Поиск профиля"
         msbtn = "📢 Рассылка"
         mslbtn = "📢 Рассылка_lite"
+        fabtn = "🧾 Пополнения"
         fcbtn = "🧾 Поиск чеков 🔍"
+        vabtn = "🧾 Cогласование вакансий"
+        сhgrbtn = "🧾 Каналы и группы для постинга"
         mmbtn = "⬅ Главное меню"
     if lang == 'en':
-        fpbtn = "👤 Find Profile 🔍"
+        fpbtn = "🔍 Find Profile"
         mslbtn = "📢 MassSendlite"
         msbtn = "📢 Mass Send"
+        fabtn = "🧾 Fund Adds"
         fcbtn = "🧾 Find Checks 🔍"
+        vabtn = "🧾 Vacancies Approval"
+        сhgrbtn = "🧾 Groups and Channels for Posting"
         mmbtn = "⬅ Main Menu"
 
     keyboard.row(fpbtn, fcbtn)
-    keyboard.row(msbtn, mslbtn)
+    #keyboard.row(vabtn, сhgrbtn)
+    keyboard.row(mslbtn, fabtn)
     keyboard.row(mmbtn)
+
+    return keyboard
+
+
+# Кнопки запросов в продавцы
+def fund_adds_frep(lang):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    if lang == 'ru':
+        keyboard.row("🧾 Ожидают подтверждения", "🧾 Успешные")
+        keyboard.row("⬅ Главное меню")
+    if lang == 'en':
+        keyboard.row("🧾 Wait Confirmation", "🧾 Success")
+        keyboard.row("⬅ Main Menu")
+
+    return keyboard
+
+
+# Кнопки запросов в продавцы
+def vacposition_post_frep(lang):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    if lang == 'ru':
+        #keyboard.row("🖍 Посмотреть запросы")
+        keyboard.row("🖍 Вакансии Созданные", "🖍 Вакансии Согласованные", "🖍 Вакансии Опубликованные", "🖍 Вакансии в Вещании")
+        keyboard.row("⬅ Главное меню")
+    if lang == 'en':
+        #keyboard.row("🖍 Show list requests")
+        keyboard.row("🖍 Positions Created", "🖍 Positions Approved", "🖍 Positions Posted", "🖍 Positions in Broadcasting")
+        keyboard.row("⬅ Main Menu")
 
     return keyboard
 
@@ -159,10 +203,12 @@ def functions_frep(lang):
 def seller_requests_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     if lang == 'ru':
-        keyboard.row("🖍 Посмотреть запросы")
+        #keyboard.row("🖍 Посмотреть запросы")
+        keyboard.row("🖍 запросы Created", "🖍 запросы Approved")
         keyboard.row("⬅ Главное меню")
     if lang == 'en':
-        keyboard.row("🖍 Show list requests")
+        #keyboard.row("🖍 Show list requests")
+        keyboard.row("🖍 requests Created", "🖍 requests Approved")
         keyboard.row("⬅ Main Menu")
 
     return keyboard

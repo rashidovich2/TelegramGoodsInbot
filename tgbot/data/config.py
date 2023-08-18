@@ -13,8 +13,10 @@ read_config.read('settings.ini')
 BOT_TOKEN = read_config['settings']['token'].strip()  # Токен бота
 PATH_DATABASE = 'tgbot/data/database.db'  # Путь к БД
 PATH_LOGS = 'tgbot/data/logs.log'  # Путь к Логам
-BOT_VERSION = '1.0'
+BOT_VERSION = '1.01'
 I18N_DOMAIN = 'mybot'
+PAYADMINUID = read_config['settings']['payadmin_id']
+RATE_POSITIONS = read_config['settings']['rate_positions']
 DEFAULT_LANGUAGE = read_config['settings']['default_language'].strip()
 rd = Path(__file__).parents
 BASE_DIR = rd[1]
