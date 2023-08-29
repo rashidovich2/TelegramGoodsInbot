@@ -96,4 +96,5 @@ A store with the functionality of multi-cities.
 - web-витринатоваров
 
 Работающий экземпляр пока только по России в 192 городах: https://t.me/Goodsin2bot
+Наш сайт: https://aliplaces.ru
 По вопросам пишите пожалуйста в телеграм: @raclear
