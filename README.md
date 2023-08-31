@@ -93,7 +93,11 @@ A store with the functionality of multi-cities.
 
 
 ###TODO:
-- web-витринатоваров
+- web-витрина товаров
+
+##СХЕМА ПАГИНАТОРА
+![alt text](Sceme_model.png)
+
 
 Работающий экземпляр пока только по России в 192 городах: https://t.me/Goodsin2bot
 Наш сайт: https://aliplaces.ru
