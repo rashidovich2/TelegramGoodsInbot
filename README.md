@@ -96,6 +96,7 @@ A store with the functionality of multi-cities.
 - web-витрина товаров
 
 ##СХЕМА ПАГИНАТОРА
+![alt text](Scheme_cmodel.png)
 ![alt text](Scheme_model.png)
 
 
