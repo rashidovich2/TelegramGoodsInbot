@@ -95,6 +95,9 @@ A store with the functionality of multi-cities.
 ###TODO:
 - web-витрина товаров
 
+##СХЕМА КАРТОЧКА ПРОДУКТА - ПРИМЕР
+![alt text](CardProduct2.png)
+
 ##СХЕМА ПАГИНАТОРА
 ![alt text](Scheme_cmodel.png)
 ![alt text](Scheme_model.png)
