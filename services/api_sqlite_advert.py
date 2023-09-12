@@ -340,7 +340,7 @@ def firstgeo_tosend(state, start, count):
 def first_groupsavtoinvite():
     with sqlite3.connect(PATH_DATABASE) as con:
         #con.row_factory = dict_factory
-        sql = f"SELECT group_id, groupname, COUNT(acc_id) as counta FROM storage_tgparse WHERE state = 'created' AND source = 'groups' ORDER BY counta DESC"
+        sql = "SELECT group_id, groupname, COUNT(acc_id) as counta FROM storage_tgparse WHERE state = 'created' AND source = 'groups' ORDER BY counta DESC"
         return con.execute(sql).fetchall()
 
 # Пользователи группы для инвайта
@@ -361,7 +361,7 @@ def first_grouptoinvitebyid(groupid, start, count):
 # Пользователи группы для инвайта
 def first_grouptoreinvite(start, count):
     with sqlite3.connect(PATH_DATABASE) as con:
-        sql = f"SELECT * FROM storage_tgparse WHERE state IN( 'created', 'invited') AND source = 'groups' AND group_id IN(1846537176, 1665002522, 1823230047, 1691713993, 1434376033, 1701254391, 1182435855, 1488989705, 1205441227, 1654568702, 1467842316, 1520545687, 1620128468, 1789219249, 1620128468, 1557904116, 1559445350, 1224708719, 1604938781, 1100353162, 1244748525) ORDER BY acc_id ASC" # ASC LIMIT {start},{count}
+        sql = "SELECT * FROM storage_tgparse WHERE state IN( 'created', 'invited') AND source = 'groups' AND group_id IN(1846537176, 1665002522, 1823230047, 1691713993, 1434376033, 1701254391, 1182435855, 1488989705, 1205441227, 1654568702, 1467842316, 1520545687, 1620128468, 1789219249, 1620128468, 1557904116, 1559445350, 1224708719, 1604938781, 1100353162, 1244748525) ORDER BY acc_id ASC"
         return con.execute(sql).fetchall()
 
 # Пользователи группы для инвайта

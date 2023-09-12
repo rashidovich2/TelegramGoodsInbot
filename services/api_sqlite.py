@@ -213,8 +213,7 @@ def get_all_partnersx():
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
         sql = "SELECT * FROM storage_partners"
-        tt = con.execute(sql).fetchall()
-        return tt
+        return con.execute(sql).fetchall()
 
 # Получение номеров по статусам
 def get_all_tgaccounts_time_wb():
@@ -576,7 +575,7 @@ def get_users_by_cities():
 def get_pm_category_count():
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        sql = f"SELECT d.category_id, d.level, d.parent_id, d.category as category, c.category as category2, COUNT(p.position_id) as countp FROM storage_position p LEFT JOIN cls_categories c ON(p.category_id=c.category_id) LEFT JOIN cls_categories d ON(d.category_id=c.parent_id) WHERE c.category_id<72 GROUP BY c.category"
+        sql = "SELECT d.category_id, d.level, d.parent_id, d.category as category, c.category as category2, COUNT(p.position_id) as countp FROM storage_position p LEFT JOIN cls_categories c ON(p.category_id=c.category_id) LEFT JOIN cls_categories d ON(d.category_id=c.parent_id) WHERE c.category_id<72 GROUP BY c.category"
         return con.execute(sql).fetchall()
 
 
@@ -946,7 +945,7 @@ def update_crypto_address(user_id, **kwargs):
         sql = "UPDATE storage_crypto_payment SET"
         sql, parameters = update_format(sql, kwargs)
         parameters.append(user_id)
-        con.execute(sql + "WHERE user_id = ?", parameters)
+        con.execute(f"{sql}WHERE user_id = ?", parameters)
         con.commit()
 
 
@@ -1458,7 +1457,10 @@ def get_positionsx(**kwargs):
 def get_positionsorder(category_id):
     with sqlite3.connect(PATH_DATABASE) as con:
         con.row_factory = dict_factory
-        return con.execute(f"SELECT * FROM storage_position WHERE сategory_id = ? ORDER BY position_name ASC", [category_id]).fetchall()
+        return con.execute(
+            "SELECT * FROM storage_position WHERE сategory_id = ? ORDER BY position_name ASC",
+            [category_id],
+        ).fetchall()
 
 # Получение всех категорий
 def get_all_positionsidx():
@@ -1562,9 +1564,7 @@ def get_itemsx(**kwargs):
         sql = "SELECT * FROM storage_item"
         sql, parameters = update_format_args(sql, kwargs)
         rows = con.execute(sql, parameters).fetchall()
-        if rows == None:
-            return 0
-        else: return rows
+        return 0 if rows is None else rows
 
 # Получение всех товаров
 def get_all_itemsx():

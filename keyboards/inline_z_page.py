@@ -38,14 +38,14 @@ ctx_user_locale = ContextVar('ctx_user_locale')'''
 ###################################### ИЗМЕНЕНИЕ КАТЕГОРИИ #####################################
 # Стартовые страницы выбора категории для изменения
 def shop_edit_swipe_fp(user_id, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_shops = get_my_shopx(user_id)
     keyboard = InlineKeyboardMarkup()
 
@@ -94,12 +94,12 @@ def open_partners_list():
 # Стартовые страницы выбора категории для изменения
 def category_edit_open_fp(remover, lang):
     print(lang)
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -130,14 +130,14 @@ def category_edit_open_fp(remover, lang):
 
 # Следующая страница выбора категории для изменения
 def category_edit_next_page_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -193,14 +193,14 @@ def artist_edit_open_fp(remover, user_id):
 
 # Предыдующая страница выбора категории для изменения
 def category_edit_back_page_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -318,14 +318,14 @@ def position_2people_create_open_fp(category_id, remover, level, parent, city_id
 # Страницы категорий при покупке товара
 def position_people_create_open_fp(category_id, remover, level, parent, city_id, action, lang): #+ action = create / open
     print(city_id, action)
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     #if parent == "" or parent is None: parent = 0
     #lang = ctx_user_locale.get()
     #print(lang)
@@ -355,8 +355,8 @@ def position_people_create_open_fp(category_id, remover, level, parent, city_id,
 
     for count, a in enumerate(range(remover, len(get_categories))):
         level = get_categories[a]['level']
-        position_count_category = get_category_count(get_categories[a]['category_id'])
         if count < 10:
+            position_count_category = get_category_count(get_categories[a]['category_id'])
             if get_categories[a]['level'] == 1 and action == "open":
                 keyboard.add(
                     ikb(
@@ -424,15 +424,15 @@ def position_people_create_open_fp(category_id, remover, level, parent, city_id,
 # Страницы категорий при покупке товара
 def cources_opcr_fp(category_id, remover, level, parent, city_id, action, lang): #+ action = create / open
     print(category_id, remover, level, parent, city_id, action, lang)
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
 
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_categories = get_curcategory_in_citypx(parent_id=parent)
 
     print(len(get_categories))
@@ -515,11 +515,11 @@ def cources_opcr_fp(category_id, remover, level, parent, city_id, action, lang):
 # Стартовые страницы выбора категории для добавления позиции
 def position_create_open_fp(remover, lang):
     get_categories = get_all_categoriesx()
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
     if lang == 'en':
         fwdbutton = "Next ➡"
 
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
         if count < cpage:
@@ -538,10 +538,10 @@ def position_create_open_fp(remover, lang):
 # Стартовые страницы выбора категории для добавления позиции
 def position_select_shop_fp(user_id, lang):
     get_shops = get_all_shopx()
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
     if lang == 'en':
         fwdbutton = "Next ➡"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
     #get_shops = get_my_shopx(user_id)
     keyboard = InlineKeyboardMarkup()
     remover = 0
@@ -563,13 +563,13 @@ def position_select_shop_fp(user_id, lang):
 # Следующая страница выбора категории для добавления позиции
 def position_addtoshop_nextp(remover, lang):
     #get_categories = get_all_categoriesx()
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
 
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_shops = get_all_shopx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_shops))):
@@ -593,12 +593,12 @@ def position_addtoshop_nextp(remover, lang):
 # Предыдующая страница выбора категории для добавления позиции
 def position_addtoshop_backp(remover, lang):
     #get_categories = get_all_categoriesx()
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_shops = get_all_shopx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_shops))):
@@ -622,12 +622,12 @@ def position_addtoshop_backp(remover, lang):
 # Следующая страница выбора категории для добавления позиции
 def position_create_next_page_fp2(remover, lang):
     #get_categories = get_all_categoriesx()
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_shops = get_all_shopx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -650,14 +650,14 @@ def position_create_next_page_fp2(remover, lang):
 
 # Следующая страница выбора категории для добавления позиции
 def position_create_next_page_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -683,12 +683,12 @@ def position_create_next_page_fp(remover, lang):
 
 # Предыдующая страница выбора категории для добавления позиции
 def position_create_back_page_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -714,12 +714,12 @@ def position_create_back_page_fp(remover, lang):
 ########################################### Категории ##########################################
 # Стартовые страницы категорий при изменении позиции
 def position_edit_category_open_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -749,12 +749,12 @@ def position_edit_category_open_fp(remover, lang):
 
 # Следующая страница категорий при изменении позиции
 def position_edit_category_next_page_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -777,12 +777,12 @@ def position_edit_category_next_page_fp(remover, lang):
 
 # Предыдующая страница категорий при изменении позиции
 def position_edit_category_back_page_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -806,15 +806,15 @@ def position_edit_category_back_page_fp(remover, lang):
 ########################################### ПОЗИЦИИ ##########################################
 # Стартовые страницы позиций для их изменения
 def position_edit_open_fp(remover, category_id, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
 
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     print(remover, category_id, lang)
     #order
     get_positions = get_positionsx(category_id=category_id)
@@ -851,14 +851,14 @@ def position_edit_open_fp(remover, category_id, lang):
 
 # Следующая страница позиций для их изменения
 def position_edit_next_page_fp(remover, category_id, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_positions = get_positionsx(category_id=category_id)
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_positions))):
@@ -884,14 +884,14 @@ def position_edit_next_page_fp(remover, category_id, lang):
 
 # Предыдующая страница позиций для их изменения
 def position_edit_back_page_fp(remover, category_id, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_positions = get_positionsx(category_id=category_id)
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_positions))):
@@ -919,14 +919,14 @@ def position_edit_back_page_fp(remover, category_id, lang):
 ################################## СТРАНИЦЫ ДОБАВЛЕНИЯ ТОВАРОВ #################################
 # Стартовые страницы категорий при добавлении товара
 def products_add_category_open_fp(remover, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -956,14 +956,14 @@ def products_add_category_open_fp(remover, lang):
 
 # Следующая страница категорий при добавлении товара
 def products_add_category_next_page_fp(remover):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -986,14 +986,14 @@ def products_add_category_next_page_fp(remover):
 
 # Предыдующая страница категорий при добавлении товара
 def products_add_category_back_page_fp(remover):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_categories = get_all_categoriesx()
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_categories))):
@@ -1017,14 +1017,14 @@ def products_add_category_back_page_fp(remover):
 ########################################### ПОЗИЦИИ ##########################################
 # Стартовые страницы позиций для добавления товаров
 def products_add_position_open_fp(remover, category_id, lang):
-    if lang == 'ru':
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
     if lang == 'en':
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+    elif lang == 'ru':
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
     get_positions = get_positionsx(category_id=category_id)
     keyboard = InlineKeyboardMarkup()
     for count, a in enumerate(range(remover, len(get_positions))):
@@ -1126,7 +1126,10 @@ def products_item_category_swipe_fp(remover, parent_id, city_id, action, lang):
                 print("CAT EDIT 1 LEVEL")
                 keyboard.add(ikb(get_categories[a]['category_name'],
                              callback_data=f"position_edit_category_open:{get_categories[a]['category_id']}:{city_id}:{lang}"))
-                bbtntext = ikb(bbbutton, callback_data=f"buy_category_swipe:{0}:{0}:{city_id}:{action}")
+                bbtntext = ikb(
+                    bbbutton,
+                    callback_data=f"buy_category_swipe:0:0:{city_id}:{action}",
+                )
 
             elif get_categories[a]['level'] == 1 and category_count == 0 and action in ["open", "edit"]:
                 print("way3")
@@ -1143,7 +1146,10 @@ def products_item_category_swipe_fp(remover, parent_id, city_id, action, lang):
                 print("way5")
                 keyboard.add(ikb(get_categories[a]['category_name'],
                                  callback_data=f"buy_category_open:{get_categories[a]['category_id']}:{city_id}"))
-                bbtntext = ikb(bbbutton, callback_data=f"buy_category_swipe:{0}:{0}:{city_id}:{action}")
+                bbtntext = ikb(
+                    bbbutton,
+                    callback_data=f"buy_category_swipe:0:0:{city_id}:{action}",
+                )
 
 
     if len(get_categories) <= 10:
@@ -1462,10 +1468,10 @@ def products_item_shop_swipe_fp(remover, city_id, lang):
 # Страницы позиций для покупки товаров
 def products_item_position_swipe_fp(remover, action, category_id, city_id, source, lang): # + source = people / commercial
     source = str(source)
-    if source == "people":
-        parent_category = get_parent_cat(category_id)[0]
-    elif source == "commercial":
+    if source == "commercial":
         parent_category = get_parent_catc(category_id)[0]
+    elif source == "people":
+        parent_category = get_parent_cat(category_id)[0]
     print(parent_category)
 
     #get_positions = get_positionsx(category_id=category_id, position_city_id=city_id)
@@ -1475,15 +1481,15 @@ def products_item_position_swipe_fp(remover, action, category_id, city_id, sourc
     position_rest = 0
 
     keyboard = InlineKeyboardMarkup()
-    if lang == "ru":
-        fwdbutton = "Далее ➡"
-        bwdbutton = "⬅ Назад"
-        bbutton = "⬅ Вернуться ↩"
-
-    elif lang == "en":
+    if lang == "en":
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
+
+    elif lang == "ru":
+        fwdbutton = "Далее ➡"
+        bwdbutton = "⬅ Назад"
+        bbutton = "⬅ Вернуться ↩"
 
     #city_id = сity_id if city_id else 0
     #category_id = category_id if category_id else 0
@@ -1525,7 +1531,10 @@ def products_item_position_swipe_fp(remover, action, category_id, city_id, sourc
             ikb(fwdbutton, callback_data=f"buy_position_swipe:{category_id}:{remover + 10}:{city_id}"),
         )
     keyboard.add(
-        ikb(bbutton, callback_data=f"buy_category_swipe:{0}:{parent_category}:{city_id}:{action}")
+        ikb(
+            bbutton,
+            callback_data=f"buy_category_swipe:0:{parent_category}:{city_id}:{action}",
+        )
     )
 
     return keyboard

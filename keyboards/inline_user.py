@@ -172,13 +172,13 @@ def partners_list_finl():
 # Проверка киви платежа
 def lang_menu_finl(lang):
     keyboard = InlineKeyboardMarkup()
-    if lang == "ru":
-        rubtn = "🇷🇺 Русский"
-        enbtn = "🇬🇧 Английский"
     if lang == "en":
         rubtn = "🇷🇺 Russian"
         enbtn = "🇬🇧 English"
 
+    elif lang == "ru":
+        rubtn = "🇷🇺 Русский"
+        enbtn = "🇬🇧 Английский"
     k1 = InlineKeyboardButton(rubtn, callback_data="lang:ru")
     k2 = InlineKeyboardButton(enbtn, callback_data="lang:en")
     keyboard.insert(k1)
@@ -189,13 +189,13 @@ def lang_menu_finl(lang):
 # Проверка киви платежа
 def lang_menu_finl2(lang):
     keyboard = InlineKeyboardMarkup()
-    if lang == "ru":
-        rubtn = "🇷🇺 Русский"
-        enbtn = "🇬🇧 Английский"
     if lang == "en":
         rubtn = "🇷🇺 Russian"
         enbtn = "🇬🇧 English"
 
+    elif lang == "ru":
+        rubtn = "🇷🇺 Русский"
+        enbtn = "🇬🇧 Английский"
     k1 = InlineKeyboardButton(rubtn, callback_data="lang:ru")
     k2 = InlineKeyboardButton(enbtn, callback_data="lang:en")
     keyboard.insert(k1)
@@ -292,13 +292,13 @@ def refill_choice_finl(lang):
 
 # Проверка киви платежа
 def position_select_type_finl(lang):
-    if lang == "ru":
-        realbtn = "✅ Реальная"
-        digibtn = "❌ Цифровая"
     if lang == "en":
         realbtn = "✅ Real"
         digibtn = "❌ Digital"
 
+    elif lang == "ru":
+        realbtn = "✅ Реальная"
+        digibtn = "❌ Цифровая"
     return (
         InlineKeyboardMarkup()
         .add(
@@ -317,13 +317,9 @@ def position_select_type_finl(lang):
 
 # Проверка киви платежа
 def position_select_local_finl(lang):
-    if lang == "ru":
+    if lang in ["ru", "en"]:
         realbtn = "✅ Местный"
         digibtn = "❌ Глобальный"
-    if lang == "en":
-        realbtn = "✅ Местный"
-        digibtn = "❌ Глобальный"
-
     return (
         InlineKeyboardMarkup()
             .add(
@@ -418,13 +414,13 @@ def event_open_finl(event_id, remover, place_id, city_id, lang):
 
 # Кнопки при открытии самого товара
 def shop_creation_request_finl(lang):
-    if lang == "ru":
-        csbtn = "🏪 Создать магазин ➕"
-        wscbtn = "Продолжить без создания магазина"
     if lang == "en":
         csbtn = "🏪 Create shop ➕"
         wscbtn = "Continue without shop creation"
 
+    elif lang == "ru":
+        csbtn = "🏪 Создать магазин ➕"
+        wscbtn = "Продолжить без создания магазина"
     return (
         InlineKeyboardMarkup()
         .add(
@@ -830,13 +826,13 @@ def checkout_step2_accept_finl(order_id):
 def cart_open_delivery_finl(order_id, lang):
     print(lang)
     print("III")
-    if lang == "ru":
-        subm = "📱 Подтвердить получение"
-        askseller = "❓ Задать вопрос продавцу"
     if lang == "en":
         subm = "📱 Submit Receiption"
         askseller = "❓ Ask Seller"
 
+    elif lang == "ru":
+        subm = "📱 Подтвердить получение"
+        askseller = "❓ Задать вопрос продавцу"
     return (
         InlineKeyboardMarkup()
         .add(InlineKeyboardButton(subm, callback_data=f"submit_order:{order_id}"),)
@@ -939,12 +935,12 @@ def confirm_user_cart(user_id, ):
 
 # Подтверждение покупки товара
 def products_addcart_confirm_finl(position_id, get_count, lang):
-    if lang == "ru":
-        sbmbtn = "✅ Подтвердить"
-        clbtn = "❌ Отменить"
     if lang == "en":
         sbmbtn = "✅ Submit"
         clbtn = "❌ Cancel"
+    elif lang == "ru":
+        sbmbtn = "✅ Подтвердить"
+        clbtn = "❌ Отменить"
     return InlineKeyboardMarkup().add(
         InlineKeyboardButton(
             sbmbtn,

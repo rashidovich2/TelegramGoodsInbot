@@ -166,13 +166,13 @@ async def functions_ad_get(message: Message, state: FSMContext):
     user_role = get_userx(user_id=user_id)['user_role']
     lang = get_userx(user_id=user_id)['user_lang']
     print(lang, user_role)
-    mode = "tohour"
     ct = 0
     shortlen = 450
-    shortmestext = message.html_text[0:449]
+    shortmestext = message.html_text[:449]
 
     if user_role in ["Admin", "ShopAdmin"]:
         print("P10P20R")
+        mode = "tohour"
         if types.ContentType.TEXT == message.content_type:
             ct = 'text'
             print("!text message entered")
@@ -225,7 +225,7 @@ async def functions_ad_confirm(call: CallbackQuery, state: FSMContext):
     user_id = call.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
     ct = (await state.get_data())['ct']
-    print(f"ПУТЬ: Telegraph")
+    print("ПУТЬ: Telegraph")
     #caption = (await state.get_data())['caption']
     #shortmestext = caption[0:400]
 
@@ -252,7 +252,7 @@ async def functions_ad_confirm(call: CallbackQuery, state: FSMContext):
         #fnum = random.randint(000000000, 999999999)
         #fname = f"{str(fnum)}.png"
         fname = f"{str(post_id)}.png"
-        pdestf = f"/var/local/bot3101fc/tgbot/photos/"+fname
+        pdestf = f"/var/local/bot3101fc/tgbot/photos/{fname}"
         #pdestf = "/photos/" + destfilename
         print(pdestf)
         #fnum = random.randint(000000000, 999999999)
@@ -260,14 +260,6 @@ async def functions_ad_confirm(call: CallbackQuery, state: FSMContext):
         #print(destfilename, pdestf, filepatch)
         #await urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{BOT_TOKEN}/{filepath}', f'./{destifilename}')
         urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{BOT_TOKEN}/{filepath}', pdestf)
-        #file_on_server = await dp.bot.download_file(destfilename, pdestf)
-        #photo_file = await bot.get_file(postt['post_photo'])
-        #await postt['post_photo'].download(file_info.file_path.split('photos/')[1])
-        #photo_file = postt['post_photo']
-        #filex = open(file_on_server, 'rb')
-        #with urllib.request.urlopen(f'https://api.telegram.org/file/bot{BOT_TOKEN}/{filepath}') as response, open(destfilename, 'wb') as out_file:
-            #data = response.read() # a `bytes` object
-            #out_file.write(data)
         filex = open(pdestf, 'rb')
         print(filex)
         #filex = open(photo_file, 'rb')
@@ -277,7 +269,7 @@ async def functions_ad_confirm(call: CallbackQuery, state: FSMContext):
     post = t.post(title='Вакансия', author='требуется', text=f'<img src={image}><blockquote>{posttext}</blockquote>')
     print(post)
 
-    shortmestext = f"{posttext[0:400]}\n"
+    shortmestext = f"{posttext[:400]}\n"
     print(shortmestext)
     hlinktext = hlink('читать далее..', post['url'])
     #shortmesturl = post['url']
@@ -599,7 +591,7 @@ async def functions_adext_make(post_id, ct, message, caption, call: CallbackQuer
     for user in get_users:
         try:
             if ct == "text":
-                shortmestext = message[0:400]
+                shortmestext = message[:400]
                 msg = await dp.bot.send_message(user['user_id'], shortmestext, disable_web_page_preview=True, reply_markup=unwrap_post_finl(user_id, post_id))
                 msgid = msg.message_id
                 print(post_id, msgid, "afterap01")
@@ -610,7 +602,7 @@ async def functions_adext_make(post_id, ct, message, caption, call: CallbackQuer
                 await asyncio.sleep(0.5)
 
             elif ct == "photo":
-                shortmestext = caption[0:400]
+                shortmestext = caption[:400]
                 msg = await dp.bot.send_photo(
                     chat_id=user['user_id'],
                     photo=message,
@@ -647,7 +639,9 @@ async def functions_adext_make(post_id, ct, message, caption, call: CallbackQuer
         how_users += 1
 
         if how_users % 10 == 0:
-            await call.message.edit_text("<b>📢 Рассылка началась... (" + str(how_users) + "/" + str(len(get_users)) + ")</b>")
+            await call.message.edit_text(
+                f"<b>📢 Рассылка началась... ({how_users}/{len(get_users)})</b>"
+            )
         #_("<b>📢 Рассылка началась... (", locale=lang)
         await asyncio.sleep(0.05)
 
@@ -674,7 +668,7 @@ async def functions_adext_make7(post_id, ct, message, caption, call: CallbackQue
     ANNOUNCE_ID = 1655831466
 
     #shortlen = 400
-    shortmestext = message[0:400]
+    shortmestext = message[:400]
     #post_id = (await state.get_data())['post_id']
     print(post_id)
 
@@ -694,7 +688,7 @@ async def functions_adext_make7(post_id, ct, message, caption, call: CallbackQue
                 message_id=msg.message_id
                 )'''
             elif ct == "photo":
-                shortmestext = caption[0:400]
+                shortmestext = caption[:400]
                 await dp.bot.send_photo(
                     chat_id=user['user_id'],
                     photo=message,
@@ -725,7 +719,9 @@ async def functions_adext_make7(post_id, ct, message, caption, call: CallbackQue
         how_users += 1
 
         if how_users % 10 == 0:
-            await call.message.edit_text("<b>📢 Рассылка началась... (" + str(how_users) + "/" + str(len(get_users)) + ")</b>")
+            await call.message.edit_text(
+                f"<b>📢 Рассылка началась... ({how_users}/{len(get_users)})</b>"
+            )
         #_("<b>📢 Рассылка началась... (", locale=lang)
         await asyncio.sleep(0.05)
 
@@ -1033,16 +1029,6 @@ async def functions_receipt_search(message: Message, state: FSMContext):
             else:'''
             way_input = f"🥝 Способ пополнения: <code>{get_refill['refill_way']}</code>"
 
-            if lang == "ru":
-                await message.answer(
-                    f"<b>🧾 Чек: <code>#{get_refill['refill_receipt']}</code></b>\n"
-                    "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                    f"👤 Пользователь: <a href='tg://user?id={get_refill['user_id']}'>{get_refill['user_name']}</a> <code>({get_refill['user_id']})</code>\n"
-                    f"💰 Сумма пополнения: <code>{get_refill['refill_amount']}₽</code>\n"
-                    f"{way_input}\n"
-                    f"🏷 Комментарий: <code>{get_refill['refill_comment']}</code>\n"
-                    f"🕰 Дата пополнения: <code>{get_refill['refill_date']}</code>"
-                )
             if lang == "en":
                 await message.answer(
                     f"<b>🧾 Receipt: <code>#{get_refill['refill_receipt']}</code></b>\n"
@@ -1053,25 +1039,21 @@ async def functions_receipt_search(message: Message, state: FSMContext):
                     f"🏷 Comment: <code>{get_refill['refill_comment']}</code>\n"
                     f"🕰 Date of charge: <code>{get_refill['refill_date']}</code>"
                 )
+            elif lang == "ru":
+                await message.answer(
+                    f"<b>🧾 Чек: <code>#{get_refill['refill_receipt']}</code></b>\n"
+                    "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                    f"👤 Пользователь: <a href='tg://user?id={get_refill['user_id']}'>{get_refill['user_name']}</a> <code>({get_refill['user_id']})</code>\n"
+                    f"💰 Сумма пополнения: <code>{get_refill['refill_amount']}₽</code>\n"
+                    f"{way_input}\n"
+                    f"🏷 Комментарий: <code>{get_refill['refill_comment']}</code>\n"
+                    f"🕰 Дата пополнения: <code>{get_refill['refill_date']}</code>"
+                )
             return
         elif get_purchase is not None:
             await state.finish()
 
             link_items = await upload_text(message, get_purchase['purchase_item'])
-            if lang == "ru":
-                await message.answer(
-                    f"<b>🧾 Чек: <code>#{get_purchase['purchase_receipt']}</code></b>\n"
-                    f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                    f"👤 Пользователь: <a href='tg://user?id={get_purchase['user_id']}'>{get_purchase['user_name']}</a> <code>({get_purchase['user_id']})</code>\n"
-                    f"🏷 Название товара: <code>{get_purchase['purchase_position_name']}</code>\n"
-                    f"📦 Куплено товаров: <code>{get_purchase['purchase_count']}шт</code>\n"
-                    f"💰 Цена 1-го товара: <code>{get_purchase['purchase_price_one']}₽</code>\n"
-                    f"💸 Сумма покупки: <code>{get_purchase['purchase_price']}₽</code>\n"
-                    f"🔗 Товары: <a href='{link_items}'>кликабельно</a>\n"
-                    f"🔻 Баланс до покупки: <code>{get_purchase['balance_before']}₽</code>\n"
-                    f"🔺 Баланс после покупки: <code>{get_purchase['balance_after']}₽</code>\n"
-                    f"🕰 Дата покупки: <code>{get_purchase['purchase_date']}</code>"
-                )
             if lang == "en":
                 await message.answer(
                     f"<b>🧾 Receipt: <code>#{get_purchase['purchase_receipt']}</code></b>\n"
@@ -1087,6 +1069,20 @@ async def functions_receipt_search(message: Message, state: FSMContext):
                     f"🕰 Purchase Date: <code>{get_purchase['purchase_date']}</code>"
                 )
 
+            elif lang == "ru":
+                await message.answer(
+                    f"<b>🧾 Чек: <code>#{get_purchase['purchase_receipt']}</code></b>\n"
+                    f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                    f"👤 Пользователь: <a href='tg://user?id={get_purchase['user_id']}'>{get_purchase['user_name']}</a> <code>({get_purchase['user_id']})</code>\n"
+                    f"🏷 Название товара: <code>{get_purchase['purchase_position_name']}</code>\n"
+                    f"📦 Куплено товаров: <code>{get_purchase['purchase_count']}шт</code>\n"
+                    f"💰 Цена 1-го товара: <code>{get_purchase['purchase_price_one']}₽</code>\n"
+                    f"💸 Сумма покупки: <code>{get_purchase['purchase_price']}₽</code>\n"
+                    f"🔗 Товары: <a href='{link_items}'>кликабельно</a>\n"
+                    f"🔻 Баланс до покупки: <code>{get_purchase['balance_before']}₽</code>\n"
+                    f"🔺 Баланс после покупки: <code>{get_purchase['balance_after']}₽</code>\n"
+                    f"🕰 Дата покупки: <code>{get_purchase['purchase_date']}</code>"
+                )
             return
 
     await message.answer(_("<b>❌ Чек не был найден.</b>\n"

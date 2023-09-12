@@ -6,7 +6,7 @@ def trace(frame, event, arg):
             lineno = frame.f_lineno
             # Here I'm printing the file and line number,
             # but you can examine the frame, locals, etc too.
-            print("%s @ %s" % (filename, lineno))
+            print(f"{filename} @ {lineno}")
     return trace
 sys.settrace(trace)
 call_my_function()

@@ -52,18 +52,15 @@ async def payment_systems_edit(call: CallbackQuery):
     #count = get_upaycount(user_id)
     if len(get_payment) == 0:
         cur = create_upayments_row(user_id)
-    #elif len(get_payment) == 1:
-        #get_payment = get_paymentx
-        #get_payment = get_upaymentx(user_id)
     print(user_id, way_pay, way_status)
 
-    if way_pay == "USDT":
-        way_payx = "way_usdt"
     if way_pay == "BTCB":
         way_payx = "way_btcb"
-    if way_pay == "TRX":
+    elif way_pay == "TRX":
         way_payx = "way_tron"
 
+    elif way_pay == "USDT":
+        way_payx = "way_usdt"
     if way_pay is not None:
         way_payz = f"{way_payx} = {way_status}"
         update_upaymentx(user_id, way_payz)
@@ -146,12 +143,15 @@ async def enter_tron_address(message: Message, state: FSMContext):
     if message.text:
         admin_address = message.text
         if admin_address == "" or admin_address is None:
-            await message.answer(f"<b>♻ Был введен пустой адрес</b>", reply_markup=back_to_profile_finl('ru'))
+            await message.answer(
+                "<b>♻ Был введен пустой адрес</b>",
+                reply_markup=back_to_profile_finl('ru'),
+            )
 
         admin_addressdb = get_admin_crypto_address(type_net)
         print(admin_addressdb)
         #trx_addressdb = get_crypto_address(user_id, type_net)
-        if type_net == "TRX" or type_net == "USDT":
+        if type_net in ["TRX", "USDT"]:
             trx_address = await validate_trx_address(admin_address)
             print(trx_address)
 

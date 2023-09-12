@@ -98,23 +98,18 @@ class TronAPI(AsyncClass):
             url = f"https://nileapi.tronscan.org/api/transaction?sort=-timestamp&count=true&limit=20&start=0&address={wallet}"
             cresponse = requests.get(url, payload)
             print(cresponse)
-            response = json.loads(cresponse.text)
-            #if cresponse.status_code == 200:
-            return response
-            #else:
-            #    return {}
+            return json.loads(cresponse.text)
+                #else:
+                #    return {}
         elif type_net == 'USDT':
             url = f"https://nileapi.tronscan.org/api/token_trc20/transfers?sort=-timestamp&count=true&limit=20&start=0&relatedAddress={wallet}"
             cresponse = requests.get(url, payload) #, payload
-            #print(cresponse)
-            response = json.loads(cresponse.text)
-            #if cresponse.status_code == 200:
-            return response
+            return json.loads(cresponse.text)
             #else:
             #    return {}
 
 
-    def check_payment(paysum, user_id, local_worker, net, starttime=time.time(), payment=PaymentInfo().data):
+    def check_payment(self, user_id, local_worker, net, starttime=time.time(), payment=PaymentInfo().data):
         payment[1] = (False, 'WaitPay')
         total = local_worker.get_trans_by_wallet()['total']
         while True:
@@ -126,26 +121,23 @@ class TronAPI(AsyncClass):
                 if trans['total'] == total:
                     time.sleep(10)
                 elif trans['data'][0]['toAddress'] == local_worker.get_address():
-                    if int(trans['data'][0]['amount']) / 1000000 >= paysum:
+                    if int(trans['data'][0]['amount']) / 1000000 >= self:
                         print('Payment complete!')
                         payment[user_id] = (True, 'allpay')
-                        return
-                    elif int(trans['data'][0]['amount']) / 1000000 < paysum:
-                        paysum_new = paysum - int(trans['data'][0]['amount']) / 1000000
+                    else:
+                        paysum_new = self - int(trans['data'][0]['amount']) / 1000000
                         payment[user_id] = (False, f'notall:{paysum_new}')
                         time.sleep(1)
                         check_payment(paysum_new, user_id, local_worker, net, starttime=starttime)
-                        return
-            else:
-                if trans['total'] == total:
-                    time.sleep(10)
-                elif trans['token_transfers'][0]['to_address'] == local_worker.get_address():
-                    if int(trans['token_transfers'][0]['quant']) / 1000000 >= paysum:
-                        payment[user_id] = (True, 'allpay')
-                        return
-                    elif int(trans['token_transfers'][0]['quant']) / 1000000 < paysum:
-                        paysum_new = paysum - int(trans['token_transfers'][0]['quant']) / 1000000
-                        payment[user_id] = (False, f'notall:{paysum_new}')
-                        time.sleep(1)
-                        check_payment(paysum_new, user_id, local_worker, net, starttime=starttime)
-                        return
+                    return
+            elif trans['total'] == total:
+                time.sleep(10)
+            elif trans['token_transfers'][0]['to_address'] == local_worker.get_address():
+                if int(trans['token_transfers'][0]['quant']) / 1000000 >= self:
+                    payment[user_id] = (True, 'allpay')
+                else:
+                    paysum_new = self - int(trans['token_transfers'][0]['quant']) / 1000000
+                    payment[user_id] = (False, f'notall:{paysum_new}')
+                    time.sleep(1)
+                    check_payment(paysum_new, user_id, local_worker, net, starttime=starttime)
+                return

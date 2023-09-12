@@ -88,7 +88,7 @@ async def product_item_create(message: Message, state: FSMContext):
     lang = get_userx(user_id=user_id)['user_lang']
     user_role = get_userx(user_id=user_id)['user_role']
 
-    if user_role == "Admin" or user_role == "ShopAdmin":
+    if user_role in ["Admin", "ShopAdmin"]:
         if len(get_all_positionsx()) >= 1:
             await message.answer(_("<b>🎁 Выберите категорию с нужной позицией</b>", locale=lang),
                                  reply_markup=products_add_category_open_fp(0, lang))
@@ -919,11 +919,11 @@ async def product_position_edit_items(call: CallbackQuery, state: FSMContext):
 
     get_position = get_positionx(position_id=position_id)
     get_items = get_itemsx(position_id=position_id)
-    if lang == "ru":
-        save_items = ['АйдиТовара   -   Данные товара', "================================"]
     if lang == "en":
         save_items = ['IDProduct   -   Product Data', "================================"]
 
+    elif lang == "ru":
+        save_items = ['АйдиТовара   -   Данные товара', "================================"]
     if len(get_items) >= 1:
         save_items.extend(
             f"{item['item_id']} - {item['item_data']}" for item in get_items

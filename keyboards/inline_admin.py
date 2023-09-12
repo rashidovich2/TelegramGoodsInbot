@@ -69,7 +69,7 @@ def profile_search_finl(user_id, lang):
         bbtn = "🎁 Purchaces"
         sbtn = "💌 Send Message To User"
         rebtn = "🔄 Refresh"
-    if lang == "ru":
+    elif lang == "ru":
         chbbtn = "💰 Изменить баланс"
         tbbtn = "💰 Выдать баланс"
         bbtn = "🎁 Покупки"
@@ -108,12 +108,6 @@ def profile_search_finl(user_id, lang):
 
 # Поиск профиля с запросом на продавца
 def fund_add_confirmation_finl(receipt, lang):
-    if lang == "ru":
-        submbtn = "Да, подтверждаю"
-        declbtn = "Нет, отклоняю"
-        delbtn = "Отправить сейчас"
-        plbtn = "Запланировать отправку"
-        bcbtn = "Броадкаст"
     if lang == "en":
         submbtn = "Yes, Confirm"
         declbtn = "No, Dellay"
@@ -121,6 +115,12 @@ def fund_add_confirmation_finl(receipt, lang):
         plbtn = "Plan Delivery"
         bcbtn = "Broadcast"
 
+    elif lang == "ru":
+        submbtn = "Да, подтверждаю"
+        declbtn = "Нет, отклоняю"
+        delbtn = "Отправить сейчас"
+        plbtn = "Запланировать отправку"
+        bcbtn = "Броадкаст"
     return InlineKeyboardMarkup().add(
         ikb(submbtn, callback_data=f"PayСonfirm:CardTransfer:{receipt}:yes"),
         ikb(declbtn, callback_data=f"PayСonfirm:CardTransfer:{receipt}:no"),
@@ -132,12 +132,6 @@ def fund_add_confirmation_finl(receipt, lang):
 
 # Поиск профиля с запросом на продавца
 def position_approve_reqs_finl(position_id, lang):
-    if lang == "ru":
-        submbtn = "Да, рассылка"
-        declbtn = "Нет, рассылка"
-        delbtn = "Отправить сейчас"
-        plbtn = "Запланировать отправку"
-        bcbtn = "Броадкаст"
     if lang == "en":
         submbtn = "Yes, Bulk Send"
         declbtn = "No Bulk Send"
@@ -145,6 +139,12 @@ def position_approve_reqs_finl(position_id, lang):
         plbtn = "Plan Delivery"
         bcbtn = "Broadcast"
 
+    elif lang == "ru":
+        submbtn = "Да, рассылка"
+        declbtn = "Нет, рассылка"
+        delbtn = "Отправить сейчас"
+        plbtn = "Запланировать отправку"
+        bcbtn = "Броадкаст"
     return InlineKeyboardMarkup().add(
         ikb(submbtn, callback_data=f"position_post_request_approve:{position_id}"),
         ikb(declbtn, callback_data=f"position_post_request_decline:{position_id}"),
@@ -156,15 +156,15 @@ def position_approve_reqs_finl(position_id, lang):
 
 # Поиск профиля с запросом на продавца
 def profile_search_reqs_finl(user_id, lang):
-    if lang == "ru":
-        submbtn = "Подтвердить"
-        declbtn = "Отклонить"
-        delbtn = "Удалить"
     if lang == "en":
         submbtn = "Submit"
         declbtn = "Decline"
         delbtn = "Delete"
 
+    elif lang == "ru":
+        submbtn = "Подтвердить"
+        declbtn = "Отклонить"
+        delbtn = "Удалить"
     return InlineKeyboardMarkup().add(
         ikb(submbtn, callback_data=f"admin_user_request_approve:{user_id}"),
         ikb(declbtn, callback_data=f"admin_user_request_decline:{user_id}"),
@@ -184,7 +184,7 @@ def payment_choice_finl(user_id, lang):
         bybtcb = "₿, Bitcoin(Bep-20)"
         bycard = "Card Transfer"
 
-    if lang == "ru":
+    elif lang == "ru":
         byusdt = "₮ Tether, USDT(Trc-20)"
         bytrx = "TRX, Trc-20"
         bybtcb = "₿, Bitcoin(Bep-20)"
@@ -216,15 +216,6 @@ def payment_choice_finl(user_id, lang):
 def settings_open_finl(lang):
     keyboard = InlineKeyboardMarkup()
     get_settings = get_settingsx()
-    if lang == "ru":
-        settingnotexists = "❌ Не установлено"
-        settingexist = "✅ Установлено"
-        typenotset = "❌ Тип не задан"
-        typeset = "✅:"
-        faq = "ℹ FAQ"
-        support = "☎ Поддержка"
-        tradetype = "☎ Тип площадки"
-
     if lang == "en":
         settingnotexists = "❌ Empty"
         settingexist = "✅ Exist"
@@ -233,6 +224,15 @@ def settings_open_finl(lang):
         faq = "ℹ FAQ"
         support = "☎ Support"
         tradetype = "☎ Platform type"
+
+    elif lang == "ru":
+        settingnotexists = "❌ Не установлено"
+        settingexist = "✅ Установлено"
+        typenotset = "❌ Тип не задан"
+        typeset = "✅:"
+        faq = "ℹ FAQ"
+        support = "☎ Поддержка"
+        tradetype = "☎ Тип площадки"
 
     if get_settings['misc_support'].isdigit():
         get_user = get_userx(user_id=get_settings['misc_support'])
@@ -270,19 +270,19 @@ def settings_open_finl(lang):
 def turn_open_finl(lang):
     keyboard = InlineKeyboardMarkup()
     get_settings = get_settingsx()
-    if lang == "ru":
-        son = "Включены ✅"
-        soff = "Выключены ❌"
-        twork = "⛔ Тех. работы"
-        tadd = "💰 Пополнения"
-        tpays = "🎁 Покупки"
-
     if lang == "en":
         son = "On ✅"
         soff = "Off ❌"
         twork = "⛔ Tech. Works"
         tadd = "💰 Payments"
         tpays = "🎁 Purchases"
+
+    elif lang == "ru":
+        son = "Включены ✅"
+        soff = "Выключены ❌"
+        twork = "⛔ Тех. работы"
+        tadd = "💰 Пополнения"
+        tpays = "🎁 Покупки"
 
     if get_settings['status_buy'] == "True":
         status_buy_kb = ikb(son, callback_data="turn_buy:False")
@@ -308,15 +308,15 @@ def turn_open_finl(lang):
 ######################################## МАГАЗИНЫ ########################################
 # Изменение магазина
 def shop_name_edit_open_finl(shop_id, user_id, remover, lang):
-    if lang == "ru":
-        ebtn = "🏷 Изм. название"
-        dbtn = "❌ Удалить"
-        bbtn = "⬅ Вернуться ↩"
     if lang == "en":
         ebtn = "🏷 Change Name"
         dbtn = "❌ Delete"
         bbtn = "⬅ Back Up ↩"
 
+    elif lang == "ru":
+        ebtn = "🏷 Изм. название"
+        dbtn = "❌ Удалить"
+        bbtn = "⬅ Вернуться ↩"
     return (
         InlineKeyboardMarkup()
             .add(
@@ -339,15 +339,15 @@ def shop_name_edit_open_finl(shop_id, user_id, remover, lang):
 
 # Изменение магазина
 def shop_description_edit_open_finl(shop_id, user_id, remover, lang):
-    if lang == "ru":
-        ebtn = "🏷 Изм. описание"
-        dbtn = "❌ Удалить"
-        bbtn = "⬅ Вернуться ↩"
     if lang == "en":
         ebtn = "🏷 Change Name"
         dbtn = "❌ Delete"
         bbtn = "⬅ Back Up ↩"
 
+    elif lang == "ru":
+        ebtn = "🏷 Изм. описание"
+        dbtn = "❌ Удалить"
+        bbtn = "⬅ Вернуться ↩"
     return (
         InlineKeyboardMarkup()
             .add(
@@ -370,15 +370,15 @@ def shop_description_edit_open_finl(shop_id, user_id, remover, lang):
 ######################################## ТОВАРЫ ########################################
 # Изменение категории
 def category_edit_open_finl(category_id, remover, lang):
-    if lang == "ru":
-        ebtn = "🏷 Изм. название"
-        dbtn = "❌ Удалить"
-        bbtn = "⬅ Вернуться ↩"
     if lang == "en":
         ebtn = "🏷 Change Name"
         dbtn = "❌ Delete"
         bbtn = "⬅ Back Up ↩"
 
+    elif lang == "ru":
+        ebtn = "🏷 Изм. название"
+        dbtn = "❌ Удалить"
+        bbtn = "⬅ Вернуться ↩"
     return (
         InlineKeyboardMarkup()
         .add(
@@ -401,13 +401,13 @@ def category_edit_open_finl(category_id, remover, lang):
 
 # Кнопки с удалением категории
 def category_edit_delete_finl(category_id, remover, lang):
-    if lang == "ru":
-        dbtn = "❌ Да, удалить"
-        cbtn = "✅ Нет, отменить"
-
     if lang == "en":
         dbtn = "❌ Yes, Delete Please"
         cbtn = "✅ No, Cancel Please"
+
+    elif lang == "ru":
+        dbtn = "❌ Да, удалить"
+        cbtn = "✅ Нет, отменить"
 
     return InlineKeyboardMarkup().add(
         ikb(
@@ -422,13 +422,9 @@ def category_edit_delete_finl(category_id, remover, lang):
 
 # Кнопки с удалением категории
 def shop_edit_delete_finl2(shop_id, remover, lang):
-    if lang == "ru":
+    if lang in ["ru", "en"]:
         yesbtn = "❌ Да, удалить"
         nobtn =  "✅ Нет, отменить"
-    if lang == "en":
-        yesbtn = "❌ Да, удалить"
-        nobtn =  "✅ Нет, отменить"
-
     return InlineKeyboardMarkup().add(
         ikb(
             yesbtn,
@@ -443,20 +439,6 @@ def shop_edit_delete_finl2(shop_id, remover, lang):
 # Кнопки при открытии позиции для изменения
 def position_edit_open_finl(position_id, category_id, remover, lang):
     print(lang)
-    if lang == "ru":
-        chnbtn = "🏷 Изм. название"
-        chpbtn = "💰 Изм. цену"
-        chdbtn = "📜 Изм. описание"
-        chphbtn = "📸 Изм. фото"
-        chrbtn = "📜 Изменить остаток"
-        chlbtn = "📸 <---<ВП>-->"
-        chcbtn = "🏙 Изм. город"
-        chsbtn = "🏙 Изм. магазин"
-        chclbtn = "🗑 Очистить"
-        agbtn = "🎁 Добавить товары"
-        prsbtn = "📥 Товары"
-        delbtn = "❌ Удалить"
-        backbtn = "⬅ Вернуться ↩"
     if lang == "en":
         chnbtn = "🏷 Edit Name"
         chpbtn = "💰 Edit Price"
@@ -472,6 +454,20 @@ def position_edit_open_finl(position_id, category_id, remover, lang):
         delbtn = "❌ Delete"
         backbtn = "⬅ Back ↩"
 
+    elif lang == "ru":
+        chnbtn = "🏷 Изм. название"
+        chpbtn = "💰 Изм. цену"
+        chdbtn = "📜 Изм. описание"
+        chphbtn = "📸 Изм. фото"
+        chrbtn = "📜 Изменить остаток"
+        chlbtn = "📸 <---<ВП>-->"
+        chcbtn = "🏙 Изм. город"
+        chsbtn = "🏙 Изм. магазин"
+        chclbtn = "🗑 Очистить"
+        agbtn = "🎁 Добавить товары"
+        prsbtn = "📥 Товары"
+        delbtn = "❌ Удалить"
+        backbtn = "⬅ Вернуться ↩"
     return (
         InlineKeyboardMarkup()
         .add(
@@ -605,13 +601,13 @@ def artist_edit_delete_finl():
 
 # Подтверждение удаления позиции
 def position_edit_delete_finl(position_id, category_id, remover, lang):
-    if lang == "ru":
-        dbtn = "❌ Да, удалить"
-        cbtn = "✅ Нет, отменить"
     if lang == "en":
         dbtn = "❌ Yes, Delete"
         cbtn = "✅ No, Cancel"
 
+    elif lang == "ru":
+        dbtn = "❌ Да, удалить"
+        cbtn = "✅ Нет, отменить"
     return InlineKeyboardMarkup().add(
         ikb(
             dbtn,
@@ -626,13 +622,13 @@ def position_edit_delete_finl(position_id, category_id, remover, lang):
 
 # Подтверждение очистики позиции
 def position_edit_clear_finl(position_id, category_id, remover, lang):
-    if lang == "ru":
-        clbtn = "❌ Да, очистить"
-        ccbtn = "✅ Нет, отменить"
     if lang == "en":
         clbtn = "❌ Yes, Clear"
         ccbtn = "✅ No, Cancel"
 
+    elif lang == "ru":
+        clbtn = "❌ Да, очистить"
+        ccbtn = "✅ Нет, отменить"
     return InlineKeyboardMarkup().add(
         ikb(
             clbtn,
@@ -646,14 +642,6 @@ def position_edit_clear_finl(position_id, category_id, remover, lang):
 
 # Кнопки при открытии позиции для изменения
 def shop_edit_open_finl(shop_id, remover, user_id, lang):
-    if lang == "ru":
-        chnbtn = "Изменить название"
-        chpbtn = "💰 Изм. цену"
-        chdbtn = "📜 Изм. описание"
-        chfbtn = "📸 Изм. фото"
-        chcbtn = "🏙 Изм. город"
-        delntn = "❌ Удалить"
-        bbbtn = "Вернуться"
     if lang == "en":
         chnbtn = "Change name"
         chpbtn = "💰 Change price"
@@ -663,6 +651,14 @@ def shop_edit_open_finl(shop_id, remover, user_id, lang):
         delntn = "❌ Delete"
         bbbtn = "Back"
 
+    elif lang == "ru":
+        chnbtn = "Изменить название"
+        chpbtn = "💰 Изм. цену"
+        chdbtn = "📜 Изм. описание"
+        chfbtn = "📸 Изм. фото"
+        chcbtn = "🏙 Изм. город"
+        delntn = "❌ Удалить"
+        bbbtn = "Вернуться"
     return (
         InlineKeyboardMarkup()
         .add(
@@ -724,13 +720,13 @@ def shop_edit_open_finl(shop_id, remover, user_id, lang):
 
 # Подтверждение покупки товара
 def shop_edit_delete_finl(shop_id, user_id, lang):
-    if lang == "ru":
-        yesbtn = "✅ Да, удалить"
-        nobtn = "❌ Отменить удаление"
     if lang == "en":
         yesbtn = "✅ Yes, delete"
         nobtn = "❌ Cancel Delete"
 
+    elif lang == "ru":
+        yesbtn = "✅ Да, удалить"
+        nobtn = "❌ Отменить удаление"
     return InlineKeyboardMarkup().add(
         ikb(yesbtn, callback_data=f"shop_delete:yes:{shop_id}:{user_id}"),
         ikb(nobtn, callback_data=f"shop_delete:not:{shop_id}:{user_id}"),
