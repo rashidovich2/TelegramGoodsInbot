@@ -42,9 +42,7 @@ def get_tron_prices():
     url = 'https://apilist.tronscanapi.com/api/search/hot'
     payload = {}
     response = requests.get(url, payload)
-    data = json.loads(response.text)
-
-    return data
+    return json.loads(response.text)
 
 def GetTronPrice():
     try:
@@ -54,8 +52,7 @@ def GetTronPrice():
         cresponse = requests.get(url, payload)
         print(cresponse)
         response = json.loads(cresponse.text)
-        trxusdt_price = response['price']
-        return trxusdt_price
+        return response['price']
     except Exception:
         raise Exception("Damn...Something was wrong...")
 
@@ -67,8 +64,7 @@ def GetUSDTPrice():
         cresponse = requests.get(url, payload)
         print(cresponse)
         response = json.loads(cresponse.text)
-        priceusdt = response['price']
-        return priceusdt
+        return response['price']
     except Exception:
         raise Exception("Damn...Something was wrong...")
 
@@ -81,17 +77,14 @@ def GetBtcPrice():
         cresponse = requests.get(url, payload)
         print(cresponse)
         response = json.loads(cresponse.text)
-        btc_price = response['price']
-        return btc_price
+        return response['price']
     except Exception:
         raise Exception("Damn...Something was wrong...")
 
 def getTokens():
     url = "https://apilist.tronscan.org/api/token"
     response = requests.get(url)
-    tokens = response.json()
-
-    return tokens
+    return response.json()
 
     # Выбор способа пополнения
 @dp.callback_query_handler(text="user_refill", state="*")
@@ -110,9 +103,10 @@ async def refill_way(call: CallbackQuery, state: FSMContext):
 # Изменение адреса в сети Tron TRC20
 @dp.callback_query_handler(text_startswith="change_trc20", state="*")
 async def change_trc20(call: CallbackQuery, state: FSMContext):
-    tron_address = get_tron_address(call.from_user.id)
-    trx_addr_txt = ""
-    if tron_address: trx_addr_txt = f"<b>Ваш текущий Tron TRC20 адрес</b>: {tron_address['tron_address']}\n"
+    if tron_address := get_tron_address(call.from_user.id):
+        trx_addr_txt = f"<b>Ваш текущий Tron TRC20 адрес</b>: {tron_address['tron_address']}\n"
+    else:
+        trx_addr_txt = ""
     await state.set_state("here_tron_address")
     await state.update_data(here_type_net="TRX")
     await call.message.edit_text(f"{trx_addr_txt}\n "
@@ -122,9 +116,10 @@ async def change_trc20(call: CallbackQuery, state: FSMContext):
 # Изменение адреса в сети Tron TRC20
 @dp.callback_query_handler(text_startswith="change_bep20", state="*")
 async def change_trc20(call: CallbackQuery, state: FSMContext):
-    btcb_address = get_crypto_address(call.from_user.id, "BTCB")
-    btcb_addr_txt = ""
-    if btcb_address: btcb_addr_txt = f"<b>Ваш текущий BTC BEP20 адрес</b>: {btcb_address['tron_address']}\n"
+    if btcb_address := get_crypto_address(call.from_user.id, "BTCB"):
+        btcb_addr_txt = f"<b>Ваш текущий BTC BEP20 адрес</b>: {btcb_address['tron_address']}\n"
+    else:
+        btcb_addr_txt = ""
     await state.set_state("here_crypto_address")
     await state.update_data(here_type_net="BTCB")
 
@@ -212,12 +207,12 @@ async def refill_get(message: Message, state: FSMContext):
                 await state.update_data(here_pay_amount=pay_amount)
                 await state.update_data(here_receipt=receipt)
 
-            if get_way == "Form" or get_way == "Nickname" or get_way == "Number":
+            if get_way in ["Form", "Nickname", "Number"]:
                 get_message, get_link, receipt = await (
                     await QiwiAPI(cache_message, user_bill_pass=True)
                 ).bill_pay(pay_amount, get_way)
 
-            if get_way == "Tron" or get_way == "BTCB":
+            if get_way in ["Tron", "BTCB"]:
                 receipt = str(int(time.time() * 100))
                 await state.update_data(here_receipt=receipt)
                 if get_way == "Tron":
@@ -272,7 +267,7 @@ async def refill_get(message: Message, state: FSMContext):
                               f"❗ Ожидается транзакция с адреса: {address_from}\n" \
                               f"🔄 После оплаты, нажмите на <code>Проверить оплату</code>"
 
-            if get_way == "Form" or get_way == "Nickname" or get_way == "Number":
+            if get_way in ["Form", "Nickname", "Number"]:
                 get_message = f"<b>🆙 Пополнение баланса</b>\n" \
                               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                               f" Для пополнения баланса, нажмите на кнопку ниже \n" \
@@ -295,12 +290,12 @@ async def refill_get(message: Message, state: FSMContext):
                               f"🔄 После оплаты, нажмите на <code>Проверить оплату</code>"
 
             await state.set_state("here_pay_check")
-            lang = "ru"
-
             if get_way in ["Tron", "BTCB", "CardTransfer"] and get_message:
+                lang = "ru"
+
                 await cache_message.edit_text(get_message, reply_markup=refill_bill_crypto_finl(get_way, type_net, receipt, lang))
 
-            if get_way != "Tron" and get_way != "BTCB":
+            if get_way not in ["Tron", "BTCB"]:
                 await cache_message.edit_text(get_message, reply_markup=refill_bill_finl(get_link, receipt, get_way))
         else:
             await cache_message.edit_text(f"<b>❌ Неверная сумма пополнения</b>\n"
@@ -444,7 +439,7 @@ async def refill_check_tron(call: CallbackQuery, state: FSMContext):
     print(type_net, receipt)
 
     await state.update_data(here_type_net=type_net)
-    await call.answer(f"♻ Подождите, платёж проверяется...")
+    await call.answer("♻ Подождите, платёж проверяется...")
 
 
     #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
@@ -507,7 +502,9 @@ async def refill_check_tron(call: CallbackQuery, state: FSMContext):
         elif pay_status == "REJECTED":
             await call.message.edit_text(_("<b>❌ Счёт был отклонён.</b>", locale=lang))'''
     else:
-        await call.message.edit_text(f"<b>❌ Транзакция не найдена, если вы выполнили перевод, попробуйте проверить позже.</b>")
+        await call.message.edit_text(
+            "<b>❌ Транзакция не найдена, если вы выполнили перевод, попробуйте проверить позже.</b>"
+        )
 
 # Проверка оплаты через сеть TronNet
 @dp.callback_query_handler(text_contains="Pay:BTCB", state="*")  #text_contains text_startswith
@@ -520,7 +517,7 @@ async def refill_check_tron(call: CallbackQuery, state: FSMContext):
     print(type_net, receipt)
 
     await state.update_data(here_type_net=type_net)
-    await call.answer(f"♻ Подождите, платёж проверяется...")
+    await call.answer("♻ Подождите, платёж проверяется...")
 
     #address_to = 'TQanL97TYygHiycDZ1up8XNqt1mHcGJ4Nv'
     #address_to = '0x9798e988664856c20c37b5bf311a4ee85227a0df'
@@ -562,7 +559,9 @@ async def refill_check_tron(call: CallbackQuery, state: FSMContext):
         elif pay_status == "REJECTED":
             await call.message.edit_text(_("<b>❌ Счёт был отклонён.</b>", locale=lang))'''
     else:
-        await call.message.edit_text(f"<b>❌ Транзакция не найдена, если вы выполнили перевод, попробуйте проверить позже.</b>")
+        await call.message.edit_text(
+            "<b>❌ Транзакция не найдена, если вы выполнили перевод, попробуйте проверить позже.</b>"
+        )
 
 
 # Принятие Трон адреса и сохранение если нет
@@ -577,7 +576,10 @@ async def enter_tron_address(message: Message, state: FSMContext):
     if message.text:
         tron_address = message.text
         if tron_address == "" or tron_address is None:
-            await message.answer(f"<b>♻ Был введен пустой адрес</b>", reply_markup=back_to_profile_finl('ru'))
+            await message.answer(
+                "<b>♻ Был введен пустой адрес</b>",
+                reply_markup=back_to_profile_finl('ru'),
+            )
 
         trx_addressdb = get_crypto_address(user_id, type_net)
 
@@ -591,11 +593,9 @@ async def enter_tron_address(message: Message, state: FSMContext):
             # если адрес есть в нашей БД
             if trx_addressdb:
                 update_crypto_address(user_id, tron_address=tron_address, type_net=type_net)
-                await message.answer("Обновляем адрес в профиле TRX в сети TRC20.")
             else:
                 create_crypto_payment_row(user_id, tron_address, type_net)
-                await message.answer("Обновляем адрес в профиле TRX в сети TRC20.")
-
+            await message.answer("Обновляем адрес в профиле TRX в сети TRC20.")
             await state.update_data(here_tron_address=tron_address)
             await state.set_state("here_pay_amount")
 
@@ -640,7 +640,10 @@ async def enter_tron_address(message: Message, state: FSMContext):
         await state.update_data(here_crypto_address=crypto_address)
         await state.set_state("here_pay_amount")
 
-        await message.answer(f"<b>♻ Успешно сохранили Ваш BEP-20 адрес в профиле.</b>", reply_markup=back_to_profile_finl('ru'))
+        await message.answer(
+            "<b>♻ Успешно сохранили Ваш BEP-20 адрес в профиле.</b>",
+            reply_markup=back_to_profile_finl('ru'),
+        )
 
 
 ##########################################################################################

@@ -21,30 +21,6 @@ def menu_frep(user_id, lang):
     lang = get_userx(user_id=user_id)['user_lang']
     user_role = "User" if user_role is None else user_role
 
-    if lang == 'ru':
-        buybtn = "🎁 Купить"
-        sellbtn = "🌐 Продать"
-        shopbtn = "🎁 Магазины"
-        enbtn = "🏫 Кружки"
-        entbtn = "Афиша"
-        vacancies = "💼 Создать вакансию"
-        ptfbtn = "👤 Профиль"
-        tubtn = "💰 Пополнить"
-        crtbtn = "🧮 Корзина"
-        supbtn = "☎ Поддержка"
-        isbtn = "Я продавец"
-        esbtn = "Админ Афиши"
-        stabtn = "📊 Статистика"
-        prtbtn = "Партнеры"
-        pmbtn = "🎁 Управление товарами 🖍"
-        stbtn = "⚙ Настройки"
-        embtn = "🎫 Управление событиями 🖍"
-        ufbtn = "🔆 Общие функции"
-        psbtn = "🔑 Платежные системы"
-        rsbtn = "Запросы продавцов"
-        obtn = "🚛 Заказы"
-        srbtn = "📊 Отчет о продажах"
-
     if lang == 'en':
         buybtn = "🎁 Buy"
         sellbtn = "🌐 Sell"
@@ -69,6 +45,30 @@ def menu_frep(user_id, lang):
         obtn = "🚛 Orders"
         srbtn = "📊 Sales Report"
 
+    elif lang == 'ru':
+        buybtn = "🎁 Купить"
+        sellbtn = "🌐 Продать"
+        shopbtn = "🎁 Магазины"
+        enbtn = "🏫 Кружки"
+        entbtn = "Афиша"
+        vacancies = "💼 Создать вакансию"
+        ptfbtn = "👤 Профиль"
+        tubtn = "💰 Пополнить"
+        crtbtn = "🧮 Корзина"
+        supbtn = "☎ Поддержка"
+        isbtn = "Я продавец"
+        esbtn = "Админ Афиши"
+        stabtn = "📊 Статистика"
+        prtbtn = "Партнеры"
+        pmbtn = "🎁 Управление товарами 🖍"
+        stbtn = "⚙ Настройки"
+        embtn = "🎫 Управление событиями 🖍"
+        ufbtn = "🔆 Общие функции"
+        psbtn = "🔑 Платежные системы"
+        rsbtn = "Запросы продавцов"
+        obtn = "🚛 Заказы"
+        srbtn = "📊 Отчет о продажах"
+
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.row(buybtn, tubtn)
     #keyboard.row(buybtn, sellbtn)
@@ -80,13 +80,13 @@ def menu_frep(user_id, lang):
         keyboard.row(ptfbtn, supbtn)
         #keyboard.row(vacancies)
 
-    if user_role == "Admin": #in get_admins():
+    if user_role == "Admin":
         keyboard.row(pmbtn, ptfbtn, stabtn)
         #keyboard.row(vacancies, enbtn)
         keyboard.row(stbtn, psbtn, ufbtn)
         keyboard.row(srbtn)
 
-    if user_role == "ShopAdmin":
+    elif user_role == "ShopAdmin":
         #keyboard.row(supbtn)
         keyboard.row(pmbtn, psbtn)
 
@@ -102,13 +102,13 @@ def lang_menu_frep(user_id):
 # Кнопки продавца
 def shop_admin_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    if lang == 'ru':
-        sabtn = "Отправить заявку"
-        mmbtn = "⬅ Главное меню"
     if lang == 'en':
         sabtn = "Send Request"
         mmbtn = "⬅ Main Menu"
 
+    elif lang == 'ru':
+        sabtn = "Отправить заявку"
+        mmbtn = "⬅ Главное меню"
     keyboard.row(sabtn)
     keyboard.row(mmbtn)
 
@@ -118,14 +118,6 @@ def shop_admin_frep(lang):
 # Кнопки платежных систем
 def payments_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    if lang == 'ru':
-        chqbtn = "₮ Tether адрес"
-        chtrbtn = "TRX, Tron(Trc20) адрес"
-        chkqbtn = "₿, Bitcoin(Bep-20) адрес"
-        bqbtn = "Изменить номер карты"
-        mmbtn = "⬅ Главное меню"
-        chybtn = "💳 Изменить Yoo 🖍"
-        pmbtn = "🖲 Способы пополнения"
     if lang == 'en':
         chqbtn = "₮ Tether Address"
         chtrbtn = "TRX, Tron(Trc20) Address"
@@ -135,6 +127,14 @@ def payments_frep(lang):
         chybtn = "💳 Change Yoo 🖍"
         pmbtn = "🖲 Payment Methods"
 
+    elif lang == 'ru':
+        chqbtn = "₮ Tether адрес"
+        chtrbtn = "TRX, Tron(Trc20) адрес"
+        chkqbtn = "₿, Bitcoin(Bep-20) адрес"
+        bqbtn = "Изменить номер карты"
+        mmbtn = "⬅ Главное меню"
+        chybtn = "💳 Изменить Yoo 🖍"
+        pmbtn = "🖲 Способы пополнения"
     #keyboard.row(chqbtn, chkqbtn)
     keyboard.row(chqbtn, bqbtn)
     #keyboard.row(chtrbtn, bqbtn)
@@ -146,15 +146,6 @@ def payments_frep(lang):
 # Кнопки общих функций
 def functions_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    if lang == 'ru':
-        fpbtn = "🔍 Поиск профиля"
-        msbtn = "📢 Рассылка"
-        mslbtn = "📢 Рассылка_lite"
-        fabtn = "🧾 Пополнения"
-        fcbtn = "🧾 Поиск чеков 🔍"
-        vabtn = "🧾 Cогласование вакансий"
-        сhgrbtn = "🧾 Каналы и группы для постинга"
-        mmbtn = "⬅ Главное меню"
     if lang == 'en':
         fpbtn = "🔍 Find Profile"
         mslbtn = "📢 MassSendlite"
@@ -165,6 +156,15 @@ def functions_frep(lang):
         сhgrbtn = "🧾 Groups and Channels for Posting"
         mmbtn = "⬅ Main Menu"
 
+    elif lang == 'ru':
+        fpbtn = "🔍 Поиск профиля"
+        msbtn = "📢 Рассылка"
+        mslbtn = "📢 Рассылка_lite"
+        fabtn = "🧾 Пополнения"
+        fcbtn = "🧾 Поиск чеков 🔍"
+        vabtn = "🧾 Cогласование вакансий"
+        сhgrbtn = "🧾 Каналы и группы для постинга"
+        mmbtn = "⬅ Главное меню"
     keyboard.row(fpbtn)
     #keyboard.row(vabtn, сhgrbtn)
     keyboard.row(mslbtn, fabtn)
@@ -231,18 +231,6 @@ def settings_frep(lang):
 def events_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     print(lang)
-    if lang == 'ru':
-        cebtn = "📁 Создать событие ➕"
-        chbtn = "📁 Изменить событие 🖍"
-        dabtn = "📁 Удалить все события ❌"
-        cpbtn = "🗃 Создать место ➕"
-        chpbtn = "🗃 Изменить место 🖍"
-        dapbtn = "🗃 Удалить все места ❌"
-        cabtn = "🏪 Создать артиста ➕"
-        chabtn = "🏪 Изменить артиста 🖍"
-        daabtn = "🏪 Удалить всех артистов ❌"
-        mmbtn = "⬅ Главное меню"
-
     if lang == 'en':
         cebtn = "📁 Create Event ➕"
         chbtn = "📁 Edit Event 🖍"
@@ -254,6 +242,18 @@ def events_frep(lang):
         chabtn = "🏪 Edit Artist 🖍"
         daabtn = "🏪 Delete all Artists ❌"
         mmbtn = "⬅ Main Menu"
+
+    elif lang == 'ru':
+        cebtn = "📁 Создать событие ➕"
+        chbtn = "📁 Изменить событие 🖍"
+        dabtn = "📁 Удалить все события ❌"
+        cpbtn = "🗃 Создать место ➕"
+        chpbtn = "🗃 Изменить место 🖍"
+        dapbtn = "🗃 Удалить все места ❌"
+        cabtn = "🏪 Создать артиста ➕"
+        chabtn = "🏪 Изменить артиста 🖍"
+        daabtn = "🏪 Удалить всех артистов ❌"
+        mmbtn = "⬅ Главное меню"
 
     keyboard.row(cebtn, chbtn, dabtn)
     keyboard.row(cpbtn, chpbtn, dapbtn)
@@ -267,20 +267,6 @@ def events_frep(lang):
 def items_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     print(lang)
-    if lang == 'ru':
-        apbtn = "🎁 Добавить товары ➕"
-        dpbtn = "🎁 Удалить товары 🖍"
-        dapbtn = "🎁 Удалить все товары ❌"
-        cpbtn = "📁 Создать позицию ➕"
-        chpbtn = "📁 Изменить позицию 🖍"
-        dagbtn = "📁 Удалить все позиции ❌"
-        ccbtn = "🗃 Создать категорию ➕"
-        chcbtn = "🗃 Изменить категорию 🖍"
-        dacbtn = "🗃 Удалить все категории ❌"
-        cshbtn = "🏪 Создать магазин ➕"
-        chbtn = "🏪 Изменить магазин 🖍"
-        dashbtn = "🏪 Удалить все магазины ❌"
-        mmbtn = "⬅ Главное меню"
     if lang == 'en':
         apbtn = "🎁 Add Goods➕"
         dpbtn = "🎁 Delete Goods 🖍"
@@ -296,18 +282,7 @@ def items_frep(lang):
         dashbtn = "🏪 Delete all Shops ❌"
         mmbtn = "⬅ Main Menu"
 
-    keyboard.row(apbtn, dpbtn, dapbtn)
-    keyboard.row(cpbtn, chpbtn, dagbtn)
-    keyboard.row(ccbtn, chcbtn, dacbtn)
-    keyboard.row(cshbtn, chbtn, dashbtn)
-    keyboard.row(mmbtn)
-
-    return keyboard
-
-# Кнопки изменения товаров
-def items_sh_frep(lang):
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    if lang == 'ru':
+    elif lang == 'ru':
         apbtn = "🎁 Добавить товары ➕"
         dpbtn = "🎁 Удалить товары 🖍"
         dapbtn = "🎁 Удалить все товары ❌"
@@ -321,6 +296,17 @@ def items_sh_frep(lang):
         chbtn = "🏪 Изменить магазин 🖍"
         dashbtn = "🏪 Удалить все магазины ❌"
         mmbtn = "⬅ Главное меню"
+    keyboard.row(apbtn, dpbtn, dapbtn)
+    keyboard.row(cpbtn, chpbtn, dagbtn)
+    keyboard.row(ccbtn, chcbtn, dacbtn)
+    keyboard.row(cshbtn, chbtn, dashbtn)
+    keyboard.row(mmbtn)
+
+    return keyboard
+
+# Кнопки изменения товаров
+def items_sh_frep(lang):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     if lang == 'en':
         apbtn = "🎁 Add Goods➕"
         dpbtn = "🎁 Delete Goods 🖍"
@@ -336,6 +322,20 @@ def items_sh_frep(lang):
         dashbtn = "🏪 Delete all shops ❌"
         mmbtn = "⬅ Main Menu"
 
+    elif lang == 'ru':
+        apbtn = "🎁 Добавить товары ➕"
+        dpbtn = "🎁 Удалить товары 🖍"
+        dapbtn = "🎁 Удалить все товары ❌"
+        cpbtn = "📁 Создать позицию ➕"
+        chpbtn = "📁 Изменить позицию 🖍"
+        dagbtn = "📁 Удалить все позиции ❌"
+        ccbtn = "🗃 Создать категорию ➕"
+        chcbtn = "🗃 Изменить категорию 🖍"
+        dacbtn = "🗃 Удалить все категории ❌"
+        cshbtn = "🏪 Создать магазин ➕"
+        chbtn = "🏪 Изменить магазин 🖍"
+        dashbtn = "🏪 Удалить все магазины ❌"
+        mmbtn = "⬅ Главное меню"
     keyboard.row(apbtn, dpbtn, dapbtn)
     keyboard.row(cpbtn, chpbtn, dagbtn)
     #keyboard.row("🗃 Создать категорию ➕", "🗃 Изменить категорию 🖍") #, "🗃 Удалить все категории ❌")

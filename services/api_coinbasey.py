@@ -20,20 +20,8 @@ class CoinbaseAPI(AsyncClass):
     async def __ainit__(self, suser_id=None, api_key=None, api_token=None):
         #self.user_id = user_id
         #check_pass=False, user_bill_pass=False, user_check_pass=False
-        if suser_id is not None:
-            self.suser_id = suser_id
-            self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
-                #self.token = token
-                #self.client_id = client_id
-                #self.acc_number = acc_number
-                #self.redirect_url = redirect_url
-        else:
-            #self.login = get_upaymentx(self.user_id)['qiwi_login']
-            #self.token = get_upaymentx(self.user_id)['qiwi_token']
-            #self.secret = get_upaymentx(self.user_id)['qiwi_secret']
-            #self.login = get_paymentx()['qiwi_login']
-            self.suser_id = 919148970
-            self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
+        self.suser_id = suser_id if suser_id is not None else 919148970
+        self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
         self.api_key = get_upaymentx(self.suser_id)['coinbase_key']
         self.pay_method = get_upaymentx(self.suser_id)['way_coinbase']
         #self.base_url = "https://yoomoney.ru/api/"

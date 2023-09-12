@@ -306,7 +306,7 @@ for cp in cpass:
                 min = sec // 60
                 sec %= 60
 
-                print(f"{str(cur_time.hour)}:{str(cur_time.minute)}")
+                print(f"{cur_time.hour}:{cur_time.minute}")
                 utime = time.mktime(cur_time.timetuple())
                 print(f"{cur_time} | Аккаунт {account_id} уходит в режим ожидания на {hour} часов, {min} минут, {sec} секунд")
                 #self.lists.add_check(self.phone, [cur_day, cur_hour+hour, cur_min+min, sec])

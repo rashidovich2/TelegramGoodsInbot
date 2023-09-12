@@ -92,11 +92,11 @@ def inviter(app):
             pass
     while True:
         for dialog in app.get_dialogs():
-            if dialog.chat.type == ChatType.GROUP or dialog.chat.type == ChatType.SUPERGROUP:
+            if dialog.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
                 for v in ids:
                     s = v
                     del ids[:1]
-                
+
                     if old_s != s:
                         if count != count_users_send:
                             try:
@@ -114,7 +114,7 @@ def inviter(app):
                     else:
                         print('Все сделано!')
                         break
-                    
+
                     old_s = s
 
                     log_txt(f"left: {len(ids)}")
