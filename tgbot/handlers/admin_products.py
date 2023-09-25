@@ -512,7 +512,6 @@ async def product_position_create_photo(message: Message, state: FSMContext):
     await state.finish()
 
     position_photo = "" if "text" in message else message.photo[-1].file_id
-    position_id = random.randint(1000000000, 9999999999)
     add_positionx(position_city, position_city_id, position_name, position_price, position_description, position_photo, catategory_id, position_user_id)
 
     await message.answer(_("<b>📁 Позиция была успешно создана ✅</b>", locale=lang))

@@ -1,9 +1,14 @@
 import asyncio
+#from telethon.sync import TelegramClient
 from telethon import TelegramClient, events
 from telethon.extensions import html
 from telethon import functions, types
-from telethon.tl.types import InputPeerEmpty, InputPeerChannel, InputPeerUser
-from telethon.errors import UserBannedInChannelError, ChannelPrivateError, ChatWriteForbiddenError, SlowModeWaitError, UsernameInvalidError, ChatGuestSendForbiddenError, ForbiddenError, ChatAdminRequiredError
+from telethon.tl.functions.messages import AddChatUserRequest
+from telethon.tl.functions.channels import JoinChannelRequest, InviteToChannelRequest
+from telethon.tl.functions.users import GetUsersRequest, GetFullUserRequest
+from telethon.utils import get_input_peer, get_peer_id
+from telethon.tl.types import User, Chat, Channel, InputPeerEmpty, InputPeerChannel, InputPeerUser, InputPeerChat, PeerChat, PeerChannel
+from telethon.errors import UserBannedInChannelError, ChatInvalidError, ChannelInvalidError, ChannelPrivateError, ChatWriteForbiddenError, SlowModeWaitError, UsernameInvalidError, ChatGuestSendForbiddenError, ForbiddenError, ChatAdminRequiredError, PeerFloodError, UsernameNotOccupiedError, FloodWaitError, InviteRequestSentError
 from aiogram.utils.markdown import hlink
 import config
 import os, sys
@@ -18,6 +23,11 @@ import aiosqlite
 import sqlite3
 import urllib.request
 import json
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+
+sys.path.append(parent)
+from services.api_db_mysql import *
 #from tgbot.services.api_sqlite import *
 #from tgbot.utils.misc_functions import get_position_admin
 #from tgbot.utils.const_functions import get_unix, get_date, clear_html
@@ -33,9 +43,32 @@ if config.PROXY_ENABLED:
     s = socks.socksocket()
     rnd_proxy = random.choice(config.PROXY_IPS).split(":")
 
-api_id = 20974935
-api_hash = '9fbac23d7f44aa3cdb065237998a4b14'
-client = TelegramClient('Forwarder2', api_id, api_hash, proxy=s.set_proxy(socks.HTTP, rnd_proxy[0], rnd_proxy[1]) )
+
+
+
+#GailEstrada
+#api_id = 16475416
+#api_hash = '47a2ef523f116a0237605b4967d74539'
+#client = TelegramClient('Forwarder4', api_id, api_hash, proxy=s.set_proxy(socks.HTTP, rnd_proxy[0], rnd_proxy[1]) )
+
+
+#api_id = 20974935
+#api_hash = '9fbac23d7f44aa3cdb065237998a4b14'
+#client = TelegramClient('Forwarder2', api_id, api_hash, proxy=s.set_proxy(socks.HTTP, rnd_proxy[0], rnd_proxy[1]) )
+
+#banned
+#api_id = 27173025
+#api_hash = 'aa7e0b3f2c3c579993372ce86e95e993'
+#client = TelegramClient('Forwarder3', api_id, api_hash, proxy=s.set_proxy(socks.HTTP, rnd_proxy[0], rnd_proxy[1]) )
+#cl_name = "Forwarder3"
+
+#Olegr0978
+api_id = 19431066
+api_hash = '4dc8ab8e36f0133a5bc13ca67df7326f'
+client = TelegramClient('Forwarder4', api_id, api_hash, proxy=s.set_proxy(socks.HTTP, rnd_proxy[0], rnd_proxy[1]) )
+
+
+user_id = 5952370072
 #client = TelegramClient('Forwarder2', api_id, api_hash)
 #client.start()
 
@@ -45,6 +78,11 @@ article_url = ""
 multi_mode = 0
 first = 0
 
+#CHECK_CHAT_IN_DB
+#GET_CHAT_ENTITY
+#INVITE_ME_IN_CHAT
+#SEND_FILE
+#SAVE_RESULT
 
 # Получение текущей даты
 def get_date():
@@ -72,19 +110,27 @@ def update_format(sql, parameters: dict):
 async def add_chat_data(chat_id, chat_name, chat_state):
     async with aiosqlite.connect('/var/local/bot3101fc/tgbot/data/database.db') as con:
         con.row_factory = aiosqlite.Row
-        await con.execute("INSERT INTO storage_chats "
-                          "(chat_id, chat_name, chat_state) "
-                          "VALUES (?, ?, ?)",
-                          [chat_id, chat_name, chat_state])
+        await con.execute("INSERT INTO chgrdb "
+                          "(chat_id, chat_name, chat_type, chat_state) "
+                          "VALUES (?, ?, ?, ?)",
+                          [chat_id, chat_name, 'pr-chat', chat_state])
         await con.commit()
+
+
 
 #Получение городов и url каналов
 def get_chats():
     with sqlite3.connect('/var/local/bot3101fc/tgbot/data/database.db') as con:
         con.row_factory = dict_factory
-        sql = "SELECT chat_id, chat_name, chat_url FROM chgrdb WHERE chat_url is not Null"
+        sql = "SELECT chat_id, chat_name, chat_url FROM chgrdb WHERE chat_url is not Null and chat_type='pr-chat'"
         return con.execute(sql).fetchall()
 
+
+async def get_chatsmy():
+    chats = meta.tables['chgrb']
+    where_clauses = [chats.c.chat_url.isnot(None), chats.c.chat_type == 'pr-chat']
+    chats = await fetch_data(chats, where_clauses)
+    return chats
 
 #Получение городов и url каналов
 def get_cities_places():
@@ -93,9 +139,13 @@ def get_cities_places():
         sql = "SELECT id as place_id, city as place_name, vacs_url FROM data_cities WHERE vacs_url is not Null"
         return con.execute(sql).fetchall()
 
-
 #Добавление отправки асихронное
 async def add_sending_positions(chat_id, position_id, position_description, resultx, datetime):
+        await insert_position_sended(chat_id, position_id, position_description, resultx, datetime)
+
+
+#Добавление отправки асихронное
+async def add_sending_positions2(chat_id, position_id, position_description, resultx, datetime):
     async with aiosqlite.connect('/var/local/bot3101fc/tgbot/data/database.db') as con:
         con.row_factory = aiosqlite.Row
         await con.execute("INSERT INTO storage_positions_sending "
@@ -109,1038 +159,7 @@ async def add_sending_positions(chat_id, position_id, position_description, resu
 SQL_TEMPLATE_CHAT_ID = "SELECT * FROM storage_chats WHERE chat_id=?"
 SQL_TEMPLATE_CHAT_NAME = "SELECT * FROM storage_chats WHERE chat_name=?"
 
-chat_list1 = ['goodnewsrussia1',
-              'TG_PR',
-              'GruppaZS',
-              'wildberries_chatwb',
-              'market_place_rf',
-              'go_marketplace',
-              'tentinder',
-              'certificat_centr',
-              'poiskinvest',
-              'packingBOX_Ff',
-              'photoshooting595',
-              'otcAsd',
-              'wildberries_chat_help',
-              'rabota_biznes_freelance',
-              'textiles2022',
-              'WB_infoChat',
-              'google_fb_chat',
-              'fb_google_chat',
-              'avito_no_ban',
-              'zashivayus',
-              'textiles2022',
-              'duaoptom',
-              'sertficat_chat',
-              'packingBOX_Ff',
-              'newbusinesscommunity',
-              'Techno_printt',
-              'wb_ozon_fotos',
-              'mpgroup_wildberries',
-              'rieltor_top',
-              'pro_sewubusiness',
-              'PenzaBaraholka',
-              'scladchina_mphelp']  # replace [...] with the list of chat IDs or usernames
-
-chat_list2 = ['depress',
-              'investing4all',
-              'startupchat',
-              'ru_f1',
-              'pppixel_chat',
-              'tashkentchatroom',
-              'telha',
-              'znakomstva_rus',
-              'lepreco',
-              'NeLiOne',
-              'tranies',
-              'chatnight',
-              'Gaysiti',
-              'lovesup',
-              'andromedica',
-              'sosedka_tg',
-              'mi_mino',
-              'VideoChat1',
-              'paradisechat',
-              'poshlyekhabarovsk',
-              'bropickup',
-              'dating74',
-              'cfriends',
-              'gchate',
-              'razv',
-              'Znacomstva',
-              'professionallogisticgroup',
-              'orendating',
-              'mysql_ru',
-              'ponyorm',
-              'clickhouse_ru',
-              'sqlcom',
-              'tarantoolru',
-              'bigdata_en',
-              'neuroworkshop',
-              'mailrucontests',
-              'pythontelegrambotgroup',
-              'habrachat',
-              'violachat',
-              'leprachat',
-              'ropogXA',
-              'habragram',
-              'tavernofoverwatch',
-              'apple_lepra',
-              'krjok',
-              'abody',
-              'chatshiz',
-              'tmmarketing',
-              'myusadba',
-              'casinoch',
-              'vdohnovenyevokrug',
-              'kzn_ch',
-              'themamaideti',
-              'mos_cosmetics',
-              'tatarstan_chat',
-              'RestoRadio',
-              'ritualMSK',
-              'TGweapon',
-              'rucrash',
-              'blackpiratexx',
-              'darkcompany',
-              'helpmePR',
-              'crypto_guide',
-              'happyandfree',
-              'tattoo_anomalia',
-              'auction38',
-              'kommersantsouth',
-              'BestTatts',
-              'nya_vintage',
-              'byvilain',
-              'drive_club',
-              'this_is_interesting',
-              'Burenie_RF',
-              'mbcrussia',
-              'procrastinatorfm',
-              'putin_in_focus',
-              'minmaksgrupsuper777',
-              'kvadratour_hot',
-              'nezanesli',
-              'Safeweb',
-              'Myusli_4e',
-              'crimea_nice',
-              'prtalk',
-              'belarus_bikers',
-              'GunFreak',
-              'ruzh_ps4',
-              'TGRare_chat',
-              'autoekb',
-              'helpauto',
-              'spamimvse',
-              'MobiDevices',
-              'cryptoreports',
-              'driveracmsk',
-              'mkflourish',
-              'geraclea',
-              'hvostovil',
-              'vsamoletecom',
-              'alltarget',
-              'karapuziki']
-
-chat_list2 = ['novosibirsk_chat',
-              'ekaterinburgg',
-              'mosclub',
-              'Voronezh_night',
-              'ufarb02',
-              'vrn_night',
-              'myklgd',
-              'ActiveSamara',
-              'nsk',
-              'telnsk',
-              'ufachat',
-              'saratov_public',
-              'tashkentcitychat',
-              'kub23',
-              'probkimsk',
-              'vlchat',
-              'ekbstile',
-              'rzd_leningradka',
-              'samuichat',
-              'zhknekrasovka',
-              'VLGChat',
-              'pmik_tversu',
-              'onlineNN',
-              'berlin_ru',
-              'TomskChat',
-              'simf82',
-              'kievchat',
-              'palata6',
-              'smolchat',
-              'mdpskurgan',
-              'ramchat',
-              'petroskoi',
-              'dvizh_od',
-              'tashkenttatar',
-              'Ruskeu',
-              'arenda_bishkek',
-              'yocitychat',
-              'podval_41',
-              'uazzz',
-              'rigach',
-              'chattolyatti',
-              'russiandenmark',
-              'boyar',
-              'pushkino',
-              'narvacity',
-              'lgbtfr',
-              'mdpschel174',
-              'KyivHelp',
-              'New_GoodStory',
-              'khvchat',
-              'goodyaroslavl',
-              'ruslov',
-              'ua_hackathon',
-              'dnrtg',
-              'novoshakh',
-              'welcome_to_Russia_baby',
-              'omskinspb',
-              'AstraChat',
-              'petrogradchat',
-              'Kiev24onlain',
-              'Taganroglove',
-              'ChatBerlin',
-              'Kharkov24onlain',
-              'Odessa24onlain',
-              'soc93',
-              'chat_dv',
-              'lipetskcity',
-              'ekibastuz_vip',
-              'tgnpets',
-              'sfo_chat',
-              'livecrimea',
-              'buhara',
-              'tomskpublic',
-              'velokat_krd',
-              'elektrostal_city',
-              'nedimon_saratov',
-              'pmmchat',
-              'kb51alt',
-              'gomelbel',
-              'flirtchat34region',
-              'academNSK',
-              'indiagoaforum',
-              'Mining102',
-              'IvChat',
-              'prmprotest',
-              'mamuz',
-              'chat_tomsk',
-              'baraholkakazani',
-              'Telega_UA',
-              'ZnakomstvaNN',
-              'donstuchat',
-              'SevOnline',
-              'dmd_chat',
-              'bprumyan',
-              'telbtc',
-              'bizach',
-              'chat_of_hyips',
-              'BTC_top',
-              'avitotop',
-              'cointalk',
-              'FYBIcoin',
-              'CtrlvMining',
-              'NemXemRu',
-              'postcoinrussia',
-              'novapromotions',
-              'telvdl',
-              'Place_Of_Meeting',
-              'kklub',
-              'ru_startup',
-              'UzExpoCentr',
-              'workoninternet',
-              'businessempire',
-              'VideoReklama1',
-              'openbz',
-              'uzb',
-              'busypeople',
-              'proAmazon ',
-              'biz_club',
-              'yuppie_chat',
-              'chatmlm',
-              'investingtalk',
-              'BitRus',
-              'ProVendingChat',
-              'Best_Sellers',
-              'myjobit',
-              'coinmarket1',
-              'fish25ru_gruz',
-              'rabotavtaganroge',
-              'finteh',
-              'preICO',
-              'Crypto_Traders_group',
-              'AlexYanovsky',
-              'btc_p2p',
-              'mkmarket',
-              'freedmanclub',
-              'crypto_On',
-              'finfreelance_chat',
-              'CryptoTalksRu',
-              'pandaChat',
-              '2chs',
-              'telizb',
-              'telpoc',
-              'ask911',
-              'telinoi',
-              'kingdomchat',
-              'otkrytyy',
-              'shumibl',
-              'obshny',
-              'tasix',
-              'bestalkota',
-              'goldenbuhara',
-              'depra',
-              'potreshyalkino',
-              'telmem',
-              'Bulbousness',
-              'tintvk',
-              'everest_lite',
-              'alterchat',
-              'razzyvova',
-              'go_underground',
-              'optimist',
-              'vkchan',
-              'somniya',
-              'telconfa4',
-              'onemoretime',
-              'institutb',
-              'planetchat',
-              'outsiide',
-              'yelik',
-              'peach',
-              'dobrochat',
-              'teldeks',
-              'TopChatt',
-              'evacho',
-              'faberzhe',
-              'krutochat',
-              'h4xen',
-              'HIVECafe',
-              'chaticrus',
-              'sprite',
-              'Whiskarev',
-              'cloudchat',
-              'telfatumchat',
-              'group',
-              'sova',
-              'telranak',
-              'spravy',
-              'chattelega',
-              'konfa',
-              'TalkChat',
-              'No_Rules_chat',
-              'tupichok_krd',
-              'furrichat',
-              'Sorryveryblya',
-              'gclub',
-              'dimavolkovnostradamus',
-              'kompashka',
-              'tusavkavtg',
-              'confaaa',
-              'palatalordov',
-              'Temles',
-              'lampach',
-              'kyivrus',
-              'trashnyak',
-              'dirtyminds',
-              'mynutka',
-              '2chdeutch',
-              'trikotage',
-              'welcome_to_sprite',
-              'gymnast',
-              'straightup_chat',
-              'aefoundation',
-              'consolelife',
-              'readallhumans',
-              'printer_ru',
-              'youchat_ru',
-              'instabloggers',
-              '2chhw',
-              'telmafia',
-              'qpRvp',
-              'xiaomimiui',
-              'girlsandwomen',
-              'TatarChat',
-              'ludomania',
-              'smmblogs',
-              'biker_chat',
-              'onichat',
-              'temaplus',
-              'lesbitemabi',
-              'WickedHeaven',
-              'varenichki',
-              'yapishu',
-              'trap_trans',
-              'minecraft_ru',
-              'hschat',
-              'dushevnay',
-              'mlpach',
-              'hearthstone',
-              'blender_ru',
-              'ru_photo',
-              'vinglish',
-              'yaoi_chat',
-              'naval',
-              'igcomments',
-              'castleoff',
-              'over2ch',
-              'nnovnaval',
-              'AnimeKafe',
-              'beardy_chat',
-              'telid',
-              'everypony',
-              'chatUSSR',
-              'samogon',
-              'nimsesclub',
-              'chatvzaimopomoshi',
-              'vapecity',
-              'fanfik',
-              'edmprod',
-              'warh40k',
-              'ProEsp8266',
-              'zdorovie_info',
-              'motochat',
-              'papacarder',
-              'refnd',
-              'puastatechat',
-              'Videography_ru',
-              'ThreeDDD',
-              'teamnavalny_sochi',
-              'nimses_off',
-              'handmademasters',
-              'esoterics_chat',
-              'alichat',
-              'to_best_world',
-              'worldtanks',
-              'vegrawspirit',
-              'Shopping_on',
-              'ezoter',
-              'Singyoubitch',
-              'returnegypt',
-              'aviamili',
-              'alcospirit',
-              'TYCOOP',
-              'dirtytractor',
-              'ru_travel',
-              'ppcchat',
-              'sovushki',
-              'youtube_chat',
-              'SpiritOfMagic',
-              'blacklist4',
-              'Shizach',
-              'zvukochat',
-              'irkmason',
-              'knigach',
-              'gamestel',
-              'tes_thread',
-              'give',
-              'spbsue',
-              'zayavi_o_sebe',
-              'englishleo',
-              'Yaesm',
-              'interesnuj_bloger',
-              'dkitchen',
-              'spbavtohelp',
-              'torgopt',
-              'PRTalk_one',
-              'netvoyne',
-              'mm_online',
-              'gwent_ru',
-              'CoCflood',
-              'zt4dm',
-              'anime_momentos_chat',
-              'SpiritOfTheSky',
-              'reptiloids_chat',
-              'ourbetsua',
-              'streamchat',
-              'zdorovoz',
-              'shizoconf',
-              'baraholka_ukr',
-              'trinityme',
-              'marketingrf',
-              'recentre',
-              'lingvachat',
-              'icryptogeek',
-              'burimenov',
-              'sad_ogorod',
-              'pasekazello',
-              'astralos',
-              'kaknayti',
-              'in_clouds',
-              'tzzntchat',
-              'chessconf',
-              'SovaReklama',
-              'shadynickiminaj',
-              'musicandit',
-              'Vegra',
-              'mafia_wolf',
-              'korea_chat',
-              'customdevice',
-              'northtower',
-              'perevoz',
-              'ThatLevelAgainChat',
-              'ProMiningClub',
-              'mejfrak',
-              'cafemam',
-              'DivinityOriginalSin2',
-              'supergoodadvice',
-              'tesolibrarychat',
-              'CasualChat',
-              'futbolstavkisport',
-              'slabotochniki',
-              'Crestbook',
-              'tashkentchatroom',
-              'telha',
-              'znakomstva_rus',
-              'lepreco',
-              'NeLiOne',
-              'tranies',
-              'chatnight',
-              'Gaysiti',
-              'lovesup',
-              'andromedica',
-              'sosedka_tg',
-              'mi_mino',
-              'VideoChat1',
-              'paradisechat',
-              'poshlyekhabarovsk',
-              'bropickup',
-              'dating74',
-              'cfriends',
-              'gchate',
-              'razv',
-              'Znacomstva',
-              'professionallogisticgroup',
-              'orendating',
-              'tgchat',
-              'laravel_pro',
-              'jschat',
-              'javascript_jobs',
-              'telhabrit',
-              'telhabr',
-              'freelancechat',
-              'ru_ubuntu',
-              'vostok404',
-              'MikrotikRu',
-              'android_talks',
-              'bitrixfordevelopers',
-              'proGO',
-              'botoid',
-              'android_ru',
-              'telyii2',
-              'apple_ru',
-              'ru_raspberry',
-              'ProCxx',
-              'ru_modx',
-              'reactnative_ru',
-              'frontend_ru',
-              'php_jobs',
-              'telsysadm',
-              'tel2chweb',
-              'jvmchat',
-              'tel1',
-              'bigdata_ru',
-              'unlimitedseo',
-              'gogolang',
-              'darkweby',
-              'qa_jobs',
-              'techat',
-              'ru_python',
-              'aboutsmmchat',
-              'ioslords',
-              'prowindows',
-              'netdev',
-              'nodejs_ru',
-              'pro_ansible',
-              'vertxpro',
-              'weblive',
-              'gnulinuxru',
-              'deepinru',
-              'xredminote4x',
-              'android_questions',
-              'pure_c',
-              'CSharpChat',
-              'ntwrk',
-              'telwin10',
-              'rubytalk',
-              'jslang_new',
-              'JSlang',
-              'ios_ru',
-              'angular_js',
-              'asterisk_ru',
-              'ctfchat',
-              'proelixir',
-              'devschat',
-              'datasciencechat',
-              'proasm',
-              'devops_jobs',
-              'ru_laravel',
-              'codenamecrud',
-              'archlinux_ru',
-              'nag_public',
-              'ru_voip',
-              'typescript_ru',
-              'mobile_jobs',
-              'proRust',
-              'proRuby',
-              'dba_ru',
-              'ZabbixPro',
-              'wp4dev',
-              'rubylang',
-              'ArchLinuxChatRu',
-              'pydjango',
-              'joomlaru',
-              'protelecom',
-              'kubernetes_ru',
-              'rudepython',
-              'frontAndBack',
-              'phpclubru',
-              'xmpp_ru',
-              'proembedded',
-              'PostgreSQL_1C_Linux',
-              'propython',
-              'brutal_docker',
-              'prozabbix',
-              'chatops_ru',
-              'railschat',
-              'freebsd_ru',
-              'glpi_ru',
-              'chatbots_jobs',
-              'reactos_ru',
-              'MongoDBRussian',
-              'devall',
-              'codebynet',
-              'pgsql',
-              'puppet_ru',
-              'pro_openstack',
-              'phpinfo',
-              'webjob',
-              'css_ru',
-              'javascript_ru',
-              'kazdigital',
-              'hadoopusers',
-              'ittalks',
-              'ohmy3dsmax',
-              'custommanagement',
-              'proCrystal',
-              'OpsMgr',
-              'configmgr',
-              'webschool_rus_chat',
-              'fordev',
-              'augmoscow',
-              'asterisk_expert',
-              'wordpress_ru',
-              'technoview',
-              'thepalatalordov',
-              'wpchat',
-              'deeprefactoring',
-              'ChatPython',
-              'crmlist',
-              'allvision',
-              'augspb',
-              'ru_flask',
-              'AugKiev',
-              'telanekdot',
-              'telvik',
-              'vipgif',
-              'vapingclub',
-              'lightpaint',
-              'okolohookah_chat',
-              'belweder',
-              'dev_konf',
-              'konfat',
-              'tulpvoice',
-              'gadaniekofe',
-              'o_futbole',
-              'teljuv',
-              'juventus',
-              'liverpoolfc',
-              'DotNetRuChat',
-              'extremecode',
-              'elm_ru',
-              'Fsharp_chat',
-              'js_ru',
-              'javastart',
-              'javanese_questions',
-              'scala_ru',
-              'kotlin_lang',
-              'ru_nim_talks',
-              'modernperl',
-              'usePerlOrDie',
-              'ru_python_beginners',
-              'prophp7',
-              'reasonml_ru',
-              'rubyschool',
-              'rubyata',
-              'moscowrb',
-              'rustlang_ru',
-              'embedded_rs',
-              'frp_ru',
-              'fp_ru',
-              'cilchat',
-              'clojure_ru',
-              'powershell_pro',
-              'powershellrus',
-              'nativescript_ru',
-              'ru_1c',
-              'angular_ru',
-              'emacs_ru',
-              'laravelrus',
-              'yii2ru',
-              'dotnettalks',
-              'dotnetgroup',
-              'DotNetChat',
-              'pro_net',
-              'springframeworkio',
-              'symfony_php',
-              'symfony_ru',
-              'electron_ru',
-              'fire_monkey',
-              'vuejs_ru',
-              'wordpress1',
-              'netbeans_ru',
-              'vimedit_ru',
-              'weex_ru',
-              'webdesign_ru',
-              'noobrank',
-              'spbpython',
-              'coding_ru',
-              'codingteam',
-              'Iot_chat',
-              'proalgorithms',
-              'atomicdesign',
-              'microsoftschool',
-              'eth_ru',
-              'ru_hashicorp',
-              'tilda_dev',
-              'eoscode',
-              'moscowProgers',
-              'saintprug',
-              'highloadcup',
-              'avrahackathon',
-              'pychel',
-              'UnrealEngine4',
-              'gamedevtalk',
-              'gameanalysts',
-              'sourceengine',
-              'pro_hosting',
-              'ceph_ru',
-              'openstack_ru',
-              'ru_hyper',
-              'ru_freeswitch',
-              'pro_mikrotik',
-              'pro_kvm',
-              'pro_enterprise',
-              'aws_ru',
-              'ru_nas',
-              'specialistoffnet',
-              'git_ru',
-              'ru_email',
-              'SourceBasedOS',
-              'proasterisk',
-              'ru_devops',
-              'ru_docker',
-              'metrics_ru',
-              'mysql_ru',
-              'ponyorm',
-              'clickhouse_ru',
-              'sqlcom',
-              'tarantoolru',
-              'bigdata_en',
-              'neuroworkshop',
-              'mailrucontests',
-              'calculate_linux',
-              'CentOSRu',
-              'DebianRu',
-              'fedora',
-              'russianfedora',
-              'russian_gentoo',
-              'kdeneon',
-              'LMInter',
-              'macOS_ru',
-              'macosx86',
-              'manjarolinux',
-              'OpenSuseRu',
-              'rosa_linux',
-              'smartos_ru',
-              'that_is_linux',
-              'xubuntu_runet',
-              'safelinux',
-              'mechmath',
-              'higher_math',
-              'comput_math',
-              'physpub',
-              'xamarin_russia',
-              'iosgt',
-              'idroidt',
-              'upworkcom',
-              'products_jobs',
-              'agile_jobs',
-              'getFreelance',
-              'microsoftstackjobs',
-              'eth_jobs',
-              'bigdata_jobs',
-              'django_jobs',
-              'products_ru',
-              'agile_ru',
-              'agilegames',
-              'spbitpeople',
-              'newspblug',
-              'chaosconstructions',
-              'PiterPy',
-              'DEFCON',
-              'joinchat/ABI4pz3M7FCxoDZcdcfVUA',
-              'pogromisty',
-              'ru_board',
-              'qa_ru',
-              'ru_freelancers',
-              'itsectalk',
-              'joinchat/CD0D_D31vVD8L1FO4UutnQ',
-              'mrl_hack',
-              'ru_ASUTP',
-              'ru_CAD',
-              'linuxcoders',
-              'Be_Tux',
-              'it_holywars',
-              'dev_seagulls',
-              'ru_mechcult',
-              'cloud_ru',
-              'cloud_flood',
-              'free_raspberry',
-              'meshnet',
-              'decentralized_social',
-              'spb_auto',
-              'distributed',
-              'ru_politics',
-              'ru_traders',
-              'uxchat',
-              'MOCKBAchat',
-              'YandexPeopleMap',
-              'spbcoa',
-              'forgeekschat',
-              'airbase_ru',
-              'telecatethysis',
-              'ru_electronics',
-              'ru_arduino',
-              'smmchat',
-              'rusmmchat',
-              'pizneschat',
-              'bookz',
-              'bookcrossing_spb',
-              'ru_philosophy',
-              'EducationChat',
-              'bigmedchat',
-              'cardiologlove',
-              'septoplastic',
-              'endocrinologlove',
-              'proradio',
-              'nocproject',
-              'DC7499',
-              'linkmeup_chat',
-              'gikmechat',
-              'RCmodels',
-              'aviafan',
-              'andycast',
-              'tpair',
-              'radioma',
-              'bikechat',
-              'DTPublish',
-              'chatanonhownow',
-              'podlodka',
-              'GettCoinToday',
-              'BitRussia',
-              'varlamovnews',
-              'FromBerek',
-              'geeksChat',
-              'inst_admins',
-              'lampmining',
-              'lazytool_chat',
-              'NEMru',
-              'web_structure',
-              'digitaljob',
-              'mlmchat',
-              'dnative_chat',
-              'pythontelegrambotgroup',
-              'pro_krasnodar',
-              'grouplinux',
-              'targetchat',
-              'habrachat',
-              'abstract_opposition',
-              'dim0n_spb',
-              'contextchat',
-              'python_beginners',
-              'violachat',
-              'investchat',
-              'techmediachat',
-              'ru2chvg',
-              'Quizarium',
-              'leprachat',
-              'anime_ru',
-              'ropogXA',
-              'RaiBlocksRU',
-              'FreedomZone',
-              'durovkonf',
-              'SynergyTeam',
-              'zavtrachat',
-              'iCrimea',
-              'MiDevices',
-              'habragram',
-              'designerschat',
-              'uiux_chat',
-              'smmlove',
-              'NavalnyNN',
-              'tavernofoverwatch',
-              'rupython',
-              'amocrmhelp',
-              'XiaomiFan',
-              'apple_lepra',
-              'vikipermchat',
-              'krjok',
-              'gruppettochat',
-              'airpirates',
-              'kinokotiki',
-              'annekdot',
-              'quiz_group',
-              'evilarthas_pride',
-              'windows_insider',
-              'batya_chat',
-              'trassam4don',
-              'unlimited_seo',
-              'sadnesschat',
-              'okoe_chat',
-              'samchat',
-              'altlana',
-              'pokemongo_ru',
-              'abody',
-              'chatshiz',
-              'skovorodochka',
-              'tmmarketing',
-              'myusadba',
-              'poputchikekb',
-              'casinoch',
-              'vdohnovenyevokrug',
-              'i_vegan',
-              'off_plankton',
-              'chatbdsm',
-              'kzn_ch',
-              'themamaideti',
-              'mos_cosmetics',
-              'tatarstan_chat',
-              'jokehubnews',
-              'RestoRadio',
-              'ritualMSK',
-              'TGweapon',
-              'kotovskRU',
-              'fourfiveone',
-              'record_guinness/1',
-              'rucrash',
-              'exitfrommatrix',
-              'piarit',
-              'SuperFacts',
-              'svokzal',
-              'blackpiratexx',
-              'darkcompany',
-              'helpmePR',
-              'crypto_guide',
-              'happyandfree',
-              'tattoo_anomalia',
-              'Summertime_S',
-              'sladostipoleznosti/467',
-              'schnorkel',
-              'kurskkk',
-              'togifka',
-              'vidizarabotka',
-              'allj_sayonaraboy',
-              'pristroy_tao138',
-              'auction38',
-              'cheats_fifa',
-              'kommersantsouth',
-              'bitcoin2017crane',
-              'BestTatts',
-              'podarkoff',
-              'strtart',
-              'nya_vintage',
-              'byvilain',
-              'yarbaraholkaVzrosloe',
-              'linecinema',
-              'http://t.me/videoprosvet',
-              'super_aliexpress',
-              'drive_club',
-              'this_is_interesting',
-              'NowOrNeverMaaan',
-              'dvchat',
-              'proIIIiFFKING',
-              'nailchat',
-              'Burenie_RF',
-              'tix24',
-              'hitechlentach',
-              'mbcrussia',
-              'ya_mamka',
-              'lifepenetration',
-              'procrastinatorfm',
-              'arabid',
-              'putin_in_focus',
-              'minmaksgrupsuper777',
-              'kvadratour_hot',
-              'Cvetovod',
-              'ChinaGoodBuy',
-              'nezanesli',
-              'VK_Zarabotok',
-              'sir_terry',
-              'do3dru',
-              'baraholkamoscow',
-              'lohotrona_net',
-              'Safeweb',
-              'trehgorka',
-              'radiorinki',
-              'biosdump',
-              'minsktmlive',
-              'Myusli_4e',
-              'crimea_nice',
-              'prtalk',
-              'mlm_legko',
-              'belarus_bikers',
-              'brestchat',
-              'grimerka',
-              'ideasworld',
-              'razvratniki',
-              'dejawe',
-              'GunFreak',
-              'ruzh_ps4',
-              'edim_polezno',
-              'fotoekb',
-              'TGRare_chat',
-              'autoekb',
-              'baraholkaekb',
-              'interesting_world',
-              'helpauto',
-              'baraholkavrn',
-              'thebuzz7',
-              'animationnnnnn',
-              'spamimvse',
-              'KinoChat',
-              'MobiDevices',
-              'cryptoreports',
-              'music4escape',
-              'readarticles',
-              'driveracmsk',
-              'natella_parfume',
-              'mkflourish',
-              'geraclea',
-              'zakupki44fz',
-              'myaforizm',
-              'fleamarketmsk',
-              'hvostovil',
-              'vsamoletecom',
-              'alltarget',
-              'otgolosky',
-              'chat1k',
-              'karapuziki',
-              'ylubka']
+chat_list1 = ['goodnewsrussia1']
 
 #Добавление отправки асихронное
 async def get_chat_data(search_param):
@@ -1225,7 +244,6 @@ async def callback_pr(current, total):
 
 async def send_message(client, chat_id, position_id=None, message_type=None, message_text=None, caption=None, image_url=None, file_path=None, broadcast=0):
     try:
-        #while True:
         # Check for GeneratorExit and exit the coroutine if raised
         if asyncio.current_task().cancelled():
             return
@@ -1238,8 +256,6 @@ async def send_message(client, chat_id, position_id=None, message_type=None, mes
                 print("4")
                 print(image_url, file_path)
                 try:
-                    #client.parse_mode = "HTML"
-                    #caption = client.parse(caption)
                     caption = caption.replace("<b>", "*bold \*").replace("</b>", "*")
                     img = await client.upload_file(file_path, progress_callback=callback_pr)
                     await client.send_file(chat_id, file_path, caption=caption, progress_callback=callback_pr) #, parse_mode='HTML'
@@ -1255,56 +271,91 @@ async def send_message(client, chat_id, position_id=None, message_type=None, mes
                     if broadcast == 0:
                         update_positionx(position_id, position_state="Posted")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "Posted", datetime)
-                    await client.send_file(chat_id, file_path, caption=caption, progress_callback=callback_pr)
-                    print(f"Отправлено в чат :{chat_id} успешно.")
-                    #await update_positionx(position_id, position_state="Posted")
-                    #if multi_mode == 1:
-                    await asyncio.sleep(0.5)
+
+                    mesfid = await client.send_file(chat_id, file_path, caption=caption, progress_callback=callback_pr)
+                    print(mesfid)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "Posted", datetime)
+                    await asyncio.sleep(10.5)
+
+                except ChannelPrivateError:
+                    print(f"CPE: {chat_id}.")
+                    datetime = get_date()
+                    await add_sending_positions(chat_id, position_id, "SENDING", f"ChannelPrivateError:{chat_id}", datetime)
+                    await asyncio.sleep(5)
 
                 except UserBannedInChannelError:
                     print(f"Аккаунт забанен в этом чате:{chat_id}.")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "User Banned", datetime)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "User Banned", datetime)
                     await asyncio.sleep(30)
 
                 except ChannelPrivateError:
                     print(f"Чат оказался приватным: {chat_id}.")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "Channel Private", datetime)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "Channel Private", datetime)
                     await asyncio.sleep(30)
 
                 except ChatWriteForbiddenError:
                     print(f"Аккаунту запретили писать в этот чат: {chat_id}.")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "Chat Write Forbidden", datetime)
-                    await asyncio.sleep(30)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "Chat Write Forbidden", datetime)
+                    await asyncio.sleep(15)
 
                 except ChatGuestSendForbiddenError:
                     print(f"Необхдоимо вступить в группу: {chat_id}.")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "Chat Guest Send Forbidden", datetime)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "Chat Guest Send Forbidden", datetime)
                     await asyncio.sleep(30)
 
                 except SlowModeWaitError as e:
                     print(f"В чате медленный режим для аккаунта, пауза на {e.seconds}: {chat_id}.")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "Slow Mode Wait", datetime)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "Slow Mode Wait", datetime)
 
                 except ForbiddenError as e:
                     print(f"В чат запрещено отправлять {e}: {chat_id}.")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "ForbiddenError", datetime)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "ForbiddenError", datetime)
 
                 except ChatAdminRequiredError:
                     print(f"Необхдоимо вступить в группу: {chat_id}.")
                     datetime = get_date()
-                    await add_sending_positions(chat_id, position_id, caption, "Required Chat Admin", datetime)
+                    await add_sending_positions(chat_id, position_id, "SENDING", "Required Chat Admin", datetime)
                     await asyncio.sleep(30)
+
+                except ValueError:
+                    print(f"Отсутствует имя пользователя: {chat_id}.")
+                    datetime = get_date()
+                    await add_sending_positions(chat_id, position_id, "SENDING", f"ValueError:{chat_id}", datetime)
+                    await asyncio.sleep(30)
+
+                except UsernameInvalidError:
+                    print(f"Отсутствует имя пользователя: {chat_id}.")
+                    datetime = get_date()
+                    await add_sending_positions(chat_id, position_id, "SENDING", f"UsernameInvalidError:{chat_id}", datetime)
+                    await asyncio.sleep(30)
+
+                except UsernameNotOccupiedError:
+                    print(f"UsernameNotOccupiedError: {chat_id}.")
+                    datetime = get_date()
+                    await add_sending_positions(chat_id, position_id, "SENDING", f"UsernameNotOccupiedError:{chat_id}", datetime)
+                    await asyncio.sleep(20)
+
+                except PeerFloodError:
+                    print(f"Слишком много запросов: {chat_id}.")
+                    datetime = get_date()
+                    await add_sending_positions(chat_id, position_id, "SENDING", f"To Many Requests:{chat_id}", datetime)
+                    await asyncio.sleep(30)
+
+                except FloodWaitError as e:
+                    print(f"Надо подождать: {chat_id}.")
+                    datetime = get_date()
+                    await add_sending_positions(chat_id, position_id, "SENDING", f"FloodWaitError:{chat_id}:ждем{e.seconds}", datetime)
+                    await asyncio.sleep(e.seconds)
 
                 if broadcast == 1:
                     print("SLEEP 40 WHILE BC PERIOD PASSED")
-                    await asyncio.sleep(40)
+                    await asyncio.sleep(5)
 
             else:
                 await client.send_file(chat_id, '/var/local/bot3101fc/images/photo.png', caption=caption)
@@ -1318,6 +369,101 @@ async def send_message(client, chat_id, position_id=None, message_type=None, mes
     except GeneratorExit:
         # Clean up resources or perform finalization tasks
         pass
+
+
+async def get_group_type(username):
+    try:
+        entity = await client.get_entity(username)
+        if entity:
+            if isinstance(entity, User):  # Check if it's a User (private chat)
+                print(f"{username} is a private chat.")
+            elif isinstance(entity, Channel):  # Check if it's a Channel
+                print(f"{username} is a channel.")
+            elif isinstance(entity, Chat):  # Check if it's a Chat (group)
+                print(f"{username} is a group.")
+            else:
+                print(f"Unable to determine the type of {username}.")
+    except ValueError as e:
+        print(f"Error: {e}")
+
+    datetime = get_date()
+    fusername = f"https://t.me/{username}"
+    peer = get_peer_id(fusername)
+    # Check if the peer is a channel
+    if await client.get_entity(PeerChat(peer)): #isinstance(peer, types.InputPeerChat):
+        result = await client(ImportChatInviteRequest(peer))
+        print(f"Request sent to {username}")
+        await add_sending_positions(username, 0, "ChatTest", "Instance is Group", datetime)
+        # Return the chat type
+        return 'Chat'
+
+    elif await client.get_entity(PeerChannel(peer)):
+        # Send a request to the channel
+        result = await client(JoinChannelRequest(peer))
+        print(f"Request check_chat_resultxsent to {username}")
+        await add_sending_positions(username, 0, "ChatTest", "Instance is Channel", datetime)
+        # Return the channel type
+        return 'Channel'
+
+    # Peer is of unknown type
+    else:
+        print(f"Unknown peer type for {username}")
+        await add_sending_positions(username, 0, "ChatTest", "Instance is Unknown", datetime)
+        return 'Unknown'
+
+
+async def get_group_type2(chat_id):
+    try:
+        datetime = get_date()
+        target_group = await client.get_entity(chat_id)
+        target_group_entity = await client.get_entity(InputPeerChannel(target_group.id, target_group.access_hash))
+        await asyncio.sleep(50)
+        peerchat = get_input_peer(target_group)
+        if isinstance(entity, types.PeerChat):
+            request = AddChatUserRequest(peer=entity, users=[client.get_me().id], fwd_limit=100)
+            if client.get_me().id not in entity.users:
+                client.invoke(request)
+                print(f"Request sent to {peer_id}")
+            else:
+                print("You are already a member of the chat.")
+            return 'Chat'
+        elif isinstance(entity, types.PeerChannel):
+            await add_sending_positions(chat_id, 0, "ChatTest", "Instance is Channel", datetime)
+            return 'Channel'
+        else:
+            await add_sending_positions(chat_id, 0, "ChatTest", "Instance is Unknown", datetime)
+            return 'Unknown'
+    except Exception as e:
+        exception_type = type(e).__name__
+        message = str(e)
+        await add_sending_positions(chat_id, 0, message, exception_type, datetime)
+        #save_exception_state(group_id, 0, 0, exception_type, datetime)
+        print(f"An error occurred: {exception_type}, {message}")
+
+def send_request_to_peer(peer_id, user_id):
+    try:
+        entity = client.get_entity(peer_id)
+        uentity = client.get_entity(user_id)
+        peerchat = get_input_peer(uentity)
+        if isinstance(entity, peerchat):
+            request = AddChatUserRequest(peer=entity, users=[client.get_me().id], fwd_limit=100)
+            if client.get_me().id not in entity.users:
+                client.invoke(request)
+                print(f"Request sent to {peer_id}")
+            else:
+                print("You are already a member of the chat.")
+        elif isinstance(entity, peerchat):
+            request = JoinChannelRequest(channel=entity)
+            if not client.get_entity(entity).is_member:
+                client.invoke(request)
+                print(f"Request sent to {peer_id}")
+            else:
+                print("You are already a member of the channel.")
+        else:
+            print(f"The peer {peer_id} is not a valid chat or channel.")
+    except Exception as e:
+        print(f"Error sending request to {peer_id}: {e}")
+
 
 
 async def check_chatchannelslist(chat_list):
@@ -1349,6 +495,8 @@ async def check_chatchannelslist(chat_list):
 
     return verified_chats
 
+#tr = check_chatchannelslist(chat_list2)
+#print(tr)
 
 async def get_positionafj(position_id):
     try:
@@ -1372,6 +520,45 @@ async def get_positionafj(position_id):
 
     except Exception as e:
         print(f"Error: {e}")
+
+
+async def get_entity(chat_url):
+    try:
+        target_group = await client.get_entity(chat_url)
+        if isinstance(target_group, Channel): #target_group.type == "channel":
+            chtype = 'channel'
+            print("Entity is a Channel")
+        elif isinstance(target_group, Group): #target_group.type == "chat":
+            chtype = 'chat'
+            print("Entity is a Group")
+        elif isinstance(target_group, User): #target_group.type == "user":
+            chtype = 'user'
+            print("Entity is a User")
+        else:
+            chtype = 'unknown'
+            print("Entity type is unknown")
+
+        entity = await client.get_input_entity(target_group)
+        print(chtype, target_group, entity)
+        return chtype, target_group, entity
+
+    except FloodWaitError as e:
+        print(f"FloodWaitError: {chat_url}, {e.seconds}")
+        datetime = get_date()
+        await add_sending_positions(chat_url, 0, "GET_ENTITY", f"FloodWaitError:{chat_url}:{e.seconds}", datetime)
+        await asyncio.sleep(e.seconds)
+
+    except UsernameInvalidError:
+        print(f"Invalid username: {chat_url}")
+        datetime = get_date()
+        await add_sending_positions(chat_url, 0, "GET_ENTITY", f"UsernameInvalidError:{chat_url}", datetime)
+        await asyncio.sleep(30)
+
+    except UsernameNotOccupiedError:
+        print(f"Username does not exist: {chat_url}")
+        datetime = get_date()
+        await add_sending_positions(chat_url, 0, "GET_ENTITY", f"UsernameNotOccupiedError:{chat_url}", datetime)
+        await asyncio.sleep(20)
 
 
 async def tg_send_message(client):
@@ -1439,20 +626,136 @@ async def tg_send_message(client):
                     places = get_cities_places()
                     for place in places:
                         chat_id = place['vacs_url']
+                        furl = f"t.me/{chat_id}"
+                        target_group = await client.get_entity(furl)
+                        target_group_entity = await client.get_entity(InputPeerChannel(target_group.id, target_group.access_hash))
                         if chat_id != "ALL_CHANNELS":
                             broadcast = 0
                             await send_message(client, chat_id, position_id=position['position_id'], message_type=message_type, message_text=message_text, caption=shortmestext, image_url=image_url, file_path=file_path, broadcast=broadcast)
 
                 elif position['position_state'] == "Broadcast":
-                    places = get_chats()
+                    #places = get_chats()
+                    places = await get_chatsmy()
                     print(places)
+
                     for place in places:
+                        inside = 0
                         chat_id = place['chat_url']
+                        resultc = await check_chat(chat_id)
+                        print(len(resultc), resultc)
+                        if len(resultc) >= 1:
+                            continue
+                        try:
+                            result = await get_entity(chat_id)
+                            chtype, entity, ientity = result
+                            if chtype == "channel":
+                                if entity.megagroup:
+                                    print("MEGAGROUP IS EXIST")
+                                    if entity.restricted is True:
+                                        print("BUT TG RESTRICTED")
+                                        continue
+                                elif entity.megagroup is False:
+                                    continue
+                        except Exception as e:
+                            # Handle any other exceptions here
+                            print(f"An error occurred: {e}")
+                            continue
+
+                        #if entity.is_channel():
+                        async for dialog in client.iter_dialogs():
+                            print(dialog.id, dialog.name)
+                            if entity.id == dialog.id:
+                                print("мы в чате")
+                                inside = 1
+                            else:
+                                print("skip")
+                        if inside == 0:
+                            try:
+                                result = await client(JoinChannelRequest(entity))
+                                await asyncio.sleep(2)
+
+                            except InviteRequestSentError:
+                                print(f"INVITE уже отправии запрос, отправим сообщение в следующе круге: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", "Invite Request Has Been Sent", datetime)
+                                await asyncio.sleep(15)
+                                continue
+
+                            except ChatWriteForbiddenError:
+                                print(f"INVITE Аккаунту запретили писать в этот чат: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", "Chat Write Forbidden", datetime)
+                                await asyncio.sleep(15)
+                                continue
+
+                            except ConnectionError:
+                                print(f"INVITE  ConnectionError: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"ConnectionError:{chat_id}", datetime)
+                                await asyncio.sleep(5)
+                                continue
+
+                            except UserBannedInChannelError:
+                                print(f"INVITE  UserBannedInChannelError: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"UserBannedInChannelError:{chat_id}", datetime)
+                                await asyncio.sleep(5)
+                                continue
+
+                            except UsernameInvalidError:
+                                print(f"INVITE  UsernameInvalidError: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"UsernameInvalidError:{chat_id}", datetime)
+                                await asyncio.sleep(5)
+                                continue
+
+                            except ValueError:
+                                print(f"INVITE Отсутствует имя пользователя: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"ValueError:{chat_id}", datetime)
+                                await asyncio.sleep(5)
+                                continue
+
+                            except ChannelPrivateError:
+                                print(f"INVITE CPE: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"ChannelPrivateError:{chat_id}", datetime)
+                                await asyncio.sleep(5)
+                                continue
+
+                            except ChatInvalidError:
+                                print(f"INVITE ChatInvalidError: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"ChatInvalidError:{chat_id}", datetime)
+                                await asyncio.sleep(5)
+                                continue
+
+                            except ChannelInvalidError:
+                                print(f"INVITE CIE: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"ChannelInvalidError:{chat_id}", datetime)
+                                await asyncio.sleep(5)
+                                continue
+
+                            except FloodWaitError as e:
+                                print(f"INVITE Надо подождать: {chat_id}.")
+                                datetime = get_date()
+                                await add_sending_positions(chat_id, position_id, "INVITE", f"FloodWaitError:{chat_id}:ждем{e.seconds}", datetime)
+                                await asyncio.sleep(e.seconds)
+
                         broadcast = 1
+                        print(position, message_type, shortmestext, image_url, file_path, broadcast)
                         await send_message(client, chat_id, position_id=position['position_id'], message_type=message_type, message_text=message_text, caption=shortmestext, image_url=image_url, file_path=file_path, broadcast=broadcast)
 
+                        #else:
+                        #    continue
+                        #else:
+                        #    print("MIMO_____*****>>>>>>>")
+                        #    datetime = get_date()
+                        #    await add_sending_positions(chat_id, position_id, shortmestext, f"OTHER PATH:{chat_id}", datetime)
                 else:
                     broadcast = 0
+
                     await send_message(client, chat_id, position_id=position['position_id'], message_type=message_type, message_text=message_text, caption=shortmestext, image_url=image_url, file_path=file_path, broadcast=broadcast)
                 #await update_positionx(position['position_id'], state="Posted")
                 #if multi_mode == 1:
@@ -1517,6 +820,16 @@ async def process_new_records():
 async def process_record(record):
     # Perform your new function here
     print(record)
+
+
+'''while True:
+    try:
+        asyncio.get_event_loop().run_until_complete(send_message(client))
+        asyncio.sleep(20)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")'''
+
 
 # Run the process_new_records function asynchronously
 asyncio.get_event_loop().run_until_complete(tg_send_message(client))

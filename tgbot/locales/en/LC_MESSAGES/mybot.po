@@ -1138,9 +1138,6 @@ msgstr "Ⓜ By nickname"
 msgid "📋 По Yoo"
 msgstr "📋 By Yoo"
 
-msgid "📋 Перевод на карту"
-msgstr "📋 Card Transfer"
-
 #: ../tgbot/keyboards/inline_admin.py:85
 msgid "📋 Свободные реквизиты"
 msgstr "📋 Free props"

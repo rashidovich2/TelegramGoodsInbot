@@ -1,0 +1,11 @@
+{% extends "header.html" %}
+<!-- Exports header and navbar from header.html
+     or any file you want-->
+{% block title %}Page Not Found{% endblock %}
+{% block body %}
+
+  <h1>Oops! Looks like the page doesn't exist anymore</h1>
+  <a href="{{ url_for('index') }}"><p>Click Here</a>To go to the Home Page</p>
+
+<!-- {{ url_for('index') }} is a var which returns url of index.html-->
+{% endblock %}

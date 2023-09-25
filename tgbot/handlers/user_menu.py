@@ -1,5 +1,4 @@
 # - *- coding: utf- 8 - *-
-#from pathlib import Path
 import os
 from os import path
 import asyncio
@@ -7,28 +6,33 @@ import json
 import math
 import random
 import gettext
+import datetime
+from typing import Dict
 
 from pathlib import Path
 from contextvars import ContextVar
 
 from aiogram.dispatcher import FSMContext
 from aiogram import Bot
-from aiogram import Dispatcher
+from aiogram import Dispatcher, executor
 from aiogram.utils.deep_linking import get_start_link, decode_payload
 from aiogram.utils.markdown import hlink
 from aiogram import types
 from aiogram.types import CallbackQuery, Message, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.contrib.middlewares.i18n import I18nMiddleware
+from aiogram.utils.exceptions import MessageCantBeDeleted, ChatNotFound
+from aiogram.utils.callback_data import CallbackData
 from babel import Locale
 from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
-#from tgbot.middlewares.i18n import I18nMiddleware
-#from aiogram.contrib.middlewares.i18n import I18nMiddleware
+
 from aiogram_calendar import simple_cal_callback, SimpleCalendar, dialog_cal_callback, DialogCalendar
 from aiogram_timepicker.panel import FullTimePicker, full_timep_callback, full_timep_default, \
     HourTimePicker, hour_timep_callback, MinuteTimePicker, minute_timep_callback, \
     SecondTimePicker, second_timep_callback, \
     MinSecTimePicker, minsec_timep_callback, minsec_timep_default
-from aiogram_timepicker import result, carousel, clock
+from aiogram_timepicker import result, carousel, clock, panel
+#from inline_timepicker.inline_timepicker import InlineTimepicker
+from aiogram_timepicker.result import Result, Status
 
 from tgbot.middlewares.i18n import I18nMiddleware
 
@@ -38,7 +42,7 @@ from tgbot.keyboards.inline_user import user_support_finl, products_open_finl, p
     products_addcart_confirm_finl, payment_as_choice_finl, accept_saved_adr, accept_saved_phone, \
     cart_enter_message_finl, give_number_inl, reply_order_message_finl, refill_choice_finl, charge_button_add, \
     switch_category_shop_finl, shop_creation_request_finl, event_open_finl, enter_promocode_finl, cart_open_created_finl, \
-    cart_open_delivery_finl, edit_delivery_settings_finl, position_select_type_finl, checkout_step2_accept_finl, confirm_cart_del_finl, profile_open_finl, profile_seller_open_finl, refill_open_finl, partners_list_finl, position_select_local_finl, unwrap_post_finl, wrap_post_finl, choise_time_finl, places_list_finl
+    cart_open_delivery_finl, edit_delivery_settings_finl, position_select_type_finl, checkout_step2_accept_finl, confirm_cart_del_finl, profile_open_finl, profile_seller_open_finl, refill_open_finl, partners_list_finl, position_select_local_finl, unwrap_post_finl, wrap_post_finl, choise_time_finl, places_list_finl, add_channelgroup_finl, post_datetime_save_comfirm_finl
 from tgbot.keyboards.inline_z_all import category_remove_confirm_inl, position_remove_confirm_inl, \
     item_remove_confirm_inl, close_inl, confirm_delete_user_cart_inl
 from tgbot.keyboards.inline_z_all import refill_open_inl, profile_open_inl, checkout_step2_accept, order_user_refill, profile_seller_open_inl
@@ -48,13 +52,15 @@ from tgbot.keyboards.reply_z_all import menu_frep, items_sh_frep, events_frep
 from tgbot.keyboards.shop_keyboards import shop_edit_open_fp
 from tgbot.loader import dp
 from tgbot.loader import bot
-#from tgbot.services.api_qiwi import QiwiAPI
+
 from tgbot.services.api_sqlite_shop import *
 from tgbot.services.api_sqlite import *
+from tgbot.services.api_db_mysql import *
 from tgbot.utils.const_functions import get_date, split_messages, get_unix, clear_list
 from tgbot.utils.misc.bot_filters import IsShopAdmin, IsAdminorShopAdmin, IsAdmin
 from tgbot.utils.misc_functions import user_refill_my, calc_cart_summ, calc_order_summ, open_cart_orders, open_profile_my, upload_text, get_faq, send_admins
 from tgbot.utils.misc_functions import get_position_admin, upload_text, get_artist_admin, functions_position_notify_bg, approve_new_product_notify, open_profile_search_req, post_position_to_telegraph
+from tgbot.utils.tlt import get_tlt_group_info
 from tgbot.keyboards.location_keyboards import geo_1_kb
 from tgbot.services.location_function import update_position_city, get_city_info, is_location, update_artist_city
 from tgbot.services.location_stat import geo_choice
@@ -69,30 +75,263 @@ print(i18n)
 _ = i18n.gettext
 
 
-
 async def notify(dp: Dispatcher, msg):
     print(f'Уведомление!' + msg)
     await send_admins(msg, markup="default")
 
 
-
 ################################################################################################
 
+
 # Создание новой позиции
-@dp.message_handler(text=["💼 Создать вакансию", "💼 Create Vacancy"], state="*")
+@dp.message_handler(text=["💼 Создать пост", "💼 Create Post"], state="*")
 async def product_position_create(message: Message, state: FSMContext):
     await state.finish()
-    print("APS 74")
+    print("APS 85")
     user_id = message.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
     print(lang)
     await state.set_state("here_vacposition_city")
-    #await state.set_state("here_position_photo")
-    await dp.bot.send_message(chat_id=user_id, text="<b>Выберите город вакансии или Россия/Мир для позиций с возможностью удаленной работы.</b>", disable_web_page_preview=True, reply_markup=places_list_finl())
-    #await message.answer("<b>Выберите город вакансии или Россия/Мир для позиций с возможностью удаленной работы.</b>") #, reply_markup=places_list_finl() , reply_markup=places_list_finl()
+    await dp.bot.send_message(chat_id=user_id, text="<b>Выберите город или Россия/Мир для публикации поста или вещания в PR-чатах..</b>", disable_web_page_preview=True, reply_markup=places_list_finl())
 
 
-'''@dp.message_handler(IsAdminorShopAdmin(), state="here_position_name")
+# Создание новой позиции
+@dp.message_handler(text=["🧾 Добавить канал", "🧾 Add Channel"], state="*")
+async def add_group_to_db(message: Message, state: FSMContext):
+    await state.finish()
+    print("APS 98")
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
+    print(lang)
+    await state.set_state("here_group_type")
+    await dp.bot.send_message(chat_id=user_id, text="<b>Добавьте канал или группу для рассылок постов.</b>", disable_web_page_preview=True, reply_markup=add_channelgroup_finl())
+
+
+@dp.callback_query_handler(text_startswith="here_group_type:", state="here_group_type")
+async def choice_group_type(call: CallbackQuery, state: FSMContext):
+    print('Принятие города для создания позиции  user_menu.py 110')
+    group_type = call.data.split(":")[1]
+    user_id = call.from_user.id
+    print(group_type)
+
+    if group_type:
+        await state.update_data(here_group_type=group_type)
+
+        await state.set_state("here_group_url")
+        await call.message.answer("<b>Добавьте URL группы или канала: \n"
+                                  "[после @ или https://t.me/]</b>")
+    else:
+        await call.message.answer("<b>❌ Тип группы не выбран.</b>\n"
+                             "📁 Выберите тип группы 🏷")
+
+
+@dp.message_handler(state="here_group_url")
+async def enter_group_url(message: Message, state: FSMContext):
+    print('Принятие имени для создания позиции  user_menu.py 1084')
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
+    if len(message.text) >= 1:
+        await state.update_data(here_group_url=message.text)
+
+        async with state.proxy() as data:
+            group_type = data['here_group_type']
+            if group_type == "pr-chat":
+                print("CREATE PR_CHAT")
+                print(group_type)
+                await state.set_state("here_group_photo")
+            else:
+                print(group_type)
+                print("CREATE ONE CHANNEL OR GROUP")
+                await state.set_state("here_group_id")
+
+        await message.answer("<b>Добавьте ID канала, группы или чата.</b>")
+    else:
+        await message.answer("<b>❌ Введен не корректный URL группы.</b>\n"
+                             "📁 Введите название для группы 🏷")
+
+
+@dp.message_handler(state="here_group_id")
+async def product_position_create_name(message: Message, state: FSMContext):
+    print('Принятие имени для создания позиции  user_menu.py 1084')
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
+    if len(message.text) <= 100:
+        await state.update_data(here_group_id=message.text)
+
+        await state.set_state("here_group_name")
+        await message.answer("<b>Добавьте имя группы или 0.</b>")
+    else:
+        await message.answer("<b>❌ ID не может превышать 100 символов.</b>\n"
+                             "📁 Введите ID 🏷")
+
+@dp.message_handler(state="here_group_name")
+async def product_position_create_name(message: Message, state: FSMContext):
+    print('Принятие имени для создания позиции  user_menu.py 1084')
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
+    if message.text:
+        await state.update_data(here_group_name=clear_html(message.text))
+
+        await state.set_state("here_group_photo")
+        await message.answer("<b>Добавьте изображение группы или 0.</b>")
+    else:
+        await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
+                             "📁 Введите название для позиции 🏷")
+
+async def get_chat_info(username):
+    try:
+        chat = await bot.get_chat_by_username(username)
+        print(chat)
+    except exceptions.ChatNotFound:
+        print("Chat not found.")
+    except Exception as e:
+        print(f"Error checking chat availability: {e}")
+
+# Принятие изображения позиции для её создания
+@dp.message_handler(content_types=types.ContentType.ANY, state="here_group_photo")
+@dp.message_handler(text="0", state="here_group_photo")
+async def product_position_create_photo(message: Message, state: FSMContext):
+    print('Принятие изображения группы  admin_products.py 174')
+    user_id = message.from_user.id
+    lang = get_userx(user_id=user_id)['user_lang']
+    print(f"Язык:{lang}")
+
+    async with state.proxy() as data:
+        group_type = data['here_group_type']
+        group_url = data['here_group_url']
+        if group_type == "pr-chat":
+            group_id = 0
+            group_name = ""
+        else:
+            group_id = data['here_group_id']
+            group_name = data['here_group_name']
+        group_user_id = user_id
+        group_state = "Created"
+        group_description = ""
+        group_photo = ""
+
+    #chat_info, chat_iinfo = await get_tlt_group_info(group_url)
+    #print(chat_info, chat_iinfo)
+    await state.finish()
+    print("GROUP ADDED")
+
+    if types.ContentType.TEXT == message.content_type:
+        ct = 'text'
+        print("!text message entered")
+        group_description = str(message.html_text)
+        await state.update_data(ct='text', here_group_description=str(message.html_text))
+    elif types.ContentType.PHOTO == message.content_type:
+        ct = 'photo'
+        print("!photo message entered")
+        group_description=message.html_text if message.caption else None
+        group_photo = "" if "text" in message else message.photo[-1].file_id
+        photo_name = f"/var/local/bot3101fc/tgbot/images/group{group_id}.png"
+        await message.photo[-1].download(destination_file=photo_name)
+        await state.update_data(ct="photo", here_group_photo=message.photo[-1].file_id, caption=group_description)
+
+    add_group(group_id, group_type, group_name, group_url, group_photo, group_description, group_state, group_user_id)
+
+    group = get_groupx(chat_id=group_id)
+    print(group)
+    await notify(dp, f"Добавлена группа в БД: {group_id}, пользователем ID: {group_user_id}")
+
+    shortmestext = group_description
+    if ct == "text":
+        await message.answer(f"{shortmestext}")
+    elif ct == "photo":
+        await message.answer_photo(photo=group_photo, caption=f"{shortmestext}")
+
+    await message.answer(_("<b>📁 Позиция была успешно создана ✅</b>", locale=lang))
+
+
+    '''shortml = 200
+    descritionlen = len(group_description)
+    print(descritionlen)
+    if descritionlen >= shortml:
+        shortmestext = f"{group_description[0:shortml]}\n"
+    elif descritionlen < shortml:
+        shortmestext = group_description
+
+    print(shortmestext)
+
+    #||| ПОСТИМ В TELEGRAPH
+    t = TelegraphPoster(use_api=True, convert_html=True, clean_html=True)
+    auth = t.create_api_token('Oleg Aliullov', 'Oleg', 'https://www.aliplaces.ru/') # second and third params are optional
+    print(auth)
+    filex = open(photo_name, 'rb')
+    print(filex)
+    image = upload_image(filex)
+    article = t.post(title=f'Группа №: {group_id}', author='', text=f'<img src={image}>{group_description}') #title='Вакансия',
+    print(article)
+
+    update_groupx(group_id, article_url = article['url'])
+
+    #добавляем ссылку на полную версию
+    if descritionlen < shortml:
+        hlinktext = hlink('читать далее..', article['url'])
+        shortmestext += hlinktext
+    else: shortmestext = group_description
+
+    #article['url'] = None
+    #shortmestext = None
+    #|||| СОХРАНЯЕМ В JSON
+    groupj = {"group_id": group_id, "group_url": group_url, "group_name": group_name, "group_description": shortmestext, "group_photo": group['group_photo'], "group_file": photo_name, "article_url": article['url'], "group_state": "Created"}
+    print(groupj)
+    exist_groups = []
+    filename = 'groups.json'
+    if path.isfile('groups.json') is False:
+        raise Exception("File not found")
+
+    with open(filename) as f:
+        exist_groups = json.load(f)
+
+    print(exist_groups)
+
+    if len(exist_groups) == 0:
+        exist_groups = groupj
+        print("EMPTY JSON FILE")
+
+    else:
+        print("JSON FILE WITH DATA")
+        print(exist_groups)
+        print(type(exist_groups))
+        exist_groups.append(groupj)
+
+    print(exist_groups)
+
+    with open('groups.json', 'w', encoding='utf-8') as f:
+        json.dump(exist_groups, f, ensure_ascii=False, indent=4, separators=(',',': '))
+    f.close()
+
+    await notify(dp, f"Добавлена группа в БД: {group_id}, пользователем ID: {group_user_id}")
+
+    if ct == "text":
+        await message.answer(f"{shortmestext}")
+    elif ct == "photo":
+        await message.answer_photo(photo=group_photo, caption=f"{shortmestext}")
+
+    await message.answer(_("<b>📁 Позиция была успешно создана ✅</b>", locale=lang))
+    #await asyncio.create_task(await approve_new_product_notify(position_id, markup=None))'''
+
+
+@dp.callback_query_handler(text_startswith="position_city:", state="*")
+async def product_position_create_name(call: CallbackQuery, state: FSMContext):
+    print('Принятие города для создания позиции  user_menu.py 1084')
+    position_city = call.data.split(":")[1]
+    user_id = call.from_user.id
+    print(position_city)
+    #lang = get_userx(user_id=user_id)['user_lang']
+    if position_city:
+        await state.update_data(here_position_city=position_city)
+
+        await state.set_state("here_vacposition_photo")
+        await call.message.answer("<b>Добавьте изображение поста и текст в описание изображения, либо введите текст, если пост не содержит изображения.</b>")
+    else:
+        await call.message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
+                             "📁 Введите название для позиции 🏷")
+
+
+@dp.message_handler(state="here_position_name2")
 async def product_position_create_name(message: Message, state: FSMContext):
     print('Принятие имени для создания позиции  user_menu.py 1084')
     user_id = message.from_user.id
@@ -104,23 +343,6 @@ async def product_position_create_name(message: Message, state: FSMContext):
         await message.answer("<b>Добавьте изображение вакансиии и текст в описание изображения, либо введите текст, если вакансия не содержит изображения.</b>")
     else:
         await message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
-                             "📁 Введите название для позиции 🏷")'''
-
-
-@dp.callback_query_handler(text_startswith="position_city:", state="*")
-async def product_position_create_name(call: CallbackQuery, state: FSMContext):
-    print('Принятие города для создания позиции  user_menu.py 1084')
-    place_url = call.data.split(":")[1]
-    user_id = call.from_user.id
-    print(place_url)
-    #lang = get_userx(user_id=user_id)['user_lang']
-    if place_url:
-        await state.update_data(here_position_city=place_url)
-
-        await state.set_state("here_vacposition_photo")
-        await call.message.answer("<b>Добавьте изображение вакансиии и текст в описание изображения, либо введите текст, если вакансия не содержит изображения.</b>")
-    else:
-        await call.message.answer("<b>❌ Название не может превышать 100 символов.</b>\n"
                              "📁 Введите название для позиции 🏷")
 
 
@@ -185,14 +407,17 @@ async def product_position_create_photo(message: Message, state: FSMContext):
         shortmestext = position_description
 
     #||| ПОСТИМ В TELEGRAPH
-    t = TelegraphPoster(use_api=True, convert_html=True, clean_html=True)
-    auth = t.create_api_token('Oleg Aliullov', 'Oleg', 'https://www.aliplaces.ru/') # second and third params are optional
-    print(auth)
-    filex = open(photo_name, 'rb')
-    print(filex)
-    image = upload_image(filex)
-    article = t.post(title=f'Вакансия №: {position_id}', author='', text=f'<img src={image}>{position_description}') #title='Вакансия',
-    print(article)
+    tp = 1
+    if tp == 1:
+        t = TelegraphPoster(use_api=True, convert_html=True, clean_html=True)
+        auth = t.create_api_token('Oleg Aliullov', 'Oleg', 'https://www.aliplaces.ru/') # second and third params are optional
+        print(auth)
+        filex = open(photo_name, 'rb')
+        print(filex)
+        image = upload_image(filex)
+        article = t.post(title=f'Вакансия №: {position_id}', author='', text=f'<img src={image}>{position_description}') #title='Вакансия',
+        print(article)
+
     #author='требуется',
     update_positionx(position_id, article_url = article['url'])
 
@@ -261,67 +486,123 @@ async def product_position_notify_approve(call: CallbackQuery, state: FSMContext
 
 
 # simple calendar usage
-@dp.callback_query_handler(simple_cal_callback.filter())
-async def process_simple_calendar(call: CallbackQuery, callback_data: dict):
+@dp.callback_query_handler(simple_cal_callback.filter(), state="*")
+async def process_simple_calendar(call: CallbackQuery, callback_data: dict,  state: FSMContext):
     selected, date = await SimpleCalendar().process_selection(call, callback_data)
     user_id = call.from_user.id
     print(user_id)
-    #async with state.proxy() as data:
-    #    position_id = data['here_position_id']
-    #    print(position_id)
+
     lang = "ru"
-    #await state.set_state("here_position_time_selection")
+    await state.update_data(here_position_plan_date=date.strftime("%d/%m/%Y"))
+
     if selected:
         await dp.bot.send_message(
             chat_id=user_id,
             text=f'Вы выбрали: {date.strftime("%d/%m/%Y")}',
-            reply_markup=menu_frep(user_id, lang)
+            reply_markup=choise_time_finl() #menu_frep(user_id, lang) #
             )
+        #await asyncio.sleep(5)
 
-        '''await dp.bot.send_message(
-            chat_id=user_id,
-            text=f"Пожалуйста, выберите время для постинга позиции:",
-            reply_markup=choise_time_finl(position_id)
-            )'''
+#inline_timepicker = InlineTimepicker()
 
-@dp.callback_query_handler(text="choise_time", state="here_position_time_selection")
+@dp.callback_query_handler(text_startswith="choice_time2:", state="*")
 async def full2_picker_handler(call: CallbackQuery):
-    position_id = int(call.data.split(":")[1])
-    print("PT")
-    await call.message.answer(
-        "Пожалуйста, выберите время публикации вакансии: ",
-        reply_markup=await HourTimePicker().start_picker()
+    inline_timepicker.init(
+        datetime.time(12),
+        datetime.time(1),
+        datetime.time(23),
     )
 
+    await dp.bot.send_message(call.from_user.id,
+                           text='Выберите время публикации пожалуйста:',
+                           reply_markup=inline_timepicker.get_keyboard())
 
 
-@dp.callback_query_handler(hour_timep_callback.filter())
-async def process_hour_timepicker(callback_query: CallbackQuery, callback_data: dict):
-    r = await HourTimePicker().process_selection(callback_query, callback_data)
+@dp.callback_query_handler(text_startswith="choice_time:", state="*")
+async def full2_picker_handler(call: CallbackQuery, state: FSMContext):
+    decision = call.data.split(":")[1]
     user_id = call.from_user.id
     lang = "ru"
-    if r.selected:
+    print("PT")
+    full_timep_default(
+        # default labels
+        label_up='⇪', label_down='⇓',
+        hour_format='{0:02}h', minute_format='{0:02}m', second_format='{0:02}s'
+    )
+    minsec_timep_default(
+        hour_format='{0:02}h', minute_format='{0:02}m', second_format='{0:02}s'
+    )
+    carousel.full_timep_default(
+        hour_current_format='{0:02}h',
+        minute_current_format='{0:02}m',
+        second_current_format='{0:02}s',
+    )
+    clock.single.c24.utils.default(
+        time_current_format='⦾',
+    )
+
+    if decision == "yes":
         await call.message.answer(
-            f'Вы выбрали {r.hours}',
+            "Пожалуйста, выберите время публикации вакансии: ",
+            reply_markup=await HourTimePicker().start_picker() #menu_frep(user_id, lang) #
+        )
+        await HourTimePicker().start_picker()
+    if decision == "no":
+        await state.set_state("save_planned_datetime")
+        await call.message.answer(
+            "Сохраняем дату поста.",
             reply_markup=menu_frep(user_id, lang)
         )
+
+@dp.callback_query_handler(hour_timep_callback.filter(), state="*") #_HOUR Status.SELECTED_HOUR
+async def process_hour_timepicker(callback_query: CallbackQuery, callback_data: dict, state: FSMContext):
+    r = await HourTimePicker().process_selection(callback_query, callback_data)
+    print(r.hours)
+    user_id = callback_query.from_user.id
+    lang = "ru"
+    if r.selected:
         await state.update_data(here_position_plan_hour=r.hours)
-        await state.set_state("here_vacposition_plan_post_position")
-        await call.message.delete_reply_markup()
+        await state.set_state("save_planned_datetime")
+        await dp.bot.send_message(callback_query.from_user.id,
+                                  text=f'Вы выбрали {r.hours}', reply_markup=post_datetime_save_comfirm_finl())
 
 
-@dp.message_handler(state="here_vacposition_plan_post_position")
+@dp.callback_query_handler(text_startswith="save_post_dt:", state="save_planned_datetime") #Status.SELECTED) #"here_vacposition_plan_post_hour") #Status.SELECTED)
+async def full2_picker_handler(call: CallbackQuery, state: FSMContext):
+    decision = call.data.split(":")[1]
+    print("SAVE POST IN PLAN")
+    user_id = call.from_user.id
+
+    if decision == "yes":
+        async with state.proxy() as data:
+            position_plan_date = data['here_position_plan_date']
+            position_plan_date = position_plan_date.replace('/', '.')
+            if data['here_position_plan_hour']:
+                position_plan_hour = f"{data['here_position_plan_hour']}:00:00"
+            else: position_plan_hour = "11:00:00"
+            position_id = data['here_position_id']
+            print(position_id, position_plan_date, position_plan_hour)
+
+            await async_update_positionx(position_id, position_datetime=f"{position_plan_date} {position_plan_hour}")
+    await dp.bot.send_message(chat_id=user_id,
+                              text="Время публикации поста установлено успешно!", reply_markup=menu_frep(user_id, lang))
+
+
+@dp.message_handler(text_startswith="Вы выбрали", state="save_planned_datetime2") #Status.SELECTED) #"here_vacposition_plan_post_hour") #Status.SELECTED)
 async def full2_picker_handler(message: Message, state: FSMContext):
-
+    print("SAVE POST IN PLAN")
+    await state.finish()
     async with state.proxy() as data:
         position_plan_date = data['here_position_plan_date']
-        position_plan_time = data['here_position_plan_time']
+        if data['here_position_plan_hour']:
+            position_plan_hour = f"{data['here_position_plan_hour']}:00:00"
+        else: position_plan_hour = "11:00:00"
         position_id = data['here_position_id']
-
-        update_positionx(position_id, position_datetime=f"{position_plan_date} {position_plan_time}")
-
+        update_positionx(position_id, position_datetime=f"{position_plan_date} {position_plan_hour}")
+    await call.message.delete()
+    await state.finish()
     await message.answer(
-        "Время публикации поста установлено успешно! ",
+        "Время публикации поста установлено успешно!",
         reply_markup=menu_frep(user_id, lang)
     )
 
@@ -338,16 +619,15 @@ async def product_position_planning_approve(call: CallbackQuery, state: FSMConte
     if decision == "yes":
         await state.set_state("position_planning")
         await state.update_data(here_position_id=position_id)
-        #await functions_position_planning(position_id, markup=None)
         await dp.bot.send_message(
             chat_id=user_id,
             text=f"Пожалуйста, выберите дату для постинга позиции:",
             reply_markup=await SimpleCalendar().start_calendar()
         )
+        await asyncio.sleep(10)
 
     if decision == "no":
         await update_positionx(position_id, position_state="Approved")
-        #await functions_position_notify_bg(position_id, markup=None)
         await call.answer("<b>📁 Отправляем позицию в канал 🖍</b>",
                           reply_markup=menu_frep(user_id, "ru"))
 
@@ -379,8 +659,6 @@ async def user_seller_request(message: Message, state: FSMContext):
 
     if user_requests:
         await message.answer("У Вас уже есть запросы продавца |||| Если админ Вам не подтвердил запрос, напишите: @raclear")
-        #for request in user_requests:
-        #print(request)
         await message.answer(open_profile_search_req(user_id, lang), reply_markup=menu_frep(user_id, lang))
         await state.set_state("here_seller_request_direction")
         await message.answer(_("<b>📁 Введите тип товара, который Вы будете продавать:</b>", locale=lang))
@@ -565,8 +843,6 @@ async def private_user_shop(call: CallbackQuery, state: FSMContext):
                              reply_markup=position_people_create_open_fp(category_id, remover, level, parent, city_id, action, lang))
 
 
-
-
 # Открытие товаров
 @dp.message_handler(text=["🏫 Кружки", "🏫 Сources"], state="*")
 async def user_shop(message: Message, state: FSMContext):
@@ -738,8 +1014,6 @@ async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContex
 
     await call.message.edit_text(_("<b>События в городе, выберите что-нибудь интересное:</b>", locale=lang),
                                  reply_markup=places_in_city_swipe_fp(remover, city_id, lang))
-
-
 
 # Переключение страниц категорий для покупки
 @dp.callback_query_handler(text_startswith="open_inline_support", state="*")
@@ -1369,24 +1643,18 @@ async def shop_list_edit(call: CallbackQuery, state: FSMContext):
 
 
 # Открытие сообщения с ссылкой на поддержку
-@dp.message_handler(text=["☎ Поддержка", "/support", "support"], state="*")
+@dp.message_handler(text=["☎ Поддержка", "/support"], state="*")
 async def user_support(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
-    get_user = get_userx(user_id=user_id)
-    if get_user['user_login'] is None:
-            username = "Не заполнено"
-    else: username = get_user['user_login']
-    #lang = get_userx(user_id=user_id)['user_lang']
+    lang = get_userx(user_id=user_id)['user_lang']
 
     user_support = get_settingsx()['misc_support']
     if str(user_support).isdigit():
         get_user = get_userx(user_id=user_support)
 
         if len(get_user['user_login']) >= 1:
-            await message.answer("<b>☎ Нажмите кнопку ниже для связи с Администратором.</b>",
-                                 reply_markup=user_support_finl(get_user['user_login']))
-            #await notify(dp, f"Пользователь запрашивает диалог с поддержкой, Username: {user_name}, пользователем ID: {user_id}")
+            await message.answer("<b>☎ Нажмите кнопку ниже для связи с Администратором.</b>", reply_markup=user_support_finl(get_user['user_login'], lang))
             return
         else:
             update_settingsx(misc_support="None")
@@ -1487,7 +1755,7 @@ async def product_position_edit_clear_confirm(call: CallbackQuery, state: FSMCon
 
 
 # Открытие способов пополнения
-@dp.message_handler(IsShopAdmin(), text=["🖲 Способы пополнения7", "🖲 Payment Methods7"], state="*")
+@dp.message_handler(IsShopAdmin(), text=["🖲 Способы пополнения2", "🖲 Payment Methods2"], state="*")
 async def payment_systems(message: Message, state: FSMContext):
     await state.finish()
     user_id = message.from_user.id
@@ -1495,7 +1763,7 @@ async def payment_systems(message: Message, state: FSMContext):
     user_role = get_userx(user_id=user_id)['user_role']
     print(user_role)
     if user_role == "Admin" or user_role == "ShopAdmin": #user_id in get_admins(): #
-        await message.answer(_("<b>🖲 Выберите способ пополнения</b>", locale=lang), reply_markup=payment_as_choice_finl(user_id, lang))
+        await message.answer(_("<b>🖲 Выберите способ пополнения</b>", locale=lang), reply_markup=payment_choice_finl(user_id, lang))
 
 
 # Включение/выключение самих способов пополнения
@@ -2028,20 +2296,16 @@ async def product_position_create_photo(message: Message, state: FSMContext):
     lang = get_userx(user_id=user_id)['user_lang']
     async with state.proxy() as data:
         position_user_id = message.from_user.id
+        position_city = data['here_position_city']
+        position_city_id = data['position_city_id']
         position_name = clear_html(data['here_position_name'])
         position_price = data['here_position_price']
         position_type = data['here_position_type']
-
+        position_local = data['here_position_local']
         if position_type == 1:
-            position_city = data['here_position_city']
-            position_city_id = data['position_city_id']
-            position_rest = data['here_position_rest']
-            position_local = data['here_position_local']
+            position_rest = int(data['here_position_rest'])
         elif position_type == 2:
             position_rest = 0
-            position_city = 0
-            position_city_id = 0
-            position_local = 0
         catategory_id = data['here_cache_change_category_id']
         position_source = data['here_position_source']
         if position_source == "commercial":
@@ -2056,10 +2320,8 @@ async def product_position_create_photo(message: Message, state: FSMContext):
     position_id = random.randint(1000000000, 9999999999)
     add_positionx(position_id, position_city, position_city_id, position_name, position_price, position_type, position_rest, position_description, position_photo,
                   catategory_id, position_shop_id, position_user_id, position_source, position_local)
-    #new_position_notify(position_id)
 
-    #async def on_notify(dp: Dispatcher, msg, markup):
-    #    await send_admins(msg, markup="default")
+    await insert_position(position_id, position_name, position_price, position_type, position_rest, position_description, position_photo, get_date(), catategory_id, position_city, position_shop_id, position_city_id, position_user_id, position_source, position_local)
 
     await notify(dp, f"Создана позиция: {position_name}, пользователем ID: {position_user_id}")
     #await asyncio.create_task(post_position_to_telegraph(position_id))
@@ -2112,7 +2374,6 @@ async def product_position_edit_category_back(call: CallbackQuery, state: FSMCon
 # Выбор категории с нужной позицией
 @dp.callback_query_handler(text_startswith="position_edit_category_swipe:", state="*")
 async def product_position_edit_category_open(call: CallbackQuery, state: FSMContext):
-    print(category_id, city_id, lang)
     category_id = int(call.data.split(":")[1])
     city_id = int(call.data.split(":")[2])
     lang = call.data.split(":")[3]
@@ -2768,19 +3029,17 @@ async def user_cart_return(call: CallbackQuery, state: FSMContext):
 async def user_purchase_category_open(call: CallbackQuery, state: FSMContext):
     print('Открытие категорий для покупки user_menu.py 133')
     category_id = int(call.data.split(":")[1])
-    #type_platform = get_settingsx()['type_trade']
-    #if type_platform == "digital":
-    #    city_id=0
     city_id = int(call.data.split(":")[2])
     user_id = call.from_user.id
     lang = get_userx(user_id=user_id)['user_lang']
+    print("CATEGORY OPEN")
 
     source = "commercial"
     action = "open"
     get_category = get_categoryx(category_id=category_id)
-    #city_id = get_city_user(call.from_user.id)[0]
-    get_positions = get_positions_cx(category_id=category_id) #, position_city_id=city_id
-    #get_positions = get_positions_in_cityx(category_id=category_id, position_city_id=city_id)  #, position_city_id=city_id # , flagallc=1, position_type=1 get_positionsx(category_id=category_id)
+    print(get_category)
+    city_id = get_city_user(call.from_user.id)[0]
+    get_positions = get_positions_in_cityx(category_id, city_id)  # , flagallc=1, position_type=1 get_positionsx(category_id=category_id)
     print(get_positions)
     print(category_id, city_id)
     if get_positions:
@@ -3218,7 +3477,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
         cardcategory = "🗃 Категория:"
         cardcost = "💰 Стоимость:"
     if lang == "en":
-        description = "📜 Description: "
+        description = "📜 Description:"
         cardtitle = "<b>Product Card:</b>"
         cardname = "🏷 Name:"
         cardlink = "🏷 Link:"
@@ -3234,6 +3493,7 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
 
     get_position = get_positionx(position_id=position_id)
     position_source = get_position['source']
+    position_type = get_position['position_type']
     if position_source == "commercial":
         get_category = get_categoryx(category_id=category_id)
         category = get_category['category_name']
@@ -3241,9 +3501,9 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
         get_category = get_category_people(category_id=category_id)
         category = get_category['category']
 
-    if get_position['position_type'] == 1:
+    if position_type == 1:
         position_rest = get_position['position_rest']
-    elif get_position['position_type'] == 2:
+    elif position_type == 2:
         position_rest = len(get_itemsx(position_id=position_id))
 
     get_settings = get_settingsx()
@@ -3251,71 +3511,46 @@ async def user_purchase_position_open(call: CallbackQuery, state: FSMContext):
     if get_position['position_description'] == "0":
         text_description = ""
     else:
-        text_description = f"\n{description}\n\n" \
+        text_description = f"\n{description}\n" \
                            f"{get_position['position_description']}"
 
-    if get_position['position_type'] == 1:
-        send_msg = f"{cardtitle}\n" \
-                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-                   f"{cardname} <code>{get_position['position_name']}</code>\n" \
-                   f"{cardlink} <code>{link}</code>\n" \
-                   f"{cardcity} <code>{get_position['position_city']}</code>\n" \
-                   f"{cardcategory} <code>{category}</code>\n" \
-                   f"{cardrest} <code>{position_rest}шт</code>\n" \
-                   f"{cardcost} <code>{get_position['position_price']}₽</code>\n" \
-                   f"{text_description}"
-
-    if get_position['position_type'] == 2:
-        send_msg = f"{cardtitle}\n" \
-                   f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
-                   f"{cardname} <code>{get_position['position_name']}</code>\n" \
-                   f"{cardlink} <code>{link}</code>\n" \
-                   f"{cardcategory} <code>{category}</code>\n" \
-                   f"{cardrest} <code>{position_rest}шт</code>\n" \
-                   f"{cardcost} <code>{get_position['position_price']}₽</code>\n" \
-                   f"{text_description}"
+    send_msg = f"{cardtitle}\n" \
+               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
+               f"{cardname} <code>{get_position['position_name']}</code>\n" \
+               f"{cardlink} <code>{link}</code>\n" \
+               f"{cardcity} <code>{get_position['position_city']}</code>\n" \
+               f"{cardcategory} <code>{category}</code>\n" \
+               f"{cardrest} <code>{get_position['position_rest']}шт</code>\n" \
+               f"{cardcost} <code>{get_position['position_price']}₽</code>\n" \
+               f"{text_description}"
 
     print(get_settings['type_trade'])
     tt = get_settings['type_trade']
 
-    if tt == "digital":
-        if len(get_position['position_photo']) >= 5:
-            await call.message.delete()
-            await call.message.answer_photo(get_position['position_photo'],
-                                            send_msg, reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))
-        else:
-            await call.message.edit_text(send_msg,
-                                         reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))
+    #if tt == "digital":
+    if position_type == 2 and len(get_position['position_photo']) >= 5:
+        await call.message.delete()
+        await call.message.answer_photo(get_position['position_photo'],
+                                        send_msg, reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))
 
-    elif tt == "hybrid" and len(get_position['position_photo']) >= 5:
-        #print(get_position['position_photo'])
-        if get_position['position_type'] == 1:
-            await call.message.delete()
-            await call.message.answer_photo(get_position['position_photo'],
-                                            send_msg, reply_markup=products_open_finl(1, position_id, remover, category_id, 0, lang))
+    elif position_type == 2 and len(get_position['position_photo']) < 6:
+        await call.message.edit_text(send_msg,
+                                     reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))
 
-        if get_position['position_type'] == 2:
-            await call.message.delete()
-            await call.message.answer_photo(get_position['position_photo'],
-                                            send_msg, reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))
+    elif position_type == 1 and len(get_position['position_photo']) >= 5:
+        await call.message.delete()
+        await call.message.answer_photo(get_position['position_photo'],
+                                        send_msg, reply_markup=products_open_finl(1, position_id, remover, category_id, 0, lang))
 
-    elif len(get_position['position_photo']) < 6:
-        print("0O0O0")
-        #if path is None:
-            #rd = Path(__file__).parents
-            #base_dir = rd[1]
-            #path = str(f"{base_dir}{os.sep}images")
-        #photop = f"./../images/{get_position['position_photo']}.jpg"
-        #print(photop)
-        #photo = open(photop, 'rb')
-
-        #await call.message.answer_photo(photo,
-        #                            send_msg, reply_markup=products_open_finl(1, position_id, remover, category_id, 0, lang))
+    elif position_type == 1 and len(get_position['position_photo']) < 6:
         await call.message.edit_text(send_msg,
                                      reply_markup=products_open_finl(1, position_id, remover, category_id, 0, lang))
-    else:
+
+    '''elif position_type == 2 and len(get_position['position_photo']) < 6:
+        await call.message.delete()
         await call.message.edit_text(send_msg,
-                                     reply_markup=products_open_finl(1, position_id, remover, category_id, 0, lang))
+                                     reply_markup=products_open_finl(0, position_id, remover, category_id, 0, lang))'''
+
 
 # Переключение страниц категорий для покупки
 @dp.callback_query_handler(text_startswith="artist_edit_swipe:", state="*")
@@ -3346,15 +3581,13 @@ async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContex
 @dp.callback_query_handler(text_startswith="buy_category_swipe:", state="*")
 async def user_purchase_category_next_page(call: CallbackQuery, state: FSMContext):
     remover = int(call.data.split(":")[1])
-    #level = int(call.data.split(":")[2])
     parent_id = int(call.data.split(":")[2])
     city_id = int(call.data.split(":")[3])
     action = call.data.split(":")[4]
-    #level = int(call.data.split(":")[5])
     user_id = call.from_user.id
-    lang = get_userx(user_id=user_id)['user_lang']
-    #await call.message.edit_text
-    #await call.message.delete()
+    #lang = get_userx(user_id=user_id)['user_lang']
+    lang = "ru"
+
 
     await call.message.edit_text(_("<b>🎁 Выберите нужный вам товар:</b>", locale=lang),
                                  reply_markup=products_item_category_swipe_fp(remover, parent_id, city_id, action, lang))
@@ -4136,11 +4369,10 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
     get_position = get_positionx(position_id=position_id)
     get_items = get_itemsx(position_id=position_id)
     get_user = get_userx(user_id=call.from_user.id)
-    lang = get_user['user_lang']
 
     if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-        #get_count = min(get_count, len(get_items))
+        get_count = min(get_count, len(get_items))
     else:
         get_count = len(get_items)
 
@@ -4149,29 +4381,34 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
     if int(get_user['user_balance']) >= int(get_position['position_price']):
         if get_count == 0:
             await state.update_data(here_cache_position_id=position_id)
-            await state.finish()
+            #await state.finish()
+            await state.set_state("here_position_subscribe")
 
+            #with suppress(MessageCantBeDeleted):
             await call.message.delete()
             await call.message.answer(f"<b>🎁 К сожалению данный товар закончился!</b>\n"
                                       f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                      f"Уведомить Вас, когда он снова появится?\n"
                                       f"🎁 Товар: <code>{get_position['position_name']}</code>",
-                                      reply_markup=products_confirm_finl(position_id, 1, lang))
+                                      reply_markup=products_confirm_finl(position_id, 0, "ru"))
 
         if get_count == 1:
             await state.update_data(here_cache_position_id=position_id)
             await state.finish()
 
+            #with suppress(MessageCantBeDeleted):
             await call.message.delete()
             await call.message.answer(f"<b>🎁 Вы действительно хотите купить товар(ы)?</b>\n"
                                       f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                                       f"🎁 Товар: <code>{get_position['position_name']}</code>\n"
                                       f"📦 Количество: <code>1шт</code>\n"
                                       f"💰 Сумма к покупке: <code>{get_position['position_price']}₽</code>",
-                                      reply_markup=products_confirm_finl(position_id, 1, lang))
+                                      reply_markup=products_confirm_finl(position_id, 1, "ru"))
         elif get_count >= 1:
             await state.update_data(here_cache_position_id=position_id)
             await state.set_state("here_item_count")
 
+            #with suppress(MessageCantBeDeleted):
             await call.message.delete()
             await call.message.answer(f"<b>🎁 Введите количество товаров для покупки</b>\n"
                                       f"▶ От <code>1</code> до <code>{get_count}</code>\n"
@@ -4183,7 +4420,10 @@ async def buy_item_select(call: CallbackQuery, state: FSMContext):
     else:
         #await call.answer("❗ У вас недостаточно средств. Пополните баланс", True)
         #await call.message.delete()
-        await call.message.answer("<b>❗ У вас недостаточно средств. Пополните баланс</b>", reply_markup=charge_button_add(0))
+        await call.message.answer(
+            "<b>❗ У вас недостаточно средств. Пополните баланс</b>",
+            reply_markup=charge_button_add(0),
+        )
 
 
 @dp.callback_query_handler(text_startswith="edit_delivery_settings", state="*")
@@ -4271,7 +4511,8 @@ async def user_purchase_select(call: CallbackQuery, state: FSMContext):
 
     if get_position['position_price'] != 0:
         get_count = int(get_user['user_balance'] / get_position['position_price'])
-        get_count = min(get_count, len(get_items))
+        if get_count > len(get_items): get_count = len(get_items)
+        else: get_count = min(get_count, len(get_items))
     else:
         get_count = len(get_items)
 
@@ -4297,11 +4538,10 @@ async def user_purchase_select(call: CallbackQuery, state: FSMContext):
                                       f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                                       f"🎁 Товар: <code>{get_position['position_name']}</code> - <code>{get_position['position_price']}₽</code>\n"
                                       f"💰 Ваш баланс: <code>{get_user['user_balance']}₽</code>")
-        else:
+        elif get_count == 0:
             await call.answer("🎁 Товаров нет в наличии")
     else:
-        #await call.answer("❗ У вас недостаточно средств. Пополните баланс", True)
-        #await call.message.delete()
+
         await call.message.answer(
             "<b>❗ У вас недостаточно средств. Пополните баланс</b>",
             reply_markup=charge_button_add(0),
@@ -4362,6 +4602,40 @@ async def user_purchase_select_count(message: Message, state: FSMContext):
     else:
         await message.answer(f"<b>❌ Данные были введены неверно.</b>\n{send_message}")
 
+
+#Подписка на товары, которые отсутствуют
+@dp.callback_query_handler(text_startswith="subscribe_position:", state="here_position_subscribe")
+async def user_subscribe_to_position(call: CallbackQuery, state: FSMContext):
+    get_action = call.data.split(":")[1]
+    position_id = call.data.split(":")[2]
+    user_id = call.user_from.id
+    lang = get_userx(user_id=user_id)['user_lang']
+
+    #lang = "ru"
+    receipt = "1" #get_unix()
+    buy_time = "2" #get_date()
+    print("POSITION REQUEST CREATION")
+
+    if get_action == "yes":
+        get_user = get_userx(user_id=user_id)
+        get_position = get_positionx(position_id=position_id)
+        await state.finish()
+
+        #add_position_request(get_user['user_id'], get_user['user_login'], get_user['user_name'], get_position['position_price'], get_position['position_id'],
+        #              get_position['position_name'], buy_time, receipt, get_user['user_balance'])
+
+        await notify(dp, f"Получен запрос на позицию: {get_position['position_name']}")
+        await call.message.answer(f"<b>✅ Вы успешно отправили запрос на товар(ы)</b>\n"
+                                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                  f"🧾 Чек: <code>#{receipt}</code>\n"
+                                  f"🎁 Товар: <code>{get_position['position_name']} | {get_count}шт </code>\n"
+                                  f"🕰 Дата запроса: <code>{buy_time}</code>",
+                                  reply_markup=menu_frep(call.from_user.id, lang))
+    if get_action == "no":
+        await call.message.answer(f"<b>✅ Вы отменили отправку запроса на товар(ы)</b>\n"
+                                  f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n")
+
+
 # Подтверждение покупки товара
 @dp.callback_query_handler(text_startswith="xbuy_item", state="*")
 async def user_purchase_confirm(call: CallbackQuery, state: FSMContext):
@@ -4374,7 +4648,7 @@ async def user_purchase_confirm(call: CallbackQuery, state: FSMContext):
     if lang is None: lang = "ru"
 
     if get_action == "yes":
-        await call.message.edit_text("<b>🔄 Ждите, товары подготавливаются</b>") #_("<b>🔄 Ждите, товары подготавливаются</b>", locale=lang))
+        await call.message.edit_text(_("<b>🔄 Ждите, товары подготавливаются</b>", locale=lang))
 
         get_position = get_positionx(position_id=position_id)
         get_items = get_itemsx(position_id=position_id)
@@ -4419,7 +4693,7 @@ async def user_purchase_confirm(call: CallbackQuery, state: FSMContext):
                                           f"🕰 Дата покупки: <code>{buy_time}</code>",
                                           reply_markup=menu_frep(call.from_user.id, lang))
             else:
-                await call.message.answer("<b>❗ На вашем счёте недостаточно средств</b>")
+                await call.message.answer(_("<b>❗ На вашем счёте недостаточно средств</b>", locale=lang))
         else:
             await call.message.answer(_("<b>🎁 Товар который вы хотели купить закончился или изменился.</b>", locale=lang),
                                       reply_markup=menu_frep(call.from_user.id, lang))

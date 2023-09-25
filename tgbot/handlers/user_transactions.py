@@ -21,9 +21,9 @@ from tgbot.services.api_yoo import YooAPI
 from tgbot.services.api_tron import TronAPI
 #import tronpy
 #from yoomoney import Client as ClientYoo
-from tgbot.services.api_sqlite import update_userx, get_refillx, add_refillx, get_userx, get_user_lang, add_prepay, create_crypto_payment_row, get_tron_address, get_crypto_address, get_system_crypto_address, get_system_tron_address, update_crypto_address, get_refillx, update_refillx
+from tgbot.services.api_sqlite import get_crypto_address, update_userx, get_refillx, add_refillx, get_userx, get_user_lang, add_prepay, create_crypto_payment_row, get_tron_address, get_crypto_address, get_system_crypto_address, get_system_tron_address, update_crypto_address, get_refillx, update_refillx
 from tgbot.utils.const_functions import get_date, get_unix
-from tgbot.utils.misc_functions import send_admins, catch_transactions20m, address_to_hex, check_trx_now, check_btc_now, check_trx_address, validate_trx_address, validate_bsc_address
+from tgbot.utils.misc_functions import get_transaction_amount, get_last_txs, send_admins, catch_transactions20m, address_to_hex, check_trx_now, check_btc_now, check_trx_address, validate_trx_address, validate_bsc_address, validate_eth_address
 from babel import Locale
 from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
 #from tgbot.middlewares.i18n import I18nMiddleware
@@ -56,6 +56,18 @@ def GetTronPrice():
         response = json.loads(cresponse.text)
         trxusdt_price = response['price']
         return trxusdt_price
+    except Exception:
+        raise Exception("Damn...Something was wrong...")
+
+def GetCoinPrice(coinpair):
+    try:
+        url = f'https://api.binance.com/api/v3/ticker/price?symbol={coinpair}'
+        payload = {}
+        cresponse = requests.get(url, payload)
+        print(cresponse)
+        response = json.loads(cresponse.text)
+        coinusdt_price = response['price']
+        return coinusdt_price
     except Exception:
         raise Exception("Damn...Something was wrong...")
 
@@ -99,13 +111,25 @@ async def refill_way(call: CallbackQuery, state: FSMContext):
     user_id = call.from_user.id
     print(user_id)
     lang = get_user_lang(user_id)['user_lang']
-    print(lang)
+    print(f"L:{lang}")
     get_kb = refill_choice_finl(lang)
 
     if get_kb is not None:
         await call.message.edit_text(_("<b>💰 Выберите способ пополнения</b>", locale=lang), reply_markup=get_kb)
     else:
         await call.answer(_("⛔ Пополнение временно недоступно", locale=lang), True)
+
+# Изменение адреса в сетях MainNet
+@dp.callback_query_handler(text_startswith="change_crypto:", state="*")
+async def change_crypto_address(call: CallbackQuery, state: FSMContext):
+    coin = call.data.split(":")[1]
+    crypto_address = get_crypto_address(call.from_user.id, coin)
+    crypto_addr_txt = ""
+    if crypto_address: crypto_addr_txt = f"<b>Ваш текущий {coin} адрес</b>: {crypto_address['tron_address']}\n"
+    await state.set_state("here_crypto_address")
+    await state.update_data(here_type_net=coin)
+    await call.message.edit_text(f"{crypto_addr_txt}\n "
+                                 f"Введите адрес {coin} с которого планируете пополнять баланс")
 
 # Изменение адреса в сети Tron TRC20
 @dp.callback_query_handler(text_startswith="change_trc20", state="*")
@@ -141,12 +165,35 @@ async def refill_way_choice(call: CallbackQuery, state: FSMContext):
     print("REFILL CHOICE")
     print(get_way)
 
+    if get_way == "ETH":
+        type_net = call.data.split(":")[2]
+        print(type_net)
+        await state.update_data(here_type_net=type_net)
+
     if get_way == "Tron":
         type_net = call.data.split(":")[2]
         print(type_net)
         await state.update_data(here_type_net=type_net)
 
     await state.update_data(here_pay_way=get_way)
+
+    if get_way == 'ETH':
+        crypto_address = get_crypto_address(user_id, type_net)
+        print(crypto_address)
+        if crypto_address:
+            validated_crypto_as = await validate_eth_address(crypto_address['tron_address'])
+            #await call.message_answer("Проверяем адрес TRX в сети TRC20.")
+            if validated_crypto_as['message'] == "OK":
+                #print(trx_addresstrc['tron_address'])
+                await state.update_data(here_crypto_address=crypto_address['tron_address'])
+                await state.set_state("here_pay_amount")
+                await call.message.edit_text("<b>💰 Введите сумму пополнения в рублях</b>")
+
+        else:
+            print("ETH ADDRESS NOT EXIST")
+            await state.set_state("here_crypto_address")
+            await call.message.edit_text(f"Введите адрес {type_net} с которого планируете пополнить баланс")
+
 
     if get_way == 'Tron':
         tron_address = get_crypto_address(user_id, type_net)
@@ -217,6 +264,12 @@ async def refill_get(message: Message, state: FSMContext):
                     await QiwiAPI(cache_message, user_bill_pass=True)
                 ).bill_pay(pay_amount, get_way)
 
+            if get_way == 'ForYm':
+                print("test")
+                get_message, get_link, receipt = await (
+                    await YooAPI(cache_message)  # , acc_number=410011512189686
+                ).bill_pay(pay_amount, get_way)
+
             if get_way == "Tron" or get_way == "BTCB":
                 receipt = str(int(time.time() * 100))
                 await state.update_data(here_receipt=receipt)
@@ -272,7 +325,7 @@ async def refill_get(message: Message, state: FSMContext):
                               f"❗ Ожидается транзакция с адреса: {address_from}\n" \
                               f"🔄 После оплаты, нажмите на <code>Проверить оплату</code>"
 
-            if get_way == "Form" or get_way == "Nickname" or get_way == "Number":
+            if get_way == "ForYm" or get_way == "Nickname" or get_way == "Number":
                 get_message = f"<b>🆙 Пополнение баланса</b>\n" \
                               f"➖➖➖➖➖➖➖➖➖➖➖➖➖\n" \
                               f" Для пополнения баланса, нажмите на кнопку ниже \n" \
@@ -297,11 +350,11 @@ async def refill_get(message: Message, state: FSMContext):
             await state.set_state("here_pay_check")
             lang = "ru"
 
-            if get_way in ["Tron", "BTCB", "CardTransfer"] and get_message:
+            if get_way in ["ETH", "Tron", "BTCB", "CardTransfer"] and get_message:
                 await cache_message.edit_text(get_message, reply_markup=refill_bill_crypto_finl(get_way, type_net, receipt, lang))
 
-            if get_way != "Tron" and get_way != "BTCB":
-                await cache_message.edit_text(get_message, reply_markup=refill_bill_finl(get_link, receipt, get_way))
+            if get_way in ["ForYm"]:
+                await cache_message.edit_text(get_message, reply_markup=refill_bill_finl(get_link, receipt, get_way, lang))
         else:
             await cache_message.edit_text(f"<b>❌ Неверная сумма пополнения</b>\n"
                                           f"▶ Cумма не должна быть меньше <code>{min_input_qiwi}₽</code> и больше <code>300 000₽</code>\n"
@@ -477,13 +530,21 @@ async def refill_check_tron(call: CallbackQuery, state: FSMContext):
     #total_amount = await catch_transactions20m(address_from, address_to)
     if type_net == "USDT":
         coinprice = GetUSDTPrice()
+        qpay_amount, receipt = await check_trx_now(address_from, st, address_to)
+    elif type_net == "ETH":
+        coinprice = GetCoinPrice("ETHUSDT")
+        print(coinprice)
+        amount = Decimal('100.123456')
+        qpay_amount = await get_last_txs(amount, address_to)
+        print(qpay_amount)
     elif type_net == "BTCB":
         coinprice = GetBtcPrice()
         print(coinprice)
     elif type_net == "TRX":
         coinprice = GetTronPrice()
+        qpay_amount, receipt = await check_trx_now(address_from, st, address_to)
 
-    qpay_amount, receipt = await check_trx_now(address_from, st, address_to) #, pay_status, receipt
+     #, pay_status, receipt
     print(qpay_amount, coinprice)
     if qpay_amount > 0:
         pay_amount = qpay_amount*int(float(coinprice))/1000000
@@ -609,7 +670,7 @@ async def enter_tron_address(message: Message, state: FSMContext):
 
 # Принятие Трон адреса и сохранение если нет
 @dp.message_handler(state="here_crypto_address")
-async def enter_tron_address(message: Message, state: FSMContext):
+async def enter_crypto_address(message: Message, state: FSMContext):
     print("OK_HCA")
     user_id = message.from_user.id
     #type_net = "BTCB" #(await state.get_data())['here_type_net']
@@ -619,28 +680,32 @@ async def enter_tron_address(message: Message, state: FSMContext):
     if message.text:
         crypto_address = message.text
 
-        bsc_address = get_crypto_address(user_id, type_net)
-        print(bsc_address)
-        bsc_addressbep = await validate_bsc_address(crypto_address)
+        crdb_address = get_crypto_address(user_id, type_net)
+        print(crdb_address)
+        if type_net == "BTCB":
+            validated_crypto_as = await validate_bsc_address(crypto_address)
+
+        if type_net == "ETH":
+            validated_crypto_as = await validate_eth_address(crypto_address)
 
         #есть ли адрес в BEP-20
-        if bsc_addressbep['message'] == 'OK':
-            await message.answer(f"<b>♻ Все в порядке. {crypto_address} найден в BEP-20.</b>")
-            if bsc_address:
+        if validated_crypto_as['message'] == 'OK':
+            await message.answer(f"<b>♻ Все в порядке. {crypto_address} найден в {type_net}.</b>")
+            if crypto_address:
                 update_crypto_address(user_id, tron_address=crypto_address, type_net=type_net)
-                await message.answer("Обновляем адрес в профиле BEP в сети BEP-20.")
+                await message.answer(f"Обновляем адрес {type_net} в профиле.")
 
             else:
                 create_crypto_payment_row(user_id, crypto_address, type_net)
-                await message.answer("Добавляем адрес в профиль BEP в сети BEP-20.")
+                await message.answer(f"Добавляем адрес в профиль {type_net}.")
         else:
-            await message.answer(f"<b>♻ Адреса: {crypto_address} нет в сети BEP-20.</b>")
+            await message.answer(f"<b>♻ Адреса: {crypto_address} нет в сети {type_net}.</b>")
 
 
         await state.update_data(here_crypto_address=crypto_address)
         await state.set_state("here_pay_amount")
 
-        await message.answer(f"<b>♻ Успешно сохранили Ваш BEP-20 адрес в профиле.</b>", reply_markup=back_to_profile_finl('ru'))
+        await message.answer(f"<b>♻ Успешно сохранили Ваш {type_net} адрес в профиле.</b>", reply_markup=back_to_profile_finl('ru'))
 
 
 ##########################################################################################

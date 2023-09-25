@@ -18,40 +18,18 @@ from tgbot.utils.misc_functions import send_admins
 # Апи работы с YooMoney
 class CoinbaseAPI(AsyncClass):
     async def __ainit__(self, suser_id=None, api_key=None, api_token=None):
-        #self.user_id = user_id
-        #check_pass=False, user_bill_pass=False, user_check_pass=False
         if suser_id is not None:
             self.suser_id = suser_id
             self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
-                #self.token = token
-                #self.client_id = client_id
-                #self.acc_number = acc_number
-                #self.redirect_url = redirect_url
         else:
-            #self.login = get_upaymentx(self.user_id)['qiwi_login']
-            #self.token = get_upaymentx(self.user_id)['qiwi_token']
-            #self.secret = get_upaymentx(self.user_id)['qiwi_secret']
-            #self.login = get_paymentx()['qiwi_login']
             self.suser_id = 919148970
             self.api_token = get_upaymentx(self.suser_id)['coinbase_token']
         self.api_key = get_upaymentx(self.suser_id)['coinbase_key']
         self.pay_method = get_upaymentx(self.suser_id)['way_coinbase']
-        #self.base_url = "https://yoomoney.ru/api/"
-        #self.headers = {"authorization": f"Bearer {self.token}"}
-        #self.client_id = get_paymentx()['yoo_client_id']
-        #self.user_check_pass = user_check_pass
-        #self.user_bill_pass = user_bill_pass
-        #self.check_pass = check_pass
-        #self.add_pass = add_pass
-        #self.dp = dp
         api_key = 'QUmnMHJ7OrOJnIM4'
         api_secret = 'gQr0L7ypPQXTpYRDzXJFILcAARRjBynH'
         client = Client(api_key, api_secret)
         account_id = client.get_primary_account()['id']
-        #sum = int(sum) + 10 #прибавляется комиссия в btc
-        #btc_price = round(float((client.get_buy_price(currency_pair='BTC-RUB')["amount"])))
-        #print(btc_price)
-        #sum = float(str(sum / btc_price)[:10]) #сколько сатох нужно юзеру оплатить
         address_for_tranz = client.create_address(account_id)['address'] #получение кошелька для оплты
         print(address_for_tranz)
 

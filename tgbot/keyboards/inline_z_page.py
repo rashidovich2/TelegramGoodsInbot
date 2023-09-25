@@ -15,7 +15,7 @@ from tgbot.services.api_sqlite import get_all_categoriesx, get_itemsx, get_posit
     , get_position_on_city, get_category_in_city, get_shopsxx, get_paramposition_on_city, get_shopposition_on_city,\
     get_all_shopx, get_my_shopx, get_events_in_city, get_all_events, get_all_places, get_eventxx, get_events_in_place, \
     get_eventsxx,  get_artistsxx, get_category_in_cityx, get_shop_in_cityx, get_events_in_cityx, get_places_in_cityx, \
-    get_category_in_citypx, get_positionsorder, get_parent_cat, get_category_count, get_parent_catc, get_categories_in_cityx, get_positionsax
+    get_category_in_citypx, get_positionsorder, get_parent_cat, get_category_positions_count, get_parent_catc, get_categories_in_cityx, get_positionsax
 
 cpage = 10
 
@@ -814,8 +814,6 @@ def position_edit_open_fp(remover, category_id, lang):
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
         bbutton = "⬅ Back to UP ↩"
-
-    print(remover, category_id, lang)
     #order
     get_positions = get_positionsx(category_id=category_id)
     #get_positions = get_positionsorder(category_id)
@@ -1072,32 +1070,13 @@ def request_seller_role(user_id, lang):
 # Страницы категорий при покупке товара
 def products_item_category_swipe_fp(remover, parent_id, city_id, action, lang):
     print(remover, parent_id, city_id, action, lang)
-    #get_categories = get_category_in_city(city_id)
-    #if parent_id == 0:
-    #    get_categories = get_category_in_cityx(level=1)
-    #else:
-    #category_precount = get_category_count(category_id)['countp']
-    #if category_precount == 0:
 
-    '''get_settings = get_settingsx()
-    print(get_settings)
-    trade_type = get_settings['type_trade']
-    if trade_type == "digital":
-        city_id = 0
-    get_categories = get_categories_in_cityx(parent_id, city_id)''' #, position_city_id=city_id position_type=1, flagallc=1
-
-    get_categories = get_all_categoriesx()
-    #lang = get_user_lang(user_id)['user_lang']
-    #print(get_categories, len(get_categories))
-    #keyboard = InlineKeyboardMarkup()
-    #count = 0
-
-    print("LLLLLL9999999")
+    get_categories = get_categories_in_cityx(parent_id, city_id)
 
     if lang == "ru":
         fwdbutton = "Далее ➡"
         bwdbutton = "⬅ Назад"
-        bbbutton = "Вверх"
+        bbbutton = "Начало"
     elif lang == "en":
         fwdbutton = "Next ➡"
         bwdbutton = "⬅ Back"
@@ -1110,11 +1089,14 @@ def products_item_category_swipe_fp(remover, parent_id, city_id, action, lang):
 
     if remover >= len(get_categories): remover -= 10
 
-    #keyboard.add(ikb(" Барахолка Вашего города ", callback_data="privateMarket"))
+    keyboard.add(ikb(" Барахолка Вашего города ", callback_data="privateMarket"))
 
     for count, a in enumerate(range(remover, len(get_categories))):
-        category_count = get_category_count(get_categories[a]['category_id'])['countp']
-        print(count, category_count, action, get_categories[a]['category_name'], get_categories[a]['level'], get_categories[a]['category_id'], city_id, lang)
+        category_count = get_category_positions_count(get_categories[a]['category_id'])['countp']
+        category_icount = get_categories[a]['countitem'] if get_categories[a]['countitem'] not in [0, None] else 0
+        category_pcount = get_categories[a]['position_rest'] if get_categories[a]['position_rest'] not in [0, None] else 0
+
+        print(count, action, get_categories[a]['category_name'], get_categories[a]['level'], get_categories[a]['category_id'], city_id, lang, a, category_icount, category_pcount, category_count) #itemrest, positionrest,
 
         if count < 10:
             if get_categories[a]['level'] == 1 and action == "edit" and category_count == 0:
@@ -1132,12 +1114,13 @@ def products_item_category_swipe_fp(remover, parent_id, city_id, action, lang):
                 print("way3")
                 keyboard.add(ikb(get_categories[a]['category_name'],
                                  callback_data=f"buy_category_swipe:{remover}:{get_categories[a]['category_id']}:{city_id}:{action}"))
-                #bbtntext = ikb(bbbutton, callback_data="start")
+                #bbtntext = ikb(bbbutton, callback_data="/start")
+                bbtntext = ikb(bbbutton, callback_data=f"buy_category_swipe:{0}:{0}:{city_id}:{action}")
 
             elif get_categories[a]['level'] == 2 and action == "create":
                 keyboard.add(ikb(get_categories[a]['category_name'],
                                  callback_data=f"position_create_here:{get_categories[a]['category_id']}:{get_categories[a]['parent_id']}:{city_id}:{lang}"))
-                #bbtntext = ikb(bbbutton, callback_data=f"buy_category_swipe:{0}:{0}:{city_id}:{action}")
+                bbtntext = ikb(bbbutton, callback_data=f"buy_category_swipe:{0}:{0}:{city_id}:{action}")
 
             elif get_categories[a]['level'] == 2 and action == "open" or get_categories[a]['level'] == 1 and action == "open" and category_count > 0:
                 print("way5")

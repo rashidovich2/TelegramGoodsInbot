@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Список пользователей</title>
+</head>
+<body>
+    <h1>Список пользователей</h1>
+    <ul>
+        {% for user in users %}
+        <li>{{ user.user_name }} ({{ user.user_id }})</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

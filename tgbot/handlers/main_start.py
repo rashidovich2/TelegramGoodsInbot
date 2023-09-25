@@ -229,4 +229,3 @@ async def language_was_selected(call: CallbackQuery, state: FSMContext):
         await call.answer(f"{lang}")
         await call.message.answer(f"{yourl} : {lang}", reply_markup=menu_frep(call.from_user.id, lang))
     else: print("Такого языка нет.-*")
-

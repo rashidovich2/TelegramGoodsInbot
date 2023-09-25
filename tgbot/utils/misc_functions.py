@@ -1,5 +1,6 @@
 # - *- coding: utf- 8 - *-
 import asyncio
+from decimal import Decimal
 import aiohttp
 import json
 import os, random
@@ -233,6 +234,59 @@ async def validate_bsc_address(address):
     else:
         return False
 
+async def validate_eth_address(address):
+    print(address)
+    response = requests.get(f"https://api.etherscan.io/api?module=stats&action=tokensupply&contractaddress={address}&apikey=QQ4ZYNF958SIMC1NYN6ZTSH4XDDFGUREAJ")
+    if response.status_code == 200:
+        result = json.loads(response.text)
+        print(result)
+        return result
+    else:
+        return False
+
+API_KEY = 'QQ4ZYNF958SIMC1NYN6ZTSH4XDDFGUREAJ'
+
+async def get_transaction_amount(tx_hash):
+    response = await requests.get(
+        f"https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash={tx_hash}&apikey={API_KEY}"
+    )
+    if response.status_code == 200:
+        tx_data = response.json()
+        if tx_data['status'] == '1':
+            return tx_data['result']
+        else:
+            print(f"Transaction API error: {tx_data['message']}")
+    else:
+        print(f"Transaction API request error: {response.status_code}")
+
+
+#ETHERSCAN API KEY
+async def get_last_txs(search_amount, address, since=2):
+    response = await requests.get(
+        f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&endblock=latest&sort=asc&apikey={API_KEY}"
+    )
+    if response.status_code == 200:
+        data = response.json()
+        if data['status'] == '1':
+            transactions = data['result']
+            tasks = []
+            similar_txs = []
+            for tx in transactions:
+                tx_hash = tx['hash']
+                tasks.append(get_transaction(tx_hash))
+            transaction_data = await asyncio.gather(*tasks)
+            for i, tx in enumerate(transactions):
+                tx_data = transaction_data[i]
+                tx_amount = Decimal(int(tx_data['value'], 16)) / Decimal('1e18')
+                if round(tx_amount, 6) == round(search_amount, 6):
+                    tx['amount'] = float(tx_amount)
+                    tx['from'] = tx_data['from']
+                    similar_txs.append(tx)
+            return similar_txs
+        else:
+            print(f"API error: {data['message']}")
+    else:
+        print(f"Request error: {response.status_code}")
 
 
 async def check_trx_now(address_from, st, address_to):
@@ -970,6 +1024,7 @@ def open_profile_my2(user_id):
 def open_profile_my(user_id):
     get_purchases = get_purchasesx(user_id=user_id)
     get_user = get_userx(user_id=user_id)
+    user_city = get_user['user_city'] if get_user['user_city'] is not None else "Не выбран"
 
     how_days = int(get_unix() - get_user['user_unix']) // 60 // 60 // 24
     count_items = sum([items['purchase_count'] for items in get_purchases])
@@ -978,14 +1033,13 @@ def open_profile_my(user_id):
            <b>👤 Ваш профиль:</b>
            ➖➖➖➖➖➖➖➖➖➖
            🆔 ID: <code>{get_user['user_id']}</code>
-              Роль: <code>{get_user['user_role']}</code>
+           🎭 Роль: <code>{get_user['user_role']}</code>
+           🌇 Город: <code>{user_city}</code>
            💰 Баланс: <code>{get_user['user_balance']}₽</code>
            🎁 Куплено товаров: <code>{count_items}шт</code>
            🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>
            """)
 
-           #🎁 Куплено товаров: <code>{count_items}шт</code>
-          # 🕰 Регистрация: <code>{get_user['user_date'].split(' ')[0]} ({convert_day(how_days)})</code>
 # Открытие своего профиля
 def open_profile_my2(user_id):
     #get_purchases = get_purchasesx(user_id=user_id)

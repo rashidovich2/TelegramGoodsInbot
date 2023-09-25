@@ -191,23 +191,23 @@ def payment_choice_finl(user_id, lang):
         bycard = "Перевод на карту по номеру"
 
     status_byusdt_kb = ikb("✅", callback_data=f"change_payment:USDT:False:{user_id}")
-    #status_bytrx_kb = ikb("✅", callback_data=f"change_payment:TRX:False:{user_id}")
-    #status_bybtcb_kb = ikb("✅", callback_data=f"change_payment:BTCB:False:{user_id}")
+    status_bytrx_kb = ikb("✅", callback_data=f"change_payment:TRX:False:{user_id}")
+    status_bybtcb_kb = ikb("✅", callback_data=f"change_payment:BTCB:False:{user_id}")
     status_bycard_kb = ikb("✅", callback_data=f"change_payment:CardTransfer:False:{user_id}")
 
-    #if get_payments['way_tron'] == ["False", "None"]:
-    #    status_bytrx_kb = ikb("❌", callback_data=f"change_payment:TRX:True:{user_id}")
+    if get_payments['way_tron'] == ["False", "None"]:
+        status_bytrx_kb = ikb("❌", callback_data=f"change_payment:TRX:True:{user_id}")
     if get_payments['way_usdt'] == ["False", "None"]:
         status_byusdt_kb = ikb("❌", callback_data=f"change_payment:USDT:True:{user_id}")
-    #if get_payments['way_btcb'] == ["False", "None"]:
-    #    status_bybtcb_kb = ikb("❌", callback_data=f"change_payment:BTCB:True:{user_id}")
+    if get_payments['way_btcb'] == ["False", "None"]:
+        status_bybtcb_kb = ikb("❌", callback_data=f"change_payment:BTCB:True:{user_id}")
     if get_payments['way_ct'] == ["False", "None"]:
         status_bycard_kb = ikb("❌", callback_data=f"change_payment:CardTransfer:True:{user_id}")
 
-    keyboard.add(ikb(byusdt, url="https://vk.cc/bYjKEy"), status_byusdt_kb)
-    #keyboard.add(ikb(bytrx, url="https://vk.cc/bYjKGM"), status_bytrx_kb)
-    #keyboard.add(ikb(bybtcb, url="https://vk.cc/c8s66X"), status_bybtcb_kb)
-    keyboard.add(ikb(bycard, url="https://vk.cc/bYjKGM"), status_bycard_kb)
+    keyboard.add(ikb(byusdt, url="https://shorturl.at/azX36"), status_byusdt_kb)
+    keyboard.add(ikb(bytrx, url="https://shorturl.at/azX36"), status_bytrx_kb)
+    keyboard.add(ikb(bybtcb, url="https://shorturl.at/azX36"), status_bybtcb_kb)
+    keyboard.add(ikb(bycard, url="https://shorturl.at/azX36"), status_bycard_kb)
 
     return keyboard
 

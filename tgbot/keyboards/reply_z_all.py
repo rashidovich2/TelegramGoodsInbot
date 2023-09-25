@@ -2,7 +2,7 @@
 from aiogram.types import ReplyKeyboardMarkup
 
 from tgbot.data.config import get_admins, get_shopadmins
-from tgbot.services.api_sqlite import get_userx, check_user_shop_exist, get_user_lang
+from tgbot.services.api_sqlite import get_userx, check_user_shop_exist, get_user_lang, get_userc_orderx
 from babel import Locale
 from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
 #from tgbot.middlewares.i18n import I18nMiddleware
@@ -20,6 +20,7 @@ def menu_frep(user_id, lang):
     user_role = get_userx(user_id=user_id)['user_role']
     lang = get_userx(user_id=user_id)['user_lang']
     user_role = "User" if user_role is None else user_role
+    cart_present = get_userc_orderx(user_id)
 
     if lang == 'ru':
         buybtn = "🎁 Купить"
@@ -28,6 +29,7 @@ def menu_frep(user_id, lang):
         enbtn = "🏫 Кружки"
         entbtn = "Афиша"
         vacancies = "💼 Создать вакансию"
+        posts = "💼 Создать пост"
         ptfbtn = "👤 Профиль"
         tubtn = "💰 Пополнить"
         crtbtn = "🧮 Корзина"
@@ -52,6 +54,7 @@ def menu_frep(user_id, lang):
         enbtn = "🏫 Cources"
         entbtn = "Events"
         vacancies = "💼 Create Vacancy"
+        posts = "💼 Create Post"
         ptfbtn = "👤 Profile"
         tubtn = "💰 Top Up"
         crtbtn = "🧮 Cart"
@@ -70,9 +73,11 @@ def menu_frep(user_id, lang):
         srbtn = "📊 Sales Report"
 
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.row(buybtn, tubtn)
+    keyboard.row(buybtn, tubtn, ptfbtn)
     #keyboard.row(buybtn, sellbtn)
-    #keyboard.row(vacancies)
+    if cart_present[0]:
+        keyboard.row(posts, crtbtn)
+    else: keyboard.row(posts)
     #keyboard.row(shopbtn, stbtn, entbtn)
     #keyboard.row(ptfbtn)
 
@@ -81,14 +86,13 @@ def menu_frep(user_id, lang):
         #keyboard.row(vacancies)
 
     if user_role == "Admin": #in get_admins():
-        keyboard.row(pmbtn, ptfbtn, stabtn)
-        #keyboard.row(vacancies, enbtn)
-        keyboard.row(stbtn, psbtn, ufbtn)
+        keyboard.row(pmbtn, stabtn)
+        keyboard.row(stbtn, ufbtn, psbtn)
         keyboard.row(srbtn)
 
     if user_role == "ShopAdmin":
-        #keyboard.row(supbtn)
-        keyboard.row(pmbtn, psbtn)
+        keyboard.row(supbtn, prtbtn)
+        #keyboard.row(pmbtn, psbtn)
 
     return keyboard
 
@@ -119,6 +123,7 @@ def shop_admin_frep(lang):
 def payments_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     if lang == 'ru':
+        ethbtn = "Ξ Etherium адрес"
         chqbtn = "₮ Tether адрес"
         chtrbtn = "TRX, Tron(Trc20) адрес"
         chkqbtn = "₿, Bitcoin(Bep-20) адрес"
@@ -127,6 +132,7 @@ def payments_frep(lang):
         chybtn = "💳 Изменить Yoo 🖍"
         pmbtn = "🖲 Способы пополнения"
     if lang == 'en':
+        ethbtn = "Ξ Etherium Address"
         chqbtn = "₮ Tether Address"
         chtrbtn = "TRX, Tron(Trc20) Address"
         chkqbtn = "₿, Bitcoin(Bep-20) Address"
@@ -141,37 +147,6 @@ def payments_frep(lang):
 
     return keyboard
 
-
-# Кнопки общих функций
-def functions_frep(lang):
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    if lang == 'ru':
-        fpbtn = "🔍 Поиск профиля"
-        msbtn = "📢 Рассылка"
-        mslbtn = "📢 Рассылка_lite"
-        fabtn = "🧾 Пополнения"
-        fcbtn = "🧾 Поиск чеков 🔍"
-        vabtn = "🧾 Cогласование вакансий"
-        сhgrbtn = "🧾 Каналы и группы для постинга"
-        mmbtn = "⬅ Главное меню"
-    if lang == 'en':
-        fpbtn = "🔍 Find Profile"
-        mslbtn = "📢 MassSendlite"
-        msbtn = "📢 Mass Send"
-        fabtn = "🧾 Fund Adds"
-        fcbtn = "🧾 Find Checks 🔍"
-        vabtn = "🧾 Vacancies Approval"
-        сhgrbtn = "🧾 Groups and Channels for Posting"
-        mmbtn = "⬅ Main Menu"
-
-    keyboard.row(fpbtn, fcbtn)
-    #keyboard.row(vabtn, сhgrbtn)
-    keyboard.row(mslbtn, fabtn)
-    keyboard.row(mmbtn)
-
-    return keyboard
-
-
 # Кнопки запросов в продавцы
 def fund_adds_frep(lang):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -180,6 +155,71 @@ def fund_adds_frep(lang):
         keyboard.row("⬅ Главное меню")
     if lang == 'en':
         keyboard.row("🧾 Wait Confirmation", "🧾 Success")
+        keyboard.row("⬅ Main Menu")
+
+    return keyboard
+
+# Кнопки платежных систем
+def payments_frep_old(lang):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    if lang == 'ru':
+        chqbtn = "🥝 Изменить QIWI 🖍"
+        chkqbtn = "🥝 Проверить QIWI ♻"
+        bqbtn = "🥝 Баланс QIWI 👁"
+        mmbtn = "⬅ Главное меню"
+        chybtn = "💳 Изменить Yoo 🖍"
+        pmbtn = "🖲 Способы пополнения"
+    if lang == 'en':
+        chqbtn = "🥝 Change QIWI 🖍"
+        chkqbtn = "🥝 Check QIWI ♻"
+        bqbtn = "🥝 Balance QIWI 👁"
+        mmbtn = "⬅ Main Menu"
+        chybtn = "💳 Change Yoo 🖍"
+        pmbtn = "🖲 Payment Methods"
+
+    keyboard.row(chqbtn, chkqbtn, bqbtn)
+    keyboard.row(mmbtn, chybtn, pmbtn)
+
+    return keyboard
+
+
+# Кнопки общих функций
+def functions_frep(lang):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    if lang == 'ru':
+        fpbtn = "👤 Поиск профиля 🔍"
+        msbtn = "📢 Рассылка"
+        mslbtn = "📢 Рассылка_lite"
+        fcbtn = "🧾 Поиск чеков 🔍"
+        vabtn = "🧾 Cогласование вакансий"
+        chbtn = "🧾 Cогласование каналов"
+        сhgrbtn = "🧾 Добавить канал"
+        mmbtn = "⬅ Главное меню"
+    if lang == 'en':
+        fpbtn = "👤 Find Profile 🔍"
+        mslbtn = "📢 MassSendlite"
+        msbtn = "📢 Mass Send"
+        fcbtn = "🧾 Find Checks 🔍"
+        vabtn = "🧾 Vacancies Approval"
+        chbtn = "🧾 Channels Approval"
+        сhgrbtn = "🧾 Add Channel"
+        mmbtn = "⬅ Main Menu"
+
+    #keyboard.row(fpbtn, fcbtn)
+    keyboard.row(chbtn, сhgrbtn)
+    keyboard.row(msbtn, mslbtn)
+    keyboard.row(mmbtn, vabtn)
+
+    return keyboard
+
+# Кнопки запросов в продавцы
+def channels_approval_frep(lang):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    if lang == 'ru':
+        keyboard.row("🖍 PR-чаты", "🖍 Группы", "🖍 Каналы")
+        keyboard.row("⬅ Главное меню")
+    if lang == 'en':
+        keyboard.row("🖍 PR-chats", "🖍 Groups", "🖍 Channels")
         keyboard.row("⬅ Main Menu")
 
     return keyboard

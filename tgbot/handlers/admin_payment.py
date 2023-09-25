@@ -14,7 +14,7 @@ from tgbot.services.api_sqlite import update_paymentx, get_paymentx, get_upaycou
 from tgbot.utils.misc.bot_filters import IsAdmin, IsAdminorShopAdmin
 from tgbot.utils.misc_functions import validate_trx_address, validate_bsc_address
 from babel import Locale
-from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR
+from tgbot.data.config import get_admins, BOT_DESCRIPTION, I18N_DOMAIN, LOCALES_DIR, FIRST_RUN
 from tgbot.middlewares.i18n import I18nMiddleware
 
 i18n = I18nMiddleware(I18N_DOMAIN, LOCALES_DIR)
@@ -48,10 +48,12 @@ async def payment_systems_edit(call: CallbackQuery):
     print(way_pay, way_status, user_id)
     #print(call.from_user.id)
 
-    get_payment = get_upaymentx(user_id)
-    #count = get_upaycount(user_id)
-    if len(get_payment) == 0:
+    get_payment = get_paymentx()
+    if FIRST_RUN == 1:
         cur = create_upayments_row(user_id)
+    #count = get_upaycount(user_id)
+    #if len(get_payment) == 0:
+    #    cur = create_upayments_row(user_id)
     #elif len(get_payment) == 1:
         #get_payment = get_paymentx
         #get_payment = get_upaymentx(user_id)
